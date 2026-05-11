@@ -75,25 +75,33 @@ async function fetchSheetData() {
 }
 
 function parseCSV(csv) {
-  const lines = csv.trim().split('\n').slice(1); // 헤더 제거
+  console.log('[Sheets RAW]', csv.slice(0, 400));
+  const lines = csv.trim().split('\n').slice(1);
   state.sheetDailyAvg = new Array(12).fill(null);
   state.sheetMemos    = new Array(12).fill('');
 
   lines.forEach(line => {
+    if (!line.trim()) return;
     const cols = line.split(',').map(c => c.replace(/^"|"$/g, '').trim());
-    const monthStr = cols[0]; // 예: "26-05"
+    const monthStr = cols[0];
     const val      = parseFloat(cols[1]);
     const memo     = cols[2] || '';
 
     if (!monthStr) return;
-    const parts = monthStr.match(/(\d{2})-(\d{2})/);
-    if (!parts) return;
-    const monthIdx = parseInt(parts[2], 10) - 1; // 0-based
-    if (monthIdx >= 0 && monthIdx < 12) {
+
+    // 여러 형식 지원: "26-05", "2026-05-01", "2026-05-15" 등
+    let monthIdx = null;
+    const m1 = monthStr.match(/\d{2,4}-(\d{2})/);
+    if (m1) monthIdx = parseInt(m1[1], 10) - 1;
+
+    console.log('[Row]', monthStr, '->', monthIdx, 'val:', val);
+
+    if (monthIdx !== null && monthIdx >= 0 && monthIdx < 12) {
       state.sheetDailyAvg[monthIdx] = isNaN(val) ? null : val;
       state.sheetMemos[monthIdx]    = memo;
     }
   });
+  console.log('[Parsed sheetDailyAvg]', state.sheetDailyAvg);
 }
 
 // ── 핵심 계산 ─────────────────────────────────────────────────
