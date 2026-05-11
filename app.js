@@ -4,11 +4,29 @@
 
 // ── 상태 ─────────────────────────────────────────────────────
 let state = {
-  sheetDailyAvg: new Array(12).fill(null),  // 시트에서 받아온 일평균 (인덱스 0=1월)
+  sheetDailyAvg: new Array(12).fill(null),
   sheetMemos:    new Array(12).fill(''),
   profitChart:   null,
   balanceChart:  null,
+  scenarioRate:  0,
 };
+
+// ── 시나리오 전환 ─────────────────────────────────────────────
+function setScenario(rate) {
+  state.scenarioRate = rate;
+  document.querySelectorAll('.sc-btn').forEach(btn => {
+    btn.classList.toggle('active', parseFloat(btn.dataset.rate) === rate);
+  });
+  const note = document.getElementById('scenarioNote');
+  const baseRev = CONFIG.PLAN_REV_6_12;
+  const adjRev  = Math.round(baseRev * (1 + rate / 100));
+  if (rate === 0) {
+    note.textContent = '기준: 광고비 평균 역산값 그대로';
+  } else {
+    note.textContent = `기준 ${fmt(baseRev)}만 → 조정 ${fmt(adjRev)}만원/월`;
+  }
+  renderAll();
+}
 
 // localStorage에서 설정 복원
 function loadLocalSettings() {
@@ -41,7 +59,7 @@ async function fetchSheetData() {
 
   setSyncStatus('loading', '동기화 중...');
 
-  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(CONFIG.SHEET_NAME)}&range=${CONFIG.SHEET_RANGE}`;
+  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(CONFIG.SHEET_NAME)}&range=${CONFIG.SHEET_RANGE}&t=${Date.now()}`;
 
   try {
     const res = await fetch(url);
@@ -108,10 +126,44 @@ function calcRows() {
       }
       dailyTarget = null;
     } else {
-      // 6~12월: 광고비 평균 역산
-      revenue     = CONFIG.PLAN_REV_6_12;
-      dailyTarget = Math.round((revenue * CONFIG.NAVER_RATIO) / CONFIG.DAYS[i]);
-      basis       = `광고비역산 (목표일평균 ${fmt(dailyTarget)}만원)`;
+      // 6~12월: 시트 입력값 있으면 우선, 없으면 광고비 역산 + 시나리오 적용
+      const sheetD = state.sheetDailyAvg[i];
+      const factor = 1 + state.scenarioRate / 100;
+      let basisTag;
+
+      if (sheetD && sheetD > 0) {
+        // 시트에 일평균 입력된 경우
+        const adjustedDaily = Math.round(sheetD * factor);
+        revenue  = Math.round((adjustedDaily * CONFIG.DAYS[i]) / CONFIG.NAVER_RATIO);
+        basisTag = `시트입력 ${fmt(sheetD)}만${state.scenarioRate !== 0 ? '×(1' + state.scenarioRate + '%)' : ''}`;
+      } else {
+        // 시트 미입력 → 광고비 역산
+        revenue  = Math.round(CONFIG.PLAN_REV_6_12 * factor);
+        basisTag = `광고비역산${state.scenarioRate !== 0 ? '(' + state.scenarioRate + '%)' : ''}`;
+      }
+
+      const adCost    = Math.round(revenue * CONFIG.AD_RATIO);
+      dailyTarget     = Math.round((revenue * CONFIG.NAVER_RATIO) / CONFIG.DAYS[i]);
+      basis           = `${basisTag} · 목표 ${fmt(dailyTarget)}만원/일`;
+
+      const fixedM    = CONFIG.COSTS.fixed[i];
+      const orderM    = CONFIG.COSTS.order[i];
+      const otherM    = CONFIG.COSTS.other[i];
+      const totalCost = fixedM + orderM + adCost + otherM;
+      const profit    = revenue - totalCost;
+      balance        += profit;
+
+      rows.push({
+        idx: i,
+        month: CONFIG.MONTH_LABELS[i],
+        isActual: false, isMay: false, isPlan: true,
+        revenue, fixed: fixedM, order: orderM, ad: adCost, other: otherM,
+        totalCost, profit, balance, basis,
+        dailyTarget,
+        memo: state.sheetMemos[i] || '',
+        sheetDaily: sheetD,
+      });
+      continue;
     }
 
     const totalCost = fixed + order + ad + other;
