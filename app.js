@@ -4,11 +4,29 @@
 
 // ── 상태 ─────────────────────────────────────────────────────
 let state = {
-  sheetDailyAvg: new Array(12).fill(null),  // 시트에서 받아온 일평균 (인덱스 0=1월)
+  sheetDailyAvg: new Array(12).fill(null),
   sheetMemos:    new Array(12).fill(''),
   profitChart:   null,
   balanceChart:  null,
+  scenarioRate:  0,
 };
+
+// ── 시나리오 전환 ─────────────────────────────────────────────
+function setScenario(rate) {
+  state.scenarioRate = rate;
+  document.querySelectorAll('.sc-btn').forEach(btn => {
+    btn.classList.toggle('active', parseFloat(btn.dataset.rate) === rate);
+  });
+  const note = document.getElementById('scenarioNote');
+  const baseRev = CONFIG.PLAN_REV_6_12;
+  const adjRev  = Math.round(baseRev * (1 + rate / 100));
+  if (rate === 0) {
+    note.textContent = '기준: 광고비 평균 역산값 그대로';
+  } else {
+    note.textContent = `기준 ${fmt(baseRev)}만 → 조정 ${fmt(adjRev)}만원/월`;
+  }
+  renderAll();
+}
 
 // localStorage에서 설정 복원
 function loadLocalSettings() {
@@ -108,10 +126,32 @@ function calcRows() {
       }
       dailyTarget = null;
     } else {
-      // 6~12월: 광고비 평균 역산
-      revenue     = CONFIG.PLAN_REV_6_12;
-      dailyTarget = Math.round((revenue * CONFIG.NAVER_RATIO) / CONFIG.DAYS[i]);
-      basis       = `광고비역산 (목표일평균 ${fmt(dailyTarget)}만원)`;
+      // 6~12월: 광고비 평균 역산 기준에 시나리오 비율 적용
+      const factor  = 1 + state.scenarioRate / 100;
+      revenue       = Math.round(CONFIG.PLAN_REV_6_12 * factor);
+      const adCost  = Math.round(revenue * CONFIG.AD_RATIO);   // 매출×25% 연동
+      dailyTarget   = Math.round((revenue * CONFIG.NAVER_RATIO) / CONFIG.DAYS[i]);
+      basis         = `광고비역산${state.scenarioRate !== 0 ? ' (' + state.scenarioRate + '%)' : ''} · 목표일평균 ${fmt(dailyTarget)}만원`;
+
+      // 이 행의 광고비를 매출의 25%로 덮어씀
+      const fixed = CONFIG.COSTS.fixed[i];
+      const order = CONFIG.COSTS.order[i];
+      const other = CONFIG.COSTS.other[i];
+      const totalCost = fixed + order + adCost + other;
+      const profit    = revenue - totalCost;
+      balance        += profit;
+
+      rows.push({
+        idx: i,
+        month: CONFIG.MONTH_LABELS[i],
+        isActual: false, isMay: false, isPlan: true,
+        revenue, fixed, order, ad: adCost, other,
+        totalCost, profit, balance, basis,
+        dailyTarget,
+        memo: state.sheetMemos[i] || '',
+        sheetDaily: state.sheetDailyAvg[i],
+      });
+      continue;
     }
 
     const totalCost = fixed + order + ad + other;
