@@ -96,7 +96,18 @@
       <!-- DAILY TARGET -->
       <div class="target-section">
         <div class="target-card">
-          <div class="target-label">6~12월 자사몰+네이버 목표 일평균</div>
+          <div class="target-header">
+            <div class="target-label">6~12월 자사몰+네이버 목표 일평균</div>
+            <div class="scenario-bar">
+              <span class="scenario-label">시나리오</span>
+              <button class="sc-btn active" data-rate="0"   onclick="setScenario(0)">기준</button>
+              <button class="sc-btn"        data-rate="-5"  onclick="setScenario(-5)">−5%</button>
+              <button class="sc-btn"        data-rate="-10" onclick="setScenario(-10)">−10%</button>
+              <button class="sc-btn"        data-rate="-15" onclick="setScenario(-15)">−15%</button>
+              <button class="sc-btn"        data-rate="-20" onclick="setScenario(-20)">−20%</button>
+              <span class="scenario-note" id="scenarioNote"></span>
+            </div>
+          </div>
           <div class="target-row">
             <div class="target-month" id="targetTable"></div>
           </div>
