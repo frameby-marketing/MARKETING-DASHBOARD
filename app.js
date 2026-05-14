@@ -16,6 +16,7 @@ let state = {
 // ── 시나리오 전환 ─────────────────────────────────────────────
 function setScenario(rate) {
   state.scenarioRate = rate;
+  // 모든 sc-btn active 해제 후 해당 rate만 active
   document.querySelectorAll('.sc-btn').forEach(btn => {
     btn.classList.toggle('active', parseFloat(btn.dataset.rate) === rate);
   });
@@ -23,9 +24,11 @@ function setScenario(rate) {
   const baseRev = CONFIG.PLAN_REV_6_12;
   const adjRev  = Math.round(baseRev * (1 + rate / 100));
   if (rate === 0) {
-    note.textContent = '기준: 광고비 평균 역산값 그대로';
+    note.textContent = '기준값 그대로';
+  } else if (rate > 0) {
+    note.textContent = `↑ 기준 ${fmt(baseRev)}만 → ${fmt(adjRev)}만원/월 (+${rate}%)`;
   } else {
-    note.textContent = `기준 ${fmt(baseRev)}만 → 조정 ${fmt(adjRev)}만원/월`;
+    note.textContent = `↓ 기준 ${fmt(baseRev)}만 → ${fmt(adjRev)}만원/월 (${rate}%)`;
   }
   renderAll();
 }
