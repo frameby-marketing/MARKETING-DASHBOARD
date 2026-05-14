@@ -9,6 +9,8 @@ let state = {
   profitChart:   null,
   balanceChart:  null,
   scenarioRate:  0,
+  adRatio:       CONFIG.AD_RATIO,    // 구글 시트에서 동적으로 갱신
+  orderRatio:    CONFIG.ORDER_RATIO,  // 구글 시트에서 동적으로 갱신
 };
 
 // ── 시나리오 전환 ─────────────────────────────────────────────
@@ -36,16 +38,22 @@ function loadLocalSettings() {
     if (s.sheetId)    CONFIG.SHEET_ID    = s.sheetId;
     if (s.sheetName)  CONFIG.SHEET_NAME  = s.sheetName;
     if (s.sheetRange) CONFIG.SHEET_RANGE = s.sheetRange;
-    if (s.naverRatio) CONFIG.NAVER_RATIO = s.naverRatio / 100;
-    if (s.adRatio)    CONFIG.AD_RATIO    = s.adRatio / 100;
+    if (s.naverRatio)  CONFIG.NAVER_RATIO  = s.naverRatio / 100;
+    if (s.adRatio)     CONFIG.AD_RATIO     = s.adRatio / 100;
+    if (s.orderRatio)  CONFIG.ORDER_RATIO  = s.orderRatio / 100;
+    // state에도 반영
+    state.adRatio    = CONFIG.AD_RATIO;
+    state.orderRatio = CONFIG.ORDER_RATIO;
   }
   // UI 반영
   if (document.getElementById('sheetId')) {
     document.getElementById('sheetId').value    = CONFIG.SHEET_ID !== 'YOUR_SPREADSHEET_ID_HERE' ? CONFIG.SHEET_ID : '';
     document.getElementById('sheetName').value  = CONFIG.SHEET_NAME;
     document.getElementById('sheetRange').value = CONFIG.SHEET_RANGE;
-    document.getElementById('naverRatio').value = Math.round(CONFIG.NAVER_RATIO * 100);
-    document.getElementById('adRatio').value    = Math.round(CONFIG.AD_RATIO * 100);
+    document.getElementById('naverRatio').value  = Math.round(CONFIG.NAVER_RATIO * 100);
+    document.getElementById('adRatio').value     = Math.round(CONFIG.AD_RATIO * 100);
+    const orEl = document.getElementById('orderRatio');
+    if (orEl) orEl.value = Math.round(CONFIG.ORDER_RATIO * 100);
   }
 }
 
@@ -83,18 +91,30 @@ function parseCSV(csv) {
   lines.forEach(line => {
     if (!line.trim()) return;
     const cols = line.split(',').map(c => c.replace(/^"|"$/g, '').trim());
-    const monthStr = cols[0];
-    const val      = parseFloat(cols[1]);
-    const memo     = cols[2] || '';
+    const key  = cols[0];
+    const val  = parseFloat(cols[1]);
+    const memo = cols[2] || '';
 
-    if (!monthStr) return;
+    if (!key) return;
 
-    // 여러 형식 지원: "26-05", "2026-05-01", "2026-05-15" 등
+    // ── 비율 키 처리 ──────────────────────────────────────
+    if (key === 'ad_ratio') {
+      if (!isNaN(val) && val > 0) state.adRatio = val / 100;
+      console.log('[ad_ratio]', state.adRatio);
+      return;
+    }
+    if (key === 'order_ratio') {
+      if (!isNaN(val) && val > 0) state.orderRatio = val / 100;
+      console.log('[order_ratio]', state.orderRatio);
+      return;
+    }
+
+    // ── 월별 일평균 ──────────────────────────────────────
     let monthIdx = null;
-    const m1 = monthStr.match(/\d{2,4}-(\d{2})/);
+    const m1 = key.match(/\d{2,4}-(\d{2})/);
     if (m1) monthIdx = parseInt(m1[1], 10) - 1;
 
-    console.log('[Row]', monthStr, '->', monthIdx, 'val:', val);
+    console.log('[Row]', key, '->', monthIdx, 'val:', val);
 
     if (monthIdx !== null && monthIdx >= 0 && monthIdx < 12) {
       state.sheetDailyAvg[monthIdx] = isNaN(val) ? null : val;
@@ -102,6 +122,7 @@ function parseCSV(csv) {
     }
   });
   console.log('[Parsed sheetDailyAvg]', state.sheetDailyAvg);
+  console.log('[Ratios] ad:', state.adRatio, 'order:', state.orderRatio);
 }
 
 // ── 핵심 계산 ─────────────────────────────────────────────────
@@ -150,14 +171,15 @@ function calcRows() {
         basisTag = `광고비역산${state.scenarioRate !== 0 ? '(' + state.scenarioRate + '%)' : ''}`;
       }
 
-      const adCost    = Math.round(revenue * CONFIG.AD_RATIO);
+      // 광고비·발주비: 매출 × 동적 비율 (시트에서 변경 가능)
+      const adCost    = Math.round(revenue * state.adRatio);
+      const orderCost = Math.round(revenue * state.orderRatio);
       dailyTarget     = Math.round((revenue * CONFIG.NAVER_RATIO) / CONFIG.DAYS[i]);
-      basis           = `${basisTag} · 목표 ${fmt(dailyTarget)}만원/일`;
+      basis           = `${basisTag} · 목표 ${fmt(dailyTarget)}만원/일 · 광고${Math.round(state.adRatio*100)}% · 발주${Math.round(state.orderRatio*100)}%`;
 
       const fixedM    = CONFIG.COSTS.fixed[i];
-      const orderM    = CONFIG.COSTS.order[i];
       const otherM    = CONFIG.COSTS.other[i];
-      const totalCost = fixedM + orderM + adCost + otherM;
+      const totalCost = fixedM + orderCost + adCost + otherM;
       const profit    = revenue - totalCost;
       balance        += profit;
 
@@ -165,7 +187,7 @@ function calcRows() {
         idx: i,
         month: CONFIG.MONTH_LABELS[i],
         isActual: false, isMay: false, isPlan: true,
-        revenue, fixed: fixedM, order: orderM, ad: adCost, other: otherM,
+        revenue, fixed: fixedM, order: orderCost, ad: adCost, other: otherM,
         totalCost, profit, balance, basis,
         dailyTarget,
         memo: state.sheetMemos[i] || '',
@@ -174,6 +196,7 @@ function calcRows() {
       continue;
     }
 
+    // 5월: 광고비·발주비는 기존 계획값 사용 (1~4월은 확정값)
     const totalCost = fixed + order + ad + other;
     const profit    = revenue - totalCost;
     balance        += profit;
@@ -407,28 +430,35 @@ function saveSettings() {
 
   localStorage.setItem('rm_settings', JSON.stringify({
     sheetId, sheetName, sheetRange,
-    naverRatio: Math.round(CONFIG.NAVER_RATIO * 100),
-    adRatio:    Math.round(CONFIG.AD_RATIO * 100),
+    naverRatio:  Math.round(CONFIG.NAVER_RATIO * 100),
+    adRatio:     Math.round(CONFIG.AD_RATIO * 100),
+    orderRatio:  Math.round(CONFIG.ORDER_RATIO * 100),
   }));
 
   fetchSheetData();
 }
 
 function saveRatios() {
-  const naverRatio = parseFloat(document.getElementById('naverRatio').value) || 68;
-  const adRatio    = parseFloat(document.getElementById('adRatio').value) || 25;
+  const naverRatio  = parseFloat(document.getElementById('naverRatio').value)  || 68;
+  const adRatio     = parseFloat(document.getElementById('adRatio').value)     || 25;
+  const orderRatioV = parseFloat(document.getElementById('orderRatio')?.value) || 30;
 
-  CONFIG.NAVER_RATIO = naverRatio / 100;
-  CONFIG.AD_RATIO    = adRatio / 100;
+  CONFIG.NAVER_RATIO  = naverRatio / 100;
+  CONFIG.AD_RATIO     = adRatio / 100;
+  CONFIG.ORDER_RATIO  = orderRatioV / 100;
 
-  // 평균 광고비 역산값 재계산
+  // state에도 반영 (구글 시트 키가 없을 때 기본값으로 사용)
+  state.adRatio    = CONFIG.AD_RATIO;
+  state.orderRatio = CONFIG.ORDER_RATIO;
+
+  // 평균 광고비 역산값 재계산 (5월 기준용)
   CONFIG.PLAN_REV_6_12 = Math.round(CONFIG.AVG_AD / CONFIG.AD_RATIO);
 
   const saved = JSON.parse(localStorage.getItem('rm_settings') || '{}');
-  localStorage.setItem('rm_settings', JSON.stringify({ ...saved, naverRatio, adRatio }));
+  localStorage.setItem('rm_settings', JSON.stringify({ ...saved, naverRatio, adRatio, orderRatio: orderRatioV }));
 
   renderAll();
-  alert(`저장 완료: 자사몰+네이버 비중 ${naverRatio}%, 광고비 비중 ${adRatio}%`);
+  alert(`저장 완료: 자사몰+네이버 비중 ${naverRatio}%, 광고비 ${adRatio}%, 발주비 ${orderRatioV}%`);
 }
 
 // ── 탭 전환 ───────────────────────────────────────────────────
