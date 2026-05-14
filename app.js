@@ -12,6 +12,9 @@ let state = {
   monthScenario:   new Array(12).fill(0),    // 월별 개별 시나리오 [0]=1월 ~ [11]=12월
   adRatio:         CONFIG.AD_RATIO,
   orderRatio:      CONFIG.ORDER_RATIO,
+  // 상환: 인덱스 5=6월 고정 4000, 6~11월 선택 (0=미설정)
+  repayment:       [0,0,0,0,0, 4000, 0, 0, 0, 0, 0, 0],
+  totalRepayment:  12000,  // 총 상환 목표 (만원)
 };
 
 // ── 시나리오 전환 ─────────────────────────────────────────────
@@ -53,6 +56,50 @@ function setScenario(rate) {
     note.textContent = `기준 ${toEok(baseRev)} → ${toEok(adjRev)} (${rate}%)`;
   }
   renderAll();
+}
+
+// ── 상환 월별 설정 ────────────────────────────────────────────
+function setRepayment(monthIdx, amount) {
+  state.repayment[monthIdx] = amount;
+  // 버튼 active 동기화
+  document.querySelectorAll(`.repay-btn[data-month="${monthIdx}"]`).forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.dataset.amount) === amount);
+  });
+  // 잔여 상환액 배너 업데이트
+  renderRepaymentStatus();
+  renderAll();
+}
+
+function renderRepaymentStatus() {
+  const total = state.totalRepayment;
+  const paid  = state.repayment.reduce((s, v) => s + v, 0);
+  const remain = total - paid;
+  const el = document.getElementById('repayStatusBar');
+  if (!el) return;
+  const pct = Math.min(100, Math.round(paid / total * 100));
+  const overPct = paid > total ? Math.round((paid - total) / total * 100) : 0;
+  el.innerHTML = `
+    <div class="repay-status-row">
+      <div class="repay-status-item">
+        <span class="repay-status-label">총 상환 목표</span>
+        <span class="repay-status-val">${total.toLocaleString()}만원</span>
+      </div>
+      <div class="repay-status-item">
+        <span class="repay-status-label">설정된 상환액</span>
+        <span class="repay-status-val ${paid > total ? 'neg' : ''}">${paid.toLocaleString()}만원</span>
+      </div>
+      <div class="repay-status-item">
+        <span class="repay-status-label">잔여 상환액</span>
+        <span class="repay-status-val ${remain < 0 ? 'neg' : remain === 0 ? 'pos' : ''}">${remain < 0 ? '초과 ' + Math.abs(remain).toLocaleString() : remain.toLocaleString()}만원</span>
+      </div>
+      <div class="repay-status-item">
+        <span class="repay-status-label">완료율</span>
+        <span class="repay-status-val ${pct >= 100 ? 'pos' : ''}">${pct}%</span>
+      </div>
+    </div>
+    <div class="repay-progress-track">
+      <div class="repay-progress-fill ${paid > total ? 'over' : ''}" style="width:${Math.min(pct,100)}%"></div>
+    </div>`;
 }
 
 // ── 월별 개별 시나리오 전환 ──────────────────────────────────
@@ -220,14 +267,18 @@ function calcRows() {
       const otherM    = CONFIG.COSTS.other[i];
       const totalCost = fixedM + orderCost + adCost + otherM;
       const profit    = revenue - totalCost;
-      balance        += profit;
+      // balance는 repay 포함해서 아래 push에서 처리
 
+      const repay = state.repayment[i] || 0;
+      const totalCostR = totalCost + repay;
+      const profitR    = revenue - totalCostR;
+      balance += profitR;
       rows.push({
         idx: i,
         month: CONFIG.MONTH_LABELS[i],
         isActual: false, isMay: false, isPlan: true,
-        revenue, fixed: fixedM, order: orderCost, ad: adCost, other: otherM,
-        totalCost, profit, balance, basis,
+        revenue, fixed: fixedM, order: orderCost, ad: adCost, other: otherM, repay,
+        totalCost: totalCostR, profit: profitR, balance, basis,
         dailyTarget,
         memo: state.sheetMemos[i] || '',
         sheetDaily: sheetD,
@@ -240,18 +291,21 @@ function calcRows() {
     const profit    = revenue - totalCost;
     balance        += profit;
 
+    const repay14 = state.repayment[i] || 0;
     rows.push({
       idx: i,
       month: CONFIG.MONTH_LABELS[i],
       isActual: i < 4,
       isMay:    i === 4,
       isPlan:   i >= 5,
-      revenue, fixed, order, ad, other,
-      totalCost, profit, balance, basis,
-      dailyTarget,
+      revenue, fixed, order, ad, other, repay: repay14,
+      totalCost: totalCost + repay14, profit: profit - repay14,
+      balance: balance - repay14,
+      basis, dailyTarget,
       memo: state.sheetMemos[i] || '',
       sheetDaily: state.sheetDailyAvg[i],
     });
+    balance -= repay14;
   }
   return rows;
 }
@@ -274,6 +328,8 @@ function renderAll() {
   renderTurnoverBanner(profitMonth, balanceMonth);
   renderCharts(rows);
   renderTargetTable(rows);
+  renderRepaymentSection(rows);
+  renderRepaymentStatus();
   renderTable(rows);
 
   document.getElementById('lastUpdated').textContent =
@@ -454,6 +510,44 @@ function renderTargetTable(rows) {
   }).join('');
 }
 
+function renderRepaymentSection(rows) {
+  const el = document.getElementById('repaySection');
+  if (!el) return;
+  const AMOUNTS = [1000, 2000, 3000, 4000];
+  const planRows = rows.filter(r => r.isPlan); // 6~12월
+
+  // 누적 잔여 계산
+  let cumPaid = 0;
+  el.innerHTML = planRows.map((r, ri) => {
+    const isJune    = r.idx === 5;
+    const repayAmt  = state.repayment[r.idx] || 0;
+    cumPaid += repayAmt;
+    const remain    = state.totalRepayment - cumPaid;
+    const isOver    = cumPaid > state.totalRepayment;
+
+    const btnHTML = isJune
+      ? `<span class="repay-fixed-badge">4,000만 고정</span>`
+      : AMOUNTS.map(amt => {
+          const isActive = repayAmt === amt;
+          return `<button class="repay-btn ${isActive ? 'active' : ''}"
+            data-month="${r.idx}" data-amount="${amt}"
+            onclick="setRepayment(${r.idx}, ${isActive ? 0 : amt})">${(amt/1000).toFixed(0)}천만</button>`;
+        }).join('');
+
+    return `
+      <div class="repay-month-card ${repayAmt > 0 ? 'repay-set' : ''}">
+        <div class="repay-mc-header">
+          <span class="repay-mc-month">${r.month}</span>
+          ${repayAmt > 0 ? `<span class="repay-mc-amt">${repayAmt.toLocaleString()}만</span>` : ''}
+        </div>
+        <div class="repay-mc-btns">${btnHTML}</div>
+        <div class="repay-mc-remain ${isOver ? 'neg' : remain <= 2000 ? 'warn' : ''}">
+          ${ri < planRows.length - 1 ? `잔여 ${remain < 0 ? '<span class="neg">초과 ' + Math.abs(remain).toLocaleString() + '</span>' : remain.toLocaleString() + '만'}` : (remain === 0 ? '<span class="pos">완료 ✓</span>' : `<span class="neg">미달 ${remain.toLocaleString()}만</span>`)}
+        </div>
+      </div>`;
+  }).join('');
+}
+
 function renderTable(rows) {
   document.getElementById('tableBody').innerHTML = rows.map(r => `
     <tr class="${r.isActual ? 'row-actual' : r.isMay ? 'row-may' : 'row-plan'}">
@@ -468,6 +562,7 @@ function renderTable(rows) {
       <td class="num">${fmt(r.order)}</td>
       <td class="num">${fmt(r.ad)}</td>
       <td class="num">${fmt(r.other)}</td>
+      <td class="num ${r.repay > 0 ? 'repay-cell' : ''}">${r.repay > 0 ? fmt(r.repay) : '—'}</td>
       <td class="num">${fmt(r.totalCost)}</td>
       <td class="num ${r.profit >= 0 ? 'pos' : 'neg'}">${fmtSign(r.profit)}</td>
       <td class="num ${r.balance >= 0 ? 'info' : 'neg'}">${fmtSign(r.balance)}</td>
