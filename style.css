@@ -820,16 +820,20 @@ code {
   background: linear-gradient(90deg, var(--red), #f97316);
 }
 .repay-progress-ticks {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 4px;
-  padding: 0 1px;
+  position: relative;
+  height: 14px;
+  margin-top: 3px;
 }
 .repay-progress-tick {
+  position: absolute;
   font-size: 9px;
   color: var(--muted);
   font-family: var(--mono);
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
+.repay-progress-tick:first-child { transform: translateX(0); }
+.repay-progress-tick:last-child  { transform: translateX(-100%); }
 
 .repay-cell { color: var(--accent) !important; }
 .pos { color: var(--green); }
