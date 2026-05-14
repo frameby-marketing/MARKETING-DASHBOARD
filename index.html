@@ -3,42 +3,459 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>매출 & 영업이익 시뮬레이션</title>
+  <title>발주 관리 대시보드</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-  <link rel="stylesheet" href="style.css">
+  <style>
+/* ============================================================
+   style.css — 발주 관리 대시보드
+   Theme: dark industrial / monospace data terminal
+   ============================================================ */
+
+:root {
+  --bg:     #0d0f12;
+  --bg2:    #13161b;
+  --bg3:    #1a1e26;
+  --border: rgba(255,255,255,0.07);
+  --border2:rgba(255,255,255,0.13);
+  --text:   #e2e8f0;
+  --muted:  #64748b;
+  --accent: #38bdf8;
+  --green:  #22c55e;
+  --red:    #ef4444;
+  --amber:  #f59e0b;
+  --blue:   #3b82f6;
+  --purple: #8b5cf6;
+  --pink:   #ec4899;
+  --sidebar-w: 200px;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Pretendard', -apple-system, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+/* ── LAYOUT ────────────────────────────────────────────── */
+.app { display: flex; height: 100vh; overflow: hidden; }
+
+/* ── SIDEBAR ───────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w); flex-shrink: 0;
+  background: var(--bg2); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; padding: 1.5rem 1rem; gap: 0.5rem;
+}
+.logo { display: flex; align-items: center; gap: 10px; padding: 0 0.5rem 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 0.5rem; }
+.logo-mark { font-size: 20px; color: var(--accent); line-height: 1; }
+.logo-text { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--text); line-height: 1.3; letter-spacing: 0.04em; }
+.nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+.nav-item {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px;
+  border-radius: 6px; border: none; background: transparent;
+  color: var(--muted); font-family: var(--sans); font-size: 13px;
+  cursor: pointer; transition: all 0.15s; text-align: left;
+}
+.nav-item:hover { background: var(--bg3); color: var(--text); }
+.nav-item.active { background: var(--bg3); color: var(--accent); }
+.sync-status { display: flex; align-items: center; gap: 7px; padding: 8px 10px; font-size: 11px; color: var(--muted); font-family: var(--mono); }
+.sync-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+.sync-dot.sync-ok      { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.sync-dot.sync-loading { background: var(--accent); animation: pulse 1s infinite; }
+.sync-dot.sync-error   { background: var(--red); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.refresh-btn {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 8px; border-radius: 6px; border: 1px solid var(--border2);
+  background: transparent; color: var(--muted); font-size: 12px; font-family: var(--sans);
+  cursor: pointer; transition: all 0.15s;
+}
+.refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── MAIN ──────────────────────────────────────────────── */
+.main { flex: 1; overflow-y: auto; padding: 2rem; display: flex; flex-direction: column; }
+.panel { display: none; }
+.panel.on { display: block; }
+
+/* ── PAGE HEADER ───────────────────────────────────────── */
+.page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 1.5rem; gap: 1rem; }
+.page-title { font-size: 22px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+.page-sub { font-size: 12px; color: var(--muted); font-family: var(--mono); margin-top: 4px; }
+.period-badge { font-family: var(--mono); font-size: 11px; padding: 4px 10px; border: 1px solid var(--border2); border-radius: 4px; color: var(--muted); white-space: nowrap; }
+
+/* ── SECTIONS ──────────────────────────────────────────── */
+.sec { margin-bottom: 1.5rem; }
+.sec-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; }
+.sec-lbl { font-size: 13px; font-weight: 600; color: var(--text); }
+.sec-sub { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+
+/* ── KPI ROW ───────────────────────────────────────────── */
+.kpi-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr; gap: 10px; }
+.kpi-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.1rem 1.25rem;
+}
+.kpi-wide { grid-column: span 1; }
+.kpi-label { font-size: 11px; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+.kpi-label-sub { color: var(--muted); opacity: 0.7; margin-left: 4px; }
+.kpi-value { font-size: 24px; font-weight: 600; font-family: var(--mono); color: var(--text); letter-spacing: -0.02em; margin-bottom: 6px; }
+.kpi-value.pos { color: var(--green); }
+.kpi-value.neg { color: var(--red); }
+.kpi-sub { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+.kpi-footer { font-size: 11px; color: var(--muted); font-family: var(--mono); margin-top: 10px; }
+
+/* ── BADGE ─────────────────────────────────────────────── */
+.kpi-badge { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-bottom: 4px; }
+.kpi-badge-green  { background: rgba(34,197,94,0.12);  color: var(--green); }
+.kpi-badge-red    { background: rgba(239,68,68,0.12);  color: var(--red); }
+.kpi-badge-amber  { background: rgba(245,158,11,0.12); color: var(--amber); }
+.kpi-badge-blue   { background: rgba(59,130,246,0.12); color: var(--blue); }
+.kpi-badge-purple { background: rgba(139,92,246,0.12); color: var(--purple); }
+.kpi-badge-pink   { background: rgba(236,72,153,0.12); color: var(--pink); }
+
+/* ── BAR COMPARE ───────────────────────────────────────── */
+.bar-compare { display: flex; flex-direction: column; gap: 8px; }
+.bar-compare-row { display: flex; align-items: center; gap: 8px; }
+.bar-compare-tag { font-size: 10px; color: var(--muted); width: 30px; flex-shrink: 0; text-align: right; font-family: var(--mono); line-height: 1.3; }
+.bar-compare-track { flex: 1; height: 12px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.bar-compare-fill { height: 100%; border-radius: 3px; transition: width 0.7s cubic-bezier(.4,0,.2,1); }
+.bar-compare-val { font-size: 12px; font-weight: 600; font-family: var(--mono); width: 56px; flex-shrink: 0; color: var(--text); }
+
+/* ── PROGRESS BAR ──────────────────────────────────────── */
+.prog-track { height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+.prog-fill { height: 100%; border-radius: 3px; transition: width 0.7s cubic-bezier(.4,0,.2,1); }
+
+/* ── DONUT ─────────────────────────────────────────────── */
+.kpi-donut { display: flex; flex-direction: column; align-items: center; }
+.donut-wrap { position: relative; display: flex; align-items: center; justify-content: center; margin: 6px 0; }
+.donut-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.donut-legend { display: flex; gap: 10px; font-size: 10px; color: var(--muted); margin-top: 6px; }
+.donut-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 3px; }
+
+/* ── TABLES ────────────────────────────────────────────── */
+.table-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; }
+thead tr { background: var(--bg3); border-bottom: 1px solid var(--border); }
+th { padding: 8px 14px; font-size: 11px; font-weight: 500; color: var(--muted); text-align: left; white-space: nowrap; }
+th.num { text-align: right; }
+td { padding: 7px 14px; border-top: 1px solid var(--border); color: var(--text); }
+td.num { text-align: right; font-family: var(--mono); font-size: 12px; }
+td.fw { font-weight: 600; }
+td.muted { color: var(--muted); }
+td.pos { color: var(--green); font-weight: 600; }
+td.neg { color: var(--red); font-weight: 600; }
+tr.row-target { background: rgba(56,189,248,0.05); }
+tr.row-current { background: rgba(245,158,11,0.07); }
+tfoot .tfoot-row { background: var(--bg3); border-top: 1px solid var(--border2); }
+.sc-note { font-size: 10px; color: var(--muted); font-weight: 400; }
+.sc-current-tag { font-size: 10px; color: var(--amber); font-weight: 700; margin-left: 6px; }
+.table-footer { padding: 8px 14px; font-size: 11px; color: var(--muted); background: var(--bg3); border-top: 1px solid var(--border); line-height: 1.7; }
+
+/* ── PRODUCT BARS ──────────────────────────────────────── */
+.prod-card { padding: 0; }
+.prod-row { display: flex; align-items: center; padding: 11px 18px; border-top: 1px solid var(--border); gap: 12px; }
+.prod-row:first-child { border-top: none; }
+.prod-soldout { opacity: 0.4; }
+.prod-name { width: 140px; flex-shrink: 0; font-size: 13px; font-weight: 500; }
+.prod-bar-wrap { flex: 1; min-width: 0; }
+.prod-bar-bg { height: 7px; background: var(--bg3); border-radius: 4px; overflow: hidden; }
+.prod-bar-fill { height: 100%; border-radius: 4px; transition: width 0.7s cubic-bezier(.4,0,.2,1); }
+.prod-qty { width: 64px; flex-shrink: 0; font-size: 12px; font-weight: 600; text-align: right; font-family: var(--mono); }
+.prod-qty em { font-style: normal; font-weight: 400; color: var(--muted); }
+.prod-badge { flex-shrink: 0; width: 38px; text-align: center; font-size: 10px; font-weight: 700; padding: 3px 0; border-radius: 4px; }
+.badge-ok     { background: rgba(34,197,94,0.12);  color: var(--green); }
+.badge-warn   { background: rgba(245,158,11,0.12); color: var(--amber); }
+.badge-danger { background: rgba(239,68,68,0.12);  color: var(--red); }
+.badge-soldout{ background: var(--bg3); color: var(--muted); }
+
+/* ── STOCK GRID ────────────────────────────────────────── */
+.stock-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+.stock-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem 1rem 0.9rem;
+  border-top: 3px solid var(--stock-accent, var(--border2));
+  position: relative;
+}
+.stock-expired { opacity: 0.45; }
+.stock-name { font-size: 12px; font-weight: 600; color: var(--text); margin-bottom: 8px; line-height: 1.3; }
+.stock-dday { font-size: 28px; font-weight: 700; letter-spacing: -0.03em; font-family: var(--mono); line-height: 1; }
+.stock-dday.red   { color: var(--red); }
+.stock-dday.amber { color: var(--amber); }
+.stock-dday.blue  { color: var(--blue); }
+.stock-dday.green { color: var(--green); }
+.stock-dday.muted { color: var(--muted); font-size: 20px; }
+.stock-dday.gray  { color: var(--muted); font-size: 20px; }
+.stock-tag-wrap { margin-top: 6px; }
+.stock-tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; }
+.stock-tag.red   { background: rgba(239,68,68,0.12);  color: var(--red); }
+.stock-tag.amber { background: rgba(245,158,11,0.12); color: var(--amber); }
+.stock-tag.blue  { background: rgba(59,130,246,0.12); color: var(--blue); }
+.stock-tag.green { background: rgba(34,197,94,0.12);  color: var(--green); }
+.stock-tag.muted, .stock-tag.gray { background: var(--bg3); color: var(--muted); }
+.stock-divider { border-top: 1px dashed var(--border2); margin: 10px 0 8px; }
+.stock-restock { font-size: 11px; color: var(--muted); line-height: 1.5; }
+.stock-restock strong { color: var(--text); font-weight: 600; }
+
+/* ── DEFERRED ──────────────────────────────────────────── */
+.deferred-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.deferred-top { display: flex; align-items: flex-start; gap: 10px; padding: 1rem 1.25rem; border-bottom: 1px solid var(--border); }
+.deferred-icon { font-size: 16px; flex-shrink: 0; }
+.deferred-desc { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.deferred-cells { display: grid; grid-template-columns: 1fr 1fr; }
+.deferred-cell { padding: 1rem 1.25rem; border-right: 1px solid var(--border); }
+.deferred-cell:last-child { border-right: none; }
+.deferred-note { padding: 10px 1.25rem 14px; font-size: 12px; color: var(--muted); line-height: 1.7; border-top: 1px solid var(--border); background: var(--bg3); }
+.deferred-note strong { color: var(--text); }
+
+/* ── MEMO ──────────────────────────────────────────────── */
+.memo-card { padding: 0; }
+.memo-row { display: grid; grid-template-columns: 64px 1fr; min-height: 44px; }
+.memo-border { border-bottom: 1px solid var(--border); }
+.memo-role { padding: 12px 14px; font-size: 13px; font-weight: 600; background: var(--bg3); border-right: 1px solid var(--border); display: flex; align-items: center; }
+.memo-body { padding: 12px 14px; font-size: 13px; line-height: 1.6; word-break: break-word; }
+
+/* ── COUPANG CHART ─────────────────────────────────────── */
+.coup-chart { padding: 1.25rem 1.25rem 0; }
+.coup-bars { display: flex; align-items: flex-end; gap: 6px; height: 110px; border-bottom: 1px solid var(--border); padding-bottom: 0; }
+.coup-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.coup-bar-pct { font-size: 9px; color: var(--muted); font-family: var(--mono); font-weight: 500; }
+.coup-bar-fill { width: 100%; border-radius: 3px 3px 0 0; transition: height 0.7s cubic-bezier(.4,0,.2,1); }
+.coup-bar-lbl { font-size: 8px; color: var(--muted); text-align: center; line-height: 1.3; margin-top: 4px; }
+.coup-legend { display: flex; gap: 14px; padding: 8px 1.25rem 10px; font-size: 11px; color: var(--muted); align-items: center; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+.coup-leg-item { display: flex; align-items: center; gap: 4px; }
+.coup-leg-item i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; }
+.mini-bar-wrap { width: 60px; height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.mini-bar-fill { height: 100%; border-radius: 3px; }
+
+/* ── ALERT BANNER ──────────────────────────────────────── */
+.alert-banner { padding: 10px 16px; border-radius: 8px; font-size: 12px; font-weight: 500; margin-bottom: 1rem; border-left: 3px solid; line-height: 1.6; }
+.alert-danger { background: rgba(239,68,68,0.08); border-color: var(--red); color: #fca5a5; }
+.alert-warn   { background: rgba(245,158,11,0.08); border-color: var(--amber); color: #fcd34d; }
+
+/* ── LOADING ───────────────────────────────────────────── */
+.loading { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 80px; color: var(--muted); font-size: 13px; font-family: var(--mono); }
+.loading-spinner { width: 16px; height: 16px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── ERROR ─────────────────────────────────────────────── */
+.err-box { background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 8px; padding: 14px 16px; color: #fca5a5; font-size: 13px; margin-bottom: 14px; line-height: 1.7; }
+.err-box strong { color: var(--red); }
+
+/* ── SETTINGS ──────────────────────────────────────────── */
+.info-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 1.5rem; font-size: 13px; color: var(--muted); line-height: 1.9; }
+.info-card h3 { font-size: 13px; font-weight: 600; color: var(--text); margin: 1.2rem 0 0.5rem; }
+.info-card h3:first-child { margin-top: 0; }
+.info-card strong { color: var(--text); font-weight: 500; }
+.info-card code { background: var(--bg3); border: 1px solid var(--border2); padding: 1px 6px; border-radius: 3px; font-family: var(--mono); font-size: 11px; color: var(--accent); }
+.btn-sheet { display: inline-block; margin-top: 1rem; padding: 9px 20px; background: var(--accent); color: #0d0f12; border-radius: 6px; text-decoration: none; font-size: 13px; font-weight: 700; transition: opacity 0.15s; }
+.btn-sheet:hover { opacity: 0.85; }
+
+/* ── UTILS ─────────────────────────────────────────────── */
+.muted { color: var(--muted); }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { padding: 1rem; }
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .stock-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+
+/* ── SIMULATION TAB ─────────────────────────────────────── */
+.sim-prod-row {
+  display: grid;
+  grid-template-columns: 1fr 90px 180px 70px;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+}
+.sim-prod-row:first-child { border-top: none; }
+.sim-prod-name  { font-size: 13px; font-weight: 600; color: var(--text); }
+.sim-prod-meta  { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+.sim-prod-daily-val { font-size: 20px; font-weight: 700; font-family: var(--mono); color: var(--accent); }
+.sim-prod-daily-val span { font-size: 11px; font-weight: 400; color: var(--muted); margin-left: 2px; }
+.sim-prod-daily-lbl { font-size: 10px; color: var(--muted); margin-top: 2px; }
+.sim-next-date  { font-size: 13px; font-weight: 700; font-family: var(--mono); margin-bottom: 4px; }
+.sim-next-date.red   { color: var(--red); }
+.sim-next-date.amber { color: var(--amber); }
+.sim-next-date.green { color: var(--green); }
+.sim-next-date.muted { color: var(--muted); }
+.sim-next-detail { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.sim-next-cost  { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.sim-tag-prepay  { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; background: rgba(245,158,11,0.12); color: #f59e0b; }
+.sim-tag-balance { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; background: rgba(56,189,248,0.12); color: #38bdf8; }
+
+/* 월별 차트 */
+.sim-legend { display: flex; gap: 14px; font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+.sim-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
+.sim-month-row { display: flex; gap: 8px; align-items: flex-end; overflow-x: auto; padding-bottom: 4px; }
+.sim-month-card {
+  flex: 1; min-width: 60px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 8px 6px; border-radius: 8px;
+  background: var(--bg3); border: 1px solid var(--border);
+  transition: border-color 0.15s;
+}
+.sim-month-card:hover { border-color: var(--border2); }
+.sim-month-current { border-color: var(--accent) !important; }
+.sim-month-label { font-size: 11px; font-weight: 600; color: var(--muted); }
+.sim-month-current .sim-month-label { color: var(--accent); }
+.sim-month-bar-wrap { display: flex; gap: 2px; align-items: flex-end; height: 130px; position: relative; overflow: visible; }
+.sim-month-bar-prepay  { width: 14px; background: #f59e0b; border-radius: 3px 3px 0 0; min-height: 2px; transition: height 0.6s cubic-bezier(.4,0,.2,1); }
+.sim-month-bar-balance { width: 14px; background: #38bdf8; border-radius: 3px 3px 0 0; min-height: 2px; transition: height 0.6s cubic-bezier(.4,0,.2,1); }
+.sim-month-total { font-size: 11px; font-weight: 700; font-family: var(--mono); color: var(--text); text-align: center; }
+.sim-month-sub { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+
+.row-alt { background: rgba(255,255,255,0.015); }
+
+
+/* ── SIMULATION v2 ADDITIONS ────────────────────────────── */
+.risk-list { display:flex; flex-direction:column; gap:8px; }
+.risk-item { display:flex; align-items:flex-start; gap:12px; padding:12px 16px; border-radius:8px; border:1px solid; }
+.risk-stockout_risk { background:rgba(239,68,68,0.07); border-color:rgba(239,68,68,0.25); }
+.risk-budget_exceed { background:rgba(245,158,11,0.07); border-color:rgba(245,158,11,0.25); }
+.risk-icon { font-size:18px; flex-shrink:0; }
+.risk-title { font-size:12px; font-weight:700; color:var(--text); margin-bottom:3px; }
+.risk-msg   { font-size:12px; color:var(--muted); line-height:1.5; }
+.sim-adj-tag { display:inline-block; font-size:9px; padding:1px 5px; border-radius:3px; background:rgba(245,158,11,0.15); color:var(--amber); margin-left:5px; vertical-align:middle; }
+.sim-month-over { border-color: rgba(239,68,68,0.4) !important; }
+.sim-month-total.over { color: var(--red); }
+.sim-over-badge { display:inline-block; font-size:9px; font-weight:700; padding:1px 5px; border-radius:3px; background:rgba(239,68,68,0.15); color:var(--red); margin-top:3px; }
+.row-over td { background:rgba(245,158,11,0.05); }
+.row-over td.neg { color:var(--red); }
+.week-month-cell { background:var(--bg3); font-size:12px; text-align:center; border-right:1px solid var(--border); }
+
+
+.row-amber td { background: rgba(245,158,11,0.04); }
+
+/* ── GANTT CHART ─────────────────────────────────────────── */
+.gantt-legend { display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--muted); margin-bottom:14px; align-items:center; }
+.gantt-legend i { display:inline-block; width:12px; height:12px; border-radius:2px; margin-right:3px; vertical-align:middle; }
+.gantt-rows { display:flex; flex-direction:column; gap:10px; }
+.gantt-row { display:flex; align-items:center; gap:12px; }
+.gantt-label { width:132px; flex-shrink:0; }
+.gantt-prod-name { font-size:12px; font-weight:600; color:var(--text); line-height:1.3; }
+.gantt-prod-sub  { font-size:10px; color:var(--muted); margin-top:2px; }
+.gantt-bar-wrap {
+  flex:1; height:24px; background:var(--bg3);
+  border-radius:4px; position:relative; overflow:visible;
+  border:1px solid var(--border);
+}
+.gantt-month-header { overflow:hidden; }
+.stock-timeline-card { overflow:hidden; }
+.stock-timeline-head { display:flex; position:sticky; top:0; z-index:10; background:var(--bg2); }
+.stock-timeline-label-head { width:164px; flex-shrink:0; border-right:1px solid var(--border2); background:var(--bg3); }
+.stock-timeline-scroll { overflow-x:auto; }
+.stock-timeline-row { display:flex; align-items:stretch; min-height:48px; border-bottom:1px solid var(--border); }
+.stock-timeline-label {
+  width:164px; flex-shrink:0; padding:8px 10px;
+  border-right:1px solid var(--border2); background:var(--bg3);
+  display:flex; flex-direction:column; justify-content:center; gap:5px;
+}
+.stock-timeline-name { font-size:12px; font-weight:700; color:var(--text); line-height:1.25; }
+.stock-timeline-meta { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+.sku-chip { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:16px; padding:0 5px; border-radius:3px; background:rgba(255,255,255,0.06); color:var(--muted); font-size:9px; font-weight:700; font-family:var(--mono); }
+.runway-chip { display:inline-flex; align-items:center; height:16px; padding:0 6px; border-radius:3px; font-size:9px; font-weight:800; font-family:var(--mono); }
+.runway-ok { background:rgba(34,197,94,0.12); color:var(--green); }
+.runway-warn { background:rgba(245,158,11,0.13); color:var(--amber); }
+.runway-danger { background:rgba(239,68,68,0.13); color:var(--red); }
+.stock-timeline-days { white-space:nowrap; }
+.stock-day-cell {
+  display:inline-block; width:16px; height:62px; position:relative;
+  border-bottom:1px solid var(--border); box-sizing:border-box; vertical-align:top;
+  cursor:default;
+}
+.stock-day-ok     { background:rgba(34,197,94,0.22); }
+.stock-day-danger { background:rgba(245,158,11,0.30); }
+.stock-day-out    { background:repeating-linear-gradient(45deg,#450a0a,#450a0a 3px,#991b1b 3px,#991b1b 6px); }
+.stock-day-today  { border-left:2.5px solid var(--accent) !important; background-color:rgba(56,189,248,0.08); }
+.stock-day-month  { border-left:1px solid var(--border2); }
+/* 발주 이벤트: 셀 상단 노란 띠 */
+.stock-day-has-order::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:4px;
+  background:#facc15; z-index:4;
+}
+.stock-day-has-order-prepaid::before { background:#f59e0b; }
+/* 입고 이벤트: 셀 하단 파란 띠 */
+.stock-day-has-receive::after {
+  content:'';
+  position:absolute; bottom:0; left:0; right:0; height:4px;
+  background:#38bdf8; z-index:4;
+}
+.stock-day-has-receive-prepaid::after { background:#7dd3fc; }
+/* 품절 일수 텍스트 오버레이 (품절 구간 중간 셀에 표시) */
+.stock-out-label {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  font-size:7px; font-weight:800; color:#fca5a5;
+  white-space:nowrap; z-index:5; pointer-events:none;
+  text-shadow:0 0 4px #000;
+}
+.stock-timeline-note { padding:9px 14px; font-size:11px; color:var(--muted); background:var(--bg3); border-top:1px solid var(--border); line-height:1.6; }
+/* 타임라인 행 높이도 맞추기 */
+.stock-timeline-row { display:flex; align-items:stretch; min-height:62px; border-bottom:1px solid var(--border); }
+.sim-kpi-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:1.5rem; }
+.sim-kpi-card { background:var(--bg2); border:1px solid var(--border); border-radius:10px; padding:1rem 1.1rem; }
+.sim-kpi-card.good { border-color:rgba(34,197,94,0.28); }
+.sim-kpi-card.warn { border-color:rgba(245,158,11,0.3); }
+.sim-kpi-card.bad { border-color:rgba(239,68,68,0.3); }
+.sim-kpi-label { font-size:11px; color:var(--muted); margin-bottom:6px; }
+.sim-kpi-value { font-size:22px; font-weight:800; font-family:var(--mono); color:var(--text); letter-spacing:0; line-height:1.2; }
+.sim-kpi-sub { font-size:11px; color:var(--muted); margin-top:5px; line-height:1.45; }
+@media (max-width: 900px) {
+  .sim-kpi-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .sim-prod-row { grid-template-columns:1fr; gap:10px; }
+  .stock-timeline-label, .stock-timeline-label-head { width:132px; }
+  .stock-day-cell { width:14px; }
+}
+
+  </style>
 </head>
 <body>
-
 <div class="app">
 
   <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="logo">
       <span class="logo-mark">▸</span>
-      <span class="logo-text">Revenue<br>Monitor</span>
+      <span class="logo-text">Order<br>Monitor</span>
     </div>
-
     <nav class="nav">
-      <button class="nav-item active" data-tab="dashboard">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        대시보드
+      <button class="nav-item active" onclick="tab('current', this)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        현황
       </button>
-
-      <button class="nav-item" data-tab="settings">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M18.66 5.34l1.41-1.41"/></svg>
-        설정
+      <button class="nav-item" onclick="tab('simulation', this)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/><circle cx="12" cy="12" r="1"/></svg>
+        발주 시뮬레이션
+      </button>
+      <button class="nav-item" onclick="tab('memo', this)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        발주 요청 사항
+      </button>
+      <button class="nav-item" onclick="tab('coupang', this)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M6 8l3 4 3-3 3 3 3-4"/></svg>
+        쿠팡 납품 현황
+      </button>
+      <button class="nav-item" onclick="tab('input', this)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        데이터 입력
+      </button>
+      <button class="nav-item" onclick="tab('trend', this)">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        추이
       </button>
     </nav>
-
-    <div class="sync-status" id="syncStatus">
+    <div class="sync-status">
       <div class="sync-dot" id="syncDot"></div>
       <span id="syncText">연결 대기</span>
     </div>
-
-    <button class="refresh-btn" onclick="fetchSheetData()">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+    <button class="refresh-btn" onclick="load()">
+      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
       새로고침
     </button>
   </aside>
@@ -46,216 +463,1457 @@
   <!-- MAIN -->
   <main class="main">
 
-    <!-- TAB: DASHBOARD -->
-    <div class="tab-content active" id="tab-dashboard">
-
+    <!-- 현황 -->
+    <div id="p-current" class="panel on">
       <header class="page-header">
         <div>
-          <h1 class="page-title">영업이익 · 기말잔액 시뮬레이션</h1>
-          <p class="page-sub" id="lastUpdated">Google Sheets 데이터 로딩 중...</p>
+          <h1 class="page-title">발주 관리 대시보드</h1>
+          <p class="page-sub" id="date-lbl"></p>
         </div>
-        <div class="header-actions">
-          <span class="period-badge">26년 1월 ~ 12월</span>
-        </div>
+        <div><span class="period-badge">발주 현황 · 실시간</span></div>
       </header>
-
-      <!-- KPI ROW -->
-      <div class="kpi-grid" id="kpiGrid"></div>
-
-      <!-- TURNOVER BANNER -->
-      <div class="turnover-banner" id="turnoverBanner"></div>
-
-      <!-- CHARTS -->
-      <div class="chart-grid">
-        <div class="chart-card">
-          <div class="chart-title">
-            영업이익 추이
-            <span class="chart-legend">
-              <i class="leg-dot" style="background:#22c55e"></i>흑자
-              <i class="leg-dot" style="background:#ef4444"></i>적자
-              <i class="leg-dot" style="background:#94a3b8"></i>확정
-            </span>
-          </div>
-          <div class="chart-wrap"><canvas id="profitChart" role="img" aria-label="월별 영업이익 추이 차트"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-title">
-            기말잔액 누적
-            <span class="chart-legend">
-              <i class="leg-dot" style="background:#3b82f6"></i>플러스
-              <i class="leg-dot" style="background:#ef4444"></i>마이너스
-            </span>
-          </div>
-          <div class="chart-wrap"><canvas id="balanceChart" role="img" aria-label="월별 기말잔액 추이 차트"></canvas></div>
-        </div>
-      </div>
-
-      <!-- DAILY TARGET + SCENARIO + TABLE (통합) -->
-      <div class="target-section">
-        <div class="target-card">
-          <div class="target-label">6~12월 자사몰+네이버 목표 일평균</div>
-
-          <!-- 목표일평균 상향 -->
-          <div class="scenario-group">
-            <span class="scenario-group-label up">▲ 상향</span>
-            <button class="sc-btn sc-up" data-rate="5"  onclick="setScenario(5)">+5%</button>
-            <button class="sc-btn sc-up" data-rate="10" onclick="setScenario(10)">+10%</button>
-            <button class="sc-btn sc-up" data-rate="15" onclick="setScenario(15)">+15%</button>
-            <button class="sc-btn sc-up" data-rate="20" onclick="setScenario(20)">+20%</button>
-          </div>
-
-          <!-- 기준 -->
-          <div class="scenario-group" style="margin:6px 0">
-            <button class="sc-btn sc-base active" data-rate="0" onclick="setScenario(0)">기준</button>
-            <span class="scenario-note" id="scenarioNote"></span>
-          </div>
-
-          <!-- 목표일평균 하향 -->
-          <div class="scenario-group">
-            <span class="scenario-group-label dn">▼ 하향</span>
-            <button class="sc-btn sc-dn" data-rate="-5"  onclick="setScenario(-5)">−5%</button>
-            <button class="sc-btn sc-dn" data-rate="-10" onclick="setScenario(-10)">−10%</button>
-            <button class="sc-btn sc-dn" data-rate="-15" onclick="setScenario(-15)">−15%</button>
-            <button class="sc-btn sc-dn" data-rate="-20" onclick="setScenario(-20)">−20%</button>
-          </div>
-
-          <div class="tmc-row" style="margin-top:14px">
-            <div class="tmc-scroll" id="targetTable"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 상환 계획 섹션 -->
-      <div class="repay-section-wrap">
-        <div class="repay-section-header">
-          <div class="repay-section-title">상환 계획 <span class="repay-section-sub">총 1억 2천만원 · 6~12월 배분</span></div>
-          <div id="repayStatusBar"></div>
-        </div>
-        <div class="repay-months-row" id="repaySection"></div>
-      </div>
-
-      <!-- 월별 상세 테이블 (대시보드 탭 안에 통합) -->
-      <div class="table-card" style="margin-top:0">
-        <div class="table-section-label">월별 상세 내역 <span style="font-size:11px;font-weight:400;color:var(--color-text-tertiary);margin-left:6px">단위: 만원</span></div>
-        <div class="table-wrap">
-          <table id="mainTable">
-            <thead>
-              <tr>
-                <th>월</th>
-                <th>전체매출</th>
-                <th>고정비</th>
-                <th>발주비</th>
-                <th>광고비</th>
-                <th>변동비</th>
-                <th>상환비</th>
-                <th>합계비용</th>
-                <th>영업이익</th>
-                <th>기말잔액</th>
-                <th>산정기준</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-          </table>
-        </div>
-      </div>
-
+      <div id="err"></div>
+      <div id="content"><div class="loading"><div class="loading-spinner"></div><span>불러오는 중...</span></div></div>
     </div>
 
-    <!-- TAB: TABLE (빈 탭 유지 - 사이드바 호환성) -->
-    <div class="tab-content" id="tab-table" style="display:none"></div>
-
-    <!-- TAB: SETTINGS -->
-    <div class="tab-content" id="tab-settings">
+    <!-- 발주 시뮬레이션 -->
+    <div id="p-simulation" class="panel">
       <header class="page-header">
         <div>
-          <h1 class="page-title">설정</h1>
-          <p class="page-sub">Google Sheets 연동 및 계산 기준 설정</p>
+          <h1 class="page-title">발주 시뮬레이션</h1>
+          <p class="page-sub" id="sim-date-lbl">제품별 최적 발주 타이밍 · 월별 현금흐름 예측</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="period-badge">26년 5월 ~ 12월</span>
         </div>
       </header>
+      <div id="sim-content"></div>
+    </div>
 
-      <div class="settings-grid">
-        <div class="settings-card">
-          <div class="settings-section-title">Google Sheets 연동</div>
-          <div class="form-group">
-            <label>스프레드시트 ID</label>
-            <input type="text" id="sheetId" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
-            <p class="form-hint">URL에서 /d/ 와 /edit 사이의 값</p>
-          </div>
-          <div class="form-group">
-            <label>시트 이름</label>
-            <input type="text" id="sheetName" placeholder="매출데이터" />
-          </div>
-          <div class="form-group">
-            <label>데이터 범위</label>
-            <input type="text" id="sheetRange" placeholder="A1:C13" />
-            <p class="form-hint">월, 자사몰+네이버 일평균, 메모 순서로 구성</p>
-          </div>
-          <button class="save-btn" onclick="saveSettings()">설정 저장 및 연결</button>
-          <div class="settings-note">
-            ※ 스프레드시트는 <strong>링크가 있는 모든 사용자가 볼 수 있음</strong>으로 공유 설정 필요
-          </div>
+    <!-- 발주 요청 사항 -->
+    <div id="p-memo" class="panel">
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">발주 요청 사항</h1>
+          <p class="page-sub">Google Sheets 연동</p>
         </div>
+        <div><span class="period-badge">팀장 · 과장 · 주임</span></div>
+      </header>
+      <div id="memo-content"><div class="loading"><div class="loading-spinner"></div><span>불러오는 중...</span></div></div>
+    </div>
 
-        <div class="settings-card">
-          <div class="settings-section-title">계산 기준 (로컬 저장)</div>
-          <div class="form-group">
-            <label>자사몰+네이버 매출 비중</label>
-            <div class="input-row">
-              <input type="number" id="naverRatio" value="68" min="1" max="100" step="1" />
-              <span class="input-unit">%</span>
-            </div>
-            <p class="form-hint">전체 매출 중 자사몰+네이버 비중</p>
-          </div>
-          <div class="form-group">
-            <label>광고비 비율 기본값 (6~12월)</label>
-            <div class="input-row">
-              <input type="number" id="adRatio" value="25" min="1" max="100" step="1" />
-              <span class="input-unit">%</span>
-            </div>
-            <p class="form-hint">구글 시트 <code>ad_ratio</code> 키로 실시간 변경 가능</p>
-          </div>
-          <div class="form-group">
-            <label>발주비 비율 기본값 (6~12월)</label>
-            <div class="input-row">
-              <input type="number" id="orderRatio" value="30" min="1" max="100" step="1" />
-              <span class="input-unit">%</span>
-            </div>
-            <p class="form-hint">구글 시트 <code>order_ratio</code> 키로 실시간 변경 가능</p>
-          </div>
-          <button class="save-btn" onclick="saveRatios()">기준 저장</button>
+    <!-- 쿠팡 납품 현황 -->
+    <div id="p-coupang" class="panel">
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">쿠팡 납품 현황</h1>
+          <p class="page-sub">주차별 발주대비 납품율 · 노트북거치대</p>
         </div>
+        <div><span class="period-badge">쿠팡 납품</span></div>
+      </header>
+      <div id="coupang-content"><div class="loading"><div class="loading-spinner"></div><span>불러오는 중...</span></div></div>
+    </div>
 
-        <div class="settings-card full-width">
-          <div class="settings-section-title">Google Sheets 구성 가이드</div>
-          <div class="guide-table-wrap">
-            <table class="guide-table">
-              <thead>
-                <tr><th>열</th><th>내용</th><th>예시</th><th>비고</th></tr>
-              </thead>
-              <tbody>
-                <tr><td>A열</td><td>월 또는 설정 키</td><td>26-05, ad_ratio...</td><td>행 2부터 입력</td></tr>
-                <tr><td>B열</td><td>일평균(만원) 또는 비율값(%)</td><td>400, 25, 22...</td><td>숫자만 입력</td></tr>
-                <tr><td>C열</td><td>메모 (선택)</td><td>프로모션 기간 등</td><td>대시보드 툴팁 표시</td></tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="guide-steps">
-            <div class="guide-step"><span class="step-num">1</span><span>Google Sheets 새 시트 생성 → 시트 이름을 <code>매출데이터</code>로 설정</span></div>
-            <div class="guide-step"><span class="step-num">2</span><span>1행에 헤더 입력: <code>월 | 자사몰+네이버 일평균 | 메모</code></span></div>
-            <div class="guide-step"><span class="step-num">3</span><span>2행부터 5~12월 데이터 입력 (1~4월은 확정값으로 코드에 내장)</span></div>
-            <div class="guide-step"><span class="step-num">4</span><span>광고비 비율 변경: A열에 <code>ad_ratio</code>, B열에 <code>22</code> 입력 → 6월 이후 광고비 매출×22% 적용</span></div>
-            <div class="guide-step"><span class="step-num">5</span><span>발주비 비율 변경: A열에 <code>order_ratio</code>, B열에 <code>25</code> 입력 → 6월 이후 발주비 매출×25% 적용</span></div>
-            <div class="guide-step"><span class="step-num">4</span><span>공유 설정 → <strong>링크가 있는 모든 사용자 → 뷰어</strong>로 변경</span></div>
-            <div class="guide-step"><span class="step-num">5</span><span>URL에서 스프레드시트 ID 복사 → 위 설정에 붙여넣기</span></div>
-          </div>
+    <!-- 데이터 입력 -->
+    <div id="p-input" class="panel">
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">데이터 입력 가이드</h1>
+          <p class="page-sub">Google Sheets 설정 항목</p>
         </div>
+      </header>
+      <div class="info-card">
+        <h3>📋 설정 시트 항목</h3>
+        <p>설정 시트 <strong>A열에 키 이름</strong>, <strong>B열에 숫자값(만원)</strong>을 입력하세요.</p>
+        <p>• <code>자사몰목표</code> — 자사몰 목표 일매출</p>
+        <p>• <code>네이버목표</code> — 네이버 목표 일매출</p>
+        <p>• <code>현재일매출_자사몰</code> — 자사몰 현재 평균 일매출</p>
+        <p>• <code>현재일매출_네이버</code> — 네이버 현재 평균 일매출</p>
+        <p>• <code>누적발주지출</code> — 현재 누적 발주 지출액 (만원)</p>
+        <p>• <code>경과일</code> / <code>총일수</code></p>
+        <h3>💳 조건부 발주 설정</h3>
+        <p>• <code>결제유예가능일</code> — 유예 마감일 (<code>2026-06-10</code> 형식)</p>
+        <p>• <code>유예월발주한도</code> — 추가 발주 가능 최대 금액 (만원)</p>
+        <h3>📝 발주요청사항 시트</h3>
+        <p>시트 이름: <code>발주요청사항</code> · 1행 헤더: <code>역할 | 내용</code></p>
+        <p>• A열: <code>팀장</code> / <code>과장</code> / <code>주임</code></p>
+        <p>• B열: 발주 요청 내용 (자유 입력)</p>
+        <h3>📦 재고현황 시트</h3>
+        <p>시트 이름: <code>재고</code> · 1행 헤더: <code>제품명 | 품절예정일 | 재입고수량 | 재입고예정일</code></p>
+        <p>• B열, D열: <code>2026-05-20</code> 형식</p>
+        <h3>📊 발주 시뮬레이션 설정</h3>
+        <p>• <code>sim_monthly_target</code> — 월 목표 매출 (만원, 기본 20000)</p>
+        <p>• <code>sim_order_limit_pct</code> — 발주비 한도 비율 (%, 기본 18)</p>
+        <p>• <code>sim_daily_mk</code> ~ <code>sim_daily_dw_plus_b</code> — 제품별 일평균 판매수량</p>
+        <p>• <code>stock_mk</code> ~ <code>stock_dw_plus_b</code> — 현재 재고수량</p>
+        <p>• <code>china_dw_pro_s</code> 등 — 중국 보유 재고 (선금완료)</p>
+        <p>• <code>prepaid_ph_s_1_qty</code> / <code>prepaid_ph_s_1_date</code> 등 — 제작중 항목</p>
+        <a class="btn-sheet" id="sheet-link" href="#" target="_blank">📊 Google Sheets 열기</a>
+      </div>
+    </div>
+
+    <!-- 추이 -->
+    <div id="p-trend" class="panel">
+      <header class="page-header">
+        <div><h1 class="page-title">추이</h1><p class="page-sub">준비 중</p></div>
+      </header>
+      <div class="info-card" style="text-align:center;padding:60px;color:var(--muted)">
+        📈 추이 기능은 준비 중입니다.
       </div>
     </div>
 
   </main>
 </div>
+<script>
+// ============================================================
+// config.js — 발주 관리 대시보드 설정
+// ============================================================
 
-<script src="config.js"></script>
-<script src="app.js"></script>
+const CONFIG = {
+  // ── Google Sheets 연동 ──────────────────────────────────
+  SHEET_ID:    "1p-ko7c4--yUwYOYE2fL8X6Z1U3O1lWoJ36AZuBanGmQ",
+  GID_CONFIG:  "0",           // 설정 시트 gid
+  GID_PROD:    "408610443",   // 제품 시트 gid
+  GID_SALES:   "202369795",   // 매출 시트 gid
+  GID_COUPANG: "1570889941",  // 쿠팡납품 시트 gid
+  GID_STOCK:   "1079489460",  // 재고 시트 gid
+  GID_MEMO:    "1699680751",  // 발주요청사항 시트 gid
+
+  // ── 계산 기준 ───────────────────────────────────────────
+  NAVER_RATIO:   0.70,   // 자사몰+네이버가 전체 매출의 70%
+  ORDER_RATIO:   0.18,   // 발주비는 매출의 18%
+  TARGET_MONTHLY: 20000, // 월 목표 매출 (만원)
+
+  // ── 시나리오 구간 ────────────────────────────────────────
+  SCENARIOS: [
+    { multiplier: 1.00, note: '목표',  isTarget: true },
+    { multiplier: 0.90, note: '-10%' },
+    { multiplier: 0.80, note: '-20%' },
+    { multiplier: 0.70, note: '-30%' },
+    { multiplier: 0.60, note: '-40%' },
+  ],
+
+  // ── 제품 고정 순서 ────────────────────────────────────────
+  STOCK_PRODUCTS: [
+    "킥프레임",
+    "PH 실버", "PH 블랙",
+    "DW프로 실버", "DW프로 블랙",
+    "DW플러스 실버", "DW플러스 블랙", "DW플러스 그린"
+  ],
+};
+
+// ============================================================
+// app.js — 발주 관리 대시보드 메인 로직
+// ============================================================
+
+// ── 날짜 헤더 ─────────────────────────────────────────────
+const _d = new Date();
+document.getElementById("date-lbl").textContent =
+  `${_d.getFullYear()}년 ${_d.getMonth()+1}월 ${_d.getDate()}일 기준`;
+document.getElementById("sheet-link").href =
+  `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}`;
+
+// ── 숫자 포맷 ─────────────────────────────────────────────
+function f(v) {
+  const n = Math.round(v);
+  if (n >= 10000) return `${+(n / 10000).toFixed(1)}억`;
+  if (n >= 1000) {
+    const chun = Math.floor(n / 1000);
+    const baek = Math.floor((n % 1000) / 100);
+    if (baek === 0) return `${chun}천만`;
+    return `${chun}천${baek}백만`;
+  }
+  return `${n.toLocaleString()}만`;
+}
+function fSign(v) {
+  return (v >= 0 ? '+' : '') + f(v);
+}
+
+// ── 탭 전환 ───────────────────────────────────────────────
+function tab(name, el) {
+  document.querySelectorAll(".nav-item").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".panel").forEach(p => p.classList.remove("on"));
+  el.classList.add("active");
+  document.getElementById(`p-${name}`).classList.add("on");
+}
+
+// ── CSV 유틸 ──────────────────────────────────────────────
+function fetchCSV(gid) {
+  const url = `https://docs.google.com/spreadsheets/d/${CONFIG.SHEET_ID}/export?format=csv&gid=${gid}&t=${Date.now()}`;
+  return fetch(url).then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); });
+}
+
+function parseCSV(raw) {
+  const rows = [];
+  let row = [], field = '', inQ = false, i = 0;
+  const s = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  while (i < s.length) {
+    const c = s[i];
+    if (inQ) {
+      if (c === '"') {
+        if (s[i+1] === '"') { field += '"'; i += 2; continue; }
+        inQ = false; i++; continue;
+      }
+      field += c; i++; continue;
+    }
+    if (c === '"') { inQ = true; i++; continue; }
+    if (c === ',') { row.push(field.trim()); field = ''; i++; continue; }
+    if (c === '\n') {
+      row.push(field.trim()); rows.push(row);
+      row = []; field = ''; i++; continue;
+    }
+    field += c; i++;
+  }
+  row.push(field.trim());
+  if (row.some(v => v !== '')) rows.push(row);
+  return rows;
+}
+
+function n(s) { return parseFloat(String(s).replace(/[^0-9.-]/g, "")) || 0; }
+
+function calcDday(dateStr) {
+  if (!dateStr) return null;
+  const target = new Date(dateStr);
+  if (isNaN(target.getTime())) return null;
+  const today = new Date(); today.setHours(0,0,0,0); target.setHours(0,0,0,0);
+  return Math.ceil((target - today) / (1000*60*60*24));
+}
+
+function fmtDate(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return null;
+  return `${d.getMonth()+1}월 ${d.getDate()}일`;
+}
+
+function ddayInfo(d) {
+  if (d === null) return { cls: 'gray', label: '미입력', accent: '#2a2e38' };
+  if (d < 0)      return { cls: 'gray', label: '품절',   accent: '#2a2e38' };
+  if (d < 10)     return { cls: 'red',  label: '초임박', accent: '#ef4444' };
+  if (d < 20)     return { cls: 'amber',label: '임박',   accent: '#f59e0b' };
+  if (d < 30)     return { cls: 'blue', label: '주의',   accent: '#3b82f6' };
+  if (d < 40)     return { cls: 'green',label: '관심',   accent: '#22c55e' };
+  return                 { cls: 'muted',label: '안전',   accent: '#4b5563' };
+}
+
+function gradeInfo(pct) {
+  if (pct >= 130) return { cls: 'pink',   label: '우수 성과', color: '#ec4899' };
+  if (pct >= 110) return { cls: 'purple', label: '초과 성과', color: '#8b5cf6' };
+  if (pct >= 100) return { cls: 'green',  label: '목표 달성', color: '#22c55e' };
+  if (pct >= 90)  return { cls: 'blue',   label: '방어 성공', color: '#3b82f6' };
+  if (pct >= 80)  return { cls: 'amber',  label: '경고',      color: '#f59e0b' };
+  return                 { cls: 'red',    label: '위험',      color: '#ef4444' };
+}
+
+// ── 동기화 상태 ───────────────────────────────────────────
+function setSyncStatus(type, text) {
+  const dot  = document.getElementById('syncDot');
+  const span = document.getElementById('syncText');
+  dot.className  = 'sync-dot sync-' + type;
+  span.textContent = text;
+}
+
+function nowTime() {
+  return new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ── 메인 로드 ─────────────────────────────────────────────
+async function load() {
+  document.getElementById("content").innerHTML =
+    `<div class="loading"><div class="loading-spinner"></div><span>데이터를 불러오는 중...</span></div>`;
+  document.getElementById("err").innerHTML = "";
+  setSyncStatus('loading', '동기화 중...');
+
+  try {
+    const stockPromise = CONFIG.GID_STOCK
+      ? fetchCSV(CONFIG.GID_STOCK).catch(() => "")
+      : Promise.resolve("");
+    const memoPromise = CONFIG.GID_MEMO
+      ? fetchCSV(CONFIG.GID_MEMO).catch(() => "")
+      : Promise.resolve("");
+
+    const [cfgR, prodR, salesR, coupangR, stockR, memoR] = await Promise.all([
+      fetchCSV(CONFIG.GID_CONFIG),
+      fetchCSV(CONFIG.GID_PROD),
+      fetchCSV(CONFIG.GID_SALES),
+      fetchCSV(CONFIG.GID_COUPANG),
+      stockPromise,
+      memoPromise,
+    ]);
+
+    // 설정 시트
+    const cfg = {};
+    parseCSV(cfgR).slice(1).forEach(r => { if (r[0]) cfg[r[0]] = r[1]; });
+
+    // 제품 시트
+    const products = parseCSV(prodR).slice(1).filter(r => r[0])
+      .map(r => ({ name: r[0], actual: n(r[1]), target: n(r[2]), soldout: r[1].trim() === '품절' }));
+
+    // 매출 시트
+    const salesRows  = parseCSV(salesR).slice(1).filter(r => r[0]);
+    const totalSales = n(salesRows.at(-1)?.[1] ?? 0);
+
+    // 쿠팡납품 시트
+    const coupangRows = parseCSV(coupangR).slice(1).filter(r => r[0]);
+    const coupangData = coupangRows.map(r => ({
+      week:      r[0],
+      period:    r[1],
+      ordered:   n(r[2]),
+      delivered: n(r[3]),
+      rate:      n(r[2]) > 0 ? (n(r[3]) / n(r[2]) * 100) : 0,
+    }));
+
+    // 재고 시트
+    const stockMap = {};
+    if (stockR) {
+      parseCSV(stockR).slice(1).filter(r => r[0]).forEach(r => {
+        stockMap[r[0].trim()] = {
+          stockoutDate: r[1] || "",
+          restockQty:   r[2] ? n(r[2]) : null,
+          restockDate:  r[3] || "",
+        };
+      });
+    }
+    const stockData = CONFIG.STOCK_PRODUCTS.map(name => {
+      const s = stockMap[name] || {};
+      return { name, dday: calcDday(s.stockoutDate), restockQty: s.restockQty ?? null, restockDate: s.restockDate || "" };
+    });
+
+    // 발주요청사항 시트
+    const memoMap = { team: '', manager: '', staff: '' };
+    const roleKey = { '팀장': 'team', '과장': 'manager', '주임': 'staff' };
+    if (memoR) {
+      parseCSV(memoR).slice(1).filter(r => r[0]).forEach(r => {
+        const k = roleKey[r[0].trim()];
+        if (k) memoMap[k] = r[1] || '';
+      });
+    }
+
+    const elapsedDays  = n(cfg["경과일"] ?? 24);
+    const totalDays    = n(cfg["총일수"] ?? 30);
+    const targetMain   = n(cfg["자사몰목표"] ?? 0) + n(cfg["네이버목표"] ?? 0);
+    const currentMain  = n(cfg["현재일매출_자사몰"] ?? 0) + n(cfg["현재일매출_네이버"] ?? 0);
+    const allDailyAvg  = elapsedDays > 0 ? Math.round(totalSales / elapsedDays) : 0;
+    const deferralDeadline = cfg["결제유예가능일"] || "";
+    const deferralLimit    = n(cfg["유예월발주한도"] ?? 0);
+
+    setSyncStatus('ok', `${nowTime()} 업데이트`);
+    renderSimulation(cfg);
+    render({ targetMain, currentMain, allDailyAvg, spentBudget: n(cfg["누적발주지출"] ?? 0),
+      coupangData, elapsedDays, totalDays, totalSales, products, stockData,
+      deferralDeadline, deferralLimit, memoData: memoMap });
+
+  } catch(e) {
+    setSyncStatus('error', '연결 실패');
+    document.getElementById("err").innerHTML =
+      `<div class="err-box">⚠️ 데이터 로드 실패: <strong>${e.message}</strong><br><br>
+       1. Sheets 공유 → <strong>"링크가 있는 모든 사용자" 뷰어</strong> 설정<br>
+       2. 설정 시트 A열 키 이름 확인<br>
+       3. gid 번호 확인 (시트 탭 클릭 → URL 끝 #gid= 숫자)</div>`;
+    document.getElementById("content").innerHTML = "";
+  }
+}
+
+// ── 렌더 ──────────────────────────────────────────────────
+function render({ targetMain, currentMain, allDailyAvg, spentBudget, elapsedDays, totalDays,
+                  totalSales, products, coupangData, stockData, deferralDeadline, deferralLimit, memoData = {} }) {
+
+  const pct        = targetMain > 0 ? (currentMain / targetMain * 100) : 0;
+  const remain     = totalDays - elapsedDays;
+  const projected  = Math.round((currentMain * elapsedDays + currentMain * remain) / CONFIG.NAVER_RATIO);
+  const adjBudget  = Math.round(projected * CONFIG.ORDER_RATIO);
+  const spendRatio = projected > 0 ? (spentBudget / projected * 100) : 0;
+  const extraBudget = adjBudget - spentBudget;
+  const G = gradeInfo(pct);
+
+  const needDaily = remain > 0 && currentMain < targetMain
+    ? Math.round((targetMain * totalDays - currentMain * elapsedDays) / remain)
+    : targetMain;
+
+  // ── 시나리오 HTML ────────────────────────────────────────
+  function buildScenarioRow(dailyMain, note, isCurrent, isTarget) {
+    const mainMonthly  = currentMain * elapsedDays + dailyMain * remain;
+    const scProj       = Math.round(mainMonthly / CONFIG.NAVER_RATIO);
+    const scAdj        = Math.round(scProj * CONFIG.ORDER_RATIO);
+    const scExtra      = scAdj - spentBudget;
+    const extraCls     = scExtra >= 0 ? 'pos' : 'neg';
+    const rowCls       = isCurrent ? 'row-current' : isTarget ? 'row-target' : '';
+    const noteTag      = `<span class="sc-note">(${note})</span>`;
+    const currentTag   = isCurrent ? '<span class="sc-current-tag">◀ 현재</span>' : '';
+    return `
+      <tr class="${rowCls}">
+        <td>${dailyMain.toLocaleString()}만원 ${noteTag}${currentTag}</td>
+        <td class="num">${f(scProj)}</td>
+        <td class="num">${f(scAdj)}</td>
+        <td class="num ${extraCls}">${scExtra >= 0 ? '+' : ''}${f(scExtra)}</td>
+      </tr>`;
+  }
+
+  const currentIsTarget = Math.abs(currentMain - targetMain) < targetMain * 0.02;
+  const scenarioVals = CONFIG.SCENARIOS.map(s => Math.round(targetMain * s.multiplier));
+  let insertBefore = scenarioVals.length;
+  for (let i = 0; i < scenarioVals.length; i++) {
+    if (currentMain > scenarioVals[i] * 1.02) { insertBefore = i; break; }
+    if (Math.abs(currentMain - scenarioVals[i]) <= scenarioVals[i] * 0.02) { insertBefore = -1; break; }
+  }
+
+  const scenarioRows = (() => {
+    const rows = [];
+    if (!currentIsTarget && insertBefore === 0) rows.push(buildScenarioRow(currentMain, '현재', true, false));
+    CONFIG.SCENARIOS.forEach((s, i) => {
+      rows.push(buildScenarioRow(Math.round(targetMain * s.multiplier), s.note, false, s.isTarget));
+      if (!currentIsTarget && insertBefore === i + 1) rows.push(buildScenarioRow(currentMain, '현재', true, false));
+    });
+    if (!currentIsTarget && insertBefore === CONFIG.SCENARIOS.length) rows.push(buildScenarioRow(currentMain, '현재', true, false));
+    return rows.join('');
+  })();
+
+  // ── 조건부 발주 ─────────────────────────────────────────
+  const ddayDefer   = calcDday(deferralDeadline);
+  const ddayLabel   = ddayDefer === null ? '—' : ddayDefer < 0 ? `D+${Math.abs(ddayDefer)}` : `D-${ddayDefer}`;
+  const noDeadline  = !deferralDeadline;
+  const noLimit     = !(deferralLimit > 0);
+  const deferralRemain = deferralLimit - Math.max(0, -extraBudget);
+
+  // ── 제품 바 ─────────────────────────────────────────────
+  const prodHTML = products.map(p => {
+    if (p.soldout) return `
+      <div class="prod-row prod-soldout">
+        <div class="prod-name muted">${p.name}</div>
+        <div class="prod-bar-wrap"><div class="prod-bar-bg"><div class="prod-bar-fill" style="width:0%"></div></div></div>
+        <div class="prod-qty muted">—<em>/—</em></div>
+        <span class="prod-badge badge-soldout">품절</span>
+      </div>`;
+    const r   = p.actual / p.target;
+    const w   = Math.min(Math.round(r * 100), 100);
+    const col = r >= 1 ? '#3b82f6' : '#f59e0b';
+    const badge = r < 0.55
+      ? `<span class="prod-badge badge-danger">급감</span>`
+      : r >= 1
+        ? `<span class="prod-badge badge-ok">정상</span>`
+        : `<span class="prod-badge badge-warn">부진</span>`;
+    return `
+      <div class="prod-row">
+        <div class="prod-name">${p.name}</div>
+        <div class="prod-bar-wrap">
+          <div class="prod-bar-bg"><div class="prod-bar-fill" style="width:${w}%;background:${col};"></div></div>
+        </div>
+        <div class="prod-qty">${p.actual}<em>/${p.target}</em></div>
+        ${badge}
+      </div>`;
+  }).join('');
+
+  // ── 재고 카드 ────────────────────────────────────────────
+  const stockHTML = stockData.map(s => {
+    const info      = ddayInfo(s.dday);
+    const isExpired = s.dday !== null && s.dday < 0;
+    const ddLabel   = s.dday === null ? '—'
+      : s.dday < 0 ? `D+${Math.abs(s.dday)}`
+      : `D-${s.dday}`;
+    const restockTxt = (s.restockQty || s.restockDate)
+      ? `<strong>${s.restockQty ? s.restockQty.toLocaleString()+'개' : '미정'}</strong> 재입고${s.restockDate ? ` · ${fmtDate(s.restockDate)}` : ''}`
+      : `<span class="muted">재입고 정보 없음</span>`;
+    return `
+      <div class="stock-card ${isExpired ? 'stock-expired' : ''}" style="--stock-accent:${info.accent}">
+        <div class="stock-name ${isExpired ? 'muted' : ''}">${s.name}</div>
+        <div class="stock-dday ${info.cls}">${ddLabel}</div>
+        <div class="stock-tag-wrap"><span class="stock-tag ${info.cls}">${isExpired ? '품절' : info.label}</span></div>
+        <div class="stock-divider"></div>
+        <div class="stock-restock ${isExpired ? 'muted' : ''}">${restockTxt}</div>
+      </div>`;
+  }).join('');
+
+  // ── 쿠팡 차트 + 테이블 ───────────────────────────────────
+  const totalOrdered   = coupangData.reduce((s, d) => s + d.ordered, 0);
+  const totalDelivered = coupangData.reduce((s, d) => s + d.delivered, 0);
+  const totalRate      = totalOrdered > 0 ? totalDelivered / totalOrdered * 100 : 0;
+
+  const coupangBars = coupangData.map((d, i) => {
+    const h   = Math.max(4, Math.round(d.rate * 1.1));
+    const col = d.rate >= 70 ? '#22c55e' : d.rate >= 50 ? '#3b82f6' : d.rate >= 30 ? '#f59e0b' : '#ef4444';
+    const isLast = i === coupangData.length - 1;
+    return `<div class="coup-bar-col">
+      <div class="coup-bar-pct">${d.rate.toFixed(0)}%</div>
+      <div class="coup-bar-fill" style="height:${h}px;background:${col};${isLast ? 'outline:1.5px solid var(--accent);outline-offset:-1.5px;' : ''}"></div>
+      <div class="coup-bar-lbl">${d.week}</div>
+    </div>`;
+  }).join('');
+
+  const coupangTableRows = coupangData.map((d, i) => {
+    const col     = d.rate >= 70 ? '#22c55e' : d.rate >= 50 ? '#3b82f6' : d.rate >= 30 ? '#f59e0b' : '#ef4444';
+    const isLast  = i === coupangData.length - 1;
+    const barW    = Math.min(Math.round(d.rate), 100);
+    return `<tr class="${isLast ? 'row-current' : ''}">
+      <td class="fw">${d.week}</td>
+      <td class="muted">${d.period}</td>
+      <td class="num">${d.ordered.toLocaleString()}</td>
+      <td class="num">${d.delivered.toLocaleString()}</td>
+      <td class="num fw" style="color:${col}">${d.rate.toFixed(2)}%</td>
+      <td><div class="mini-bar-wrap"><div class="mini-bar-fill" style="width:${barW}%;background:${col}"></div></div></td>
+    </tr>`;
+  }).join('');
+
+  // ── 경고 배너 ────────────────────────────────────────────
+  const alertBanner = (pct < 80 && currentMain > 0)
+    ? `<div class="alert-banner alert-danger">⚠ [위험] 자사몰+네이버 달성률 ${pct.toFixed(1)}% — 목표 달성을 위한 잔여 일 매출이 평소 대비 ${Math.round(needDaily / currentMain * 100)}% 이상 필요합니다.</div>`
+    : (pct < 90 && currentMain > 0)
+    ? `<div class="alert-banner alert-warn">⚡ [경고] 자사몰+네이버 달성률 ${pct.toFixed(1)}% — 목표 대비 부족합니다. 추이를 주시하세요.</div>`
+    : '';
+
+  // ── 바 스케일 계산 ────────────────────────────────────────
+  const barMin  = Math.min(adjBudget, spentBudget) * 0.85;
+  const range   = Math.max(adjBudget, spentBudget) - barMin || 1;
+  const adjW    = Math.round((adjBudget   - barMin) / range * 100);
+  const spentW  = Math.round((spentBudget - barMin) / range * 100);
+  const spentCol = spendRatio <= 18 ? '#22c55e' : '#ef4444';
+
+  // ── SVG 도넛 ─────────────────────────────────────────────
+  const R = 34, C = 42;
+  const circ = 2 * Math.PI * R;
+  const spentArc = Math.min(spendRatio, 100) / 100 * circ;
+  const limitArc = Math.min(18, 100) / 100 * circ;
+
+  document.getElementById("content").innerHTML = `
+
+    ${alertBanner}
+
+    <!-- ① 일매출 달성 현황 -->
+    <section class="sec">
+      <div class="sec-header"><span class="sec-lbl">일매출 달성 현황</span></div>
+      <div class="kpi-row">
+
+        <!-- 목표 vs 현재 -->
+        <div class="kpi-card kpi-wide">
+          <div class="kpi-label">목표 vs 현재 평균 일매출 <span class="kpi-label-sub">자사몰+네이버</span></div>
+          <div class="bar-compare">
+            <div class="bar-compare-row">
+              <span class="bar-compare-tag">목표</span>
+              <div class="bar-compare-track"><div class="bar-compare-fill" style="width:100%;background:var(--border2)"></div></div>
+              <span class="bar-compare-val">${f(targetMain)}</span>
+            </div>
+            <div class="bar-compare-row">
+              <span class="bar-compare-tag">현재</span>
+              <div class="bar-compare-track">
+                <div class="bar-compare-fill" style="width:${Math.min(pct,100)}%;background:${currentMain >= targetMain ? '#22c55e' : '#ef4444'};"></div>
+              </div>
+              <span class="bar-compare-val" style="color:${currentMain >= targetMain ? '#22c55e' : '#ef4444'}">${f(currentMain)}</span>
+            </div>
+          </div>
+          <div class="kpi-footer">${elapsedDays}일 경과 / ${totalDays}일 · 달성률 ${pct.toFixed(1)}%</div>
+        </div>
+
+        <!-- 달성률 -->
+        <div class="kpi-card">
+          <div class="kpi-label">목표 달성률</div>
+          <div class="kpi-value" style="color:${G.color}">${pct.toFixed(1)}%</div>
+          <div class="kpi-badge kpi-badge-${G.cls}">${G.label}</div>
+          <div class="prog-track"><div class="prog-fill" style="width:${Math.min(pct,130)/1.3}%;background:${G.color}"></div></div>
+        </div>
+
+        <!-- 예상 매출 -->
+        <div class="kpi-card">
+          <div class="kpi-label">전체 플랫폼 누적 예상 매출</div>
+          <div class="kpi-value">${f(projected)}</div>
+          <div class="kpi-sub">목표 대비 ${projected >= CONFIG.TARGET_MONTHLY ? '+' : ''}${f(projected - CONFIG.TARGET_MONTHLY)}</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ② 발주 예산 여유 -->
+    <section class="sec">
+      <div class="sec-header"><span class="sec-lbl">발주 예산 여유</span></div>
+      <div class="kpi-row">
+
+        <!-- 조정발주비 vs 누적지출 -->
+        <div class="kpi-card kpi-wide">
+          <div class="kpi-label">조정 발주비 vs 누적 지출액</div>
+          <div class="bar-compare">
+            <div class="bar-compare-row">
+              <span class="bar-compare-tag" style="width:52px">조정발주</span>
+              <div class="bar-compare-track"><div class="bar-compare-fill" style="width:${adjW}%;background:var(--border2)"></div></div>
+              <span class="bar-compare-val">${f(adjBudget)}</span>
+            </div>
+            <div class="bar-compare-row">
+              <span class="bar-compare-tag" style="width:52px">누적지출</span>
+              <div class="bar-compare-track"><div class="bar-compare-fill" style="width:${spentW}%;background:${spentCol}"></div></div>
+              <span class="bar-compare-val" style="color:${spentCol}">${f(spentBudget)}</span>
+            </div>
+          </div>
+          <div class="kpi-footer">월말 예상 매출 × 18% 기준 · 현재 ${spendRatio.toFixed(1)}% 집행</div>
+        </div>
+
+        <!-- 도넛 -->
+        <div class="kpi-card kpi-donut">
+          <div class="kpi-label">현재 기준 발주비 비중</div>
+          <div class="donut-wrap">
+            <svg viewBox="0 0 84 84" width="80" height="80" style="transform:rotate(-90deg)">
+              <circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="var(--bg3)" stroke-width="10"/>
+              <circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="rgba(34,197,94,0.2)" stroke-width="10"
+                stroke-dasharray="${limitArc} ${circ}" stroke-dashoffset="0"/>
+              <circle cx="${C}" cy="${C}" r="${R}" fill="none" stroke="${spentCol}" stroke-width="10"
+                stroke-dasharray="${spentArc} ${circ}" stroke-dashoffset="0" stroke-linecap="round"/>
+            </svg>
+            <div class="donut-center">
+              <span style="font-size:14px;font-weight:700;font-family:var(--mono);color:${spentCol}">${spendRatio.toFixed(1)}%</span>
+            </div>
+          </div>
+          <div class="kpi-badge kpi-badge-${spendRatio <= 18 ? 'green' : 'red'}">${spendRatio <= 18 ? '안전 (18% 이하)' : '위험 (18% 초과)'}</div>
+          <div class="donut-legend">
+            <span><i style="background:rgba(34,197,94,0.3)"></i>18% 한도</span>
+            <span><i style="background:${spentCol}"></i>현재</span>
+          </div>
+        </div>
+
+        <!-- 추가 가용 -->
+        <div class="kpi-card">
+          <div class="kpi-label">추가 가용 발주비</div>
+          <div class="kpi-value ${extraBudget >= 0 ? 'pos' : 'neg'}">${extraBudget >= 0 ? f(extraBudget) : '-'+f(Math.abs(extraBudget))}</div>
+          <div class="kpi-badge kpi-badge-${extraBudget >= 0 ? 'green' : 'red'}">${extraBudget >= 0 ? '여유 있음' : '예산 초과'}</div>
+          <div class="kpi-sub" style="margin-top:8px;line-height:1.7">현재 평균 유지 시<br>${extraBudget >= 0 ? f(extraBudget)+' 추가 집행 가능' : f(Math.abs(extraBudget))+' 초과 상태'}</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ③ 시나리오 -->
+    <section class="sec">
+      <div class="sec-header"><span class="sec-lbl">일평균 시나리오별 추가 가용 발주비</span><span class="sec-sub">목표 일평균 기준</span></div>
+      <div class="table-card">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>시나리오 일평균</th>
+                <th class="num">월말 예상 매출</th>
+                <th class="num">조정 발주비 (×18%)</th>
+                <th class="num">추가 가용 발주비</th>
+              </tr>
+            </thead>
+            <tbody>${scenarioRows}</tbody>
+          </table>
+        </div>
+        <div class="table-footer">
+          시나리오 일평균은 자사몰+네이버 합산 기준 / 월말 예상 매출은 전체 플랫폼 기준 (자사몰+네이버 = 전체의 70%) / 추가 가용 발주비 = 조정 발주비 − 누적 지출액(${f(spentBudget)})
+        </div>
+      </div>
+    </section>
+
+    <!-- ④ 조건부 발주 -->
+    <section class="sec">
+      <div class="sec-header"><span class="sec-lbl">조건부 발주 가능 금액</span><span class="sec-sub">결제 유예 조건</span></div>
+      <div class="deferred-card">
+        <div class="deferred-top">
+          <span class="deferred-icon">💳</span>
+          <span class="deferred-desc">잔여 발주 예산이 부족한 경우, 다음달 결제 유예 조건으로 추가 발주 가능한 한도를 표시합니다.</span>
+        </div>
+        <div class="deferred-cells">
+          <div class="deferred-cell">
+            <div class="kpi-label">이 날짜까지 결제를 미룰 수 있다면</div>
+            <div class="kpi-value ${noDeadline ? 'neg' : ''}" style="${noDeadline ? 'font-size:14px' : ''}">${noDeadline ? '조건부 추가 발주 불가' : fmtDate(deferralDeadline)}</div>
+            <div class="kpi-sub">${noDeadline ? '마감일 미설정' : ddayLabel + ' 남음'}</div>
+          </div>
+          <div class="deferred-cell">
+            <div class="kpi-label">추가 발주 가능 한도</div>
+            <div class="kpi-value ${noLimit ? 'neg' : ''}">${noLimit ? '0원' : f(deferralLimit)}</div>
+            <div class="kpi-sub">${noLimit ? '한도 미설정 (불가)' : '과장 설정 기준'}</div>
+          </div>
+        </div>
+        <div class="deferred-note">
+          📌 <strong>조건부 발주</strong>란, 이번 달 발주 예산을 소진한 경우 <strong>${deferralDeadline ? fmtDate(deferralDeadline) : '지정된 날짜'}까지 결제를 유예</strong>하는 조건으로 추가 발주를 진행하는 것입니다.
+          한도(<strong>${deferralLimit > 0 ? f(deferralLimit) : '미설정'}</strong>)는 과장이 설정하며, 해당 범위 내에서만 추가 발주가 가능합니다.
+        </div>
+      </div>
+    </section>
+
+    <!-- ⑤ 제품 일평균 판매수량 -->
+    <section class="sec">
+      <div class="sec-header"><span class="sec-lbl">주력 제품 일평균 판매수량</span></div>
+      <div class="table-card prod-card">${prodHTML}</div>
+    </section>
+
+    <!-- ⑦ 재고현황 -->
+    <section class="sec">
+      <div class="sec-header"><span class="sec-lbl">주력 제품 재고현황</span><span class="sec-sub">품절 D-day</span></div>
+      <div class="stock-grid">${stockHTML}</div>
+    </section>
+  `;
+
+  // ── 발주 요청 사항 패널 ─────────────────────────────────
+  document.getElementById('memo-content').innerHTML = `
+    <section class="sec">
+      <div class="table-card memo-card">
+        ${[['team','팀장'],['manager','과장'],['staff','주임']].map(([role, label], idx) => {
+          const txt = memoData[role] || '';
+          return `<div class="memo-row ${idx < 2 ? 'memo-border' : ''}">
+            <div class="memo-role">${label}</div>
+            <div class="memo-body ${txt ? '' : 'muted'}">${txt
+              ? txt.split('\n').map(l => l.trim()).filter(l => l !== '').join('<br>')
+              : '—'}</div>
+          </div>`;
+        }).join('')}
+        <div class="table-footer">📄 Google Sheets &gt; 발주요청사항 시트에서 수정 · 새로고침 시 반영</div>
+      </div>
+    </section>
+  `;
+
+  // ── 쿠팡 납품 현황 패널 ────────────────────────────────
+  document.getElementById('coupang-content').innerHTML = `
+    <section class="sec">
+      <div class="table-card">
+        <div class="coup-chart">
+          <div class="coup-bars">${coupangBars}</div>
+        </div>
+        <div class="coup-legend">
+          ${[['#22c55e','70%+'],['#3b82f6','50~69%'],['#f59e0b','30~49%'],['#ef4444','~29%']].map(([c,l])=>
+            `<span class="coup-leg-item"><i style="background:${c}"></i>${l}</span>`
+          ).join('')}
+          <span class="coup-leg-item" style="margin-left:auto;color:var(--muted)">□ 최근 주차</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>주차</th><th>기간</th>
+                <th class="num">발주 요청</th><th class="num">입고</th>
+                <th class="num">납품율</th><th>달성</th>
+              </tr>
+            </thead>
+            <tbody>${coupangTableRows}</tbody>
+            <tfoot>
+              <tr class="tfoot-row">
+                <td class="fw" colspan="2">전체 합계</td>
+                <td class="num fw">${totalOrdered.toLocaleString()}</td>
+                <td class="num fw">${totalDelivered.toLocaleString()}</td>
+                <td class="num fw">${totalRate.toFixed(2)}%</td>
+                <td></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+// SIMULATION ENGINE v4 — 안정화 + 분할수령 + 월한도 평준화
+// ============================================================
+
+let SIM_MONTHLY_SALES_TARGET = 20000;
+let SIM_ORDER_LIMIT_PCT      = 0.18;
+let SIM_ORDER_LIMIT_WON      = SIM_MONTHLY_SALES_TARGET * SIM_ORDER_LIMIT_PCT * 10000;
+
+const SIM_PRODUCTS = [
+  { id:'mk',        name:'MK 킥프레임',   maker:'타이루', dailySales:40, moq:3000, leadDays:30, prepayPct:0.10, unitCost:6977,  targetHoldDays:45 },
+  { id:'ph_s',      name:'PH스탠드 실버', maker:'리디안', dailySales:30, moq:1000, leadDays:50, prepayPct:0.40, unitCost:9835,  targetHoldDays:65 },
+  { id:'ph_b',      name:'PH스탠드 블랙', maker:'리디안', dailySales:20, moq:1000, leadDays:50, prepayPct:0.40, unitCost:9835,  targetHoldDays:65 },
+  { id:'dw_pro_s',  name:'DW프로 실버',   maker:'타이루', dailySales:6,  moq:1000, leadDays:50, prepayPct:0.10, unitCost:30446, targetHoldDays:65 },
+  { id:'dw_pro_b',  name:'DW프로 블랙',   maker:'타이루', dailySales:4,  moq:1000, leadDays:50, prepayPct:0.10, unitCost:30446, targetHoldDays:65 },
+  { id:'dw_plus_s', name:'DW플러스 실버', maker:'타이루', dailySales:3,  moq:1000, leadDays:50, prepayPct:0.10, unitCost:21396, targetHoldDays:65 },
+  { id:'dw_plus_b', name:'DW플러스 블랙', maker:'타이루', dailySales:2,  moq:1000, leadDays:50, prepayPct:0.10, unitCost:21396, targetHoldDays:65 },
+];
+
+const SIM_PRODUCT_GROUPS = [
+  { id:'mk',      name:'MK',        subtitle:'단독 제품',         productIds:['mk'],                    chips:['MK'] },
+  { id:'ph',      name:'PH',        subtitle:'실버 + 블랙 묶음',  productIds:['ph_s','ph_b'],           chips:['S','B'] },
+  { id:'dw_pro',  name:'DW 프로',   subtitle:'실버 + 블랙 묶음',  productIds:['dw_pro_s','dw_pro_b'],   chips:['S','B'] },
+  { id:'dw_plus', name:'DW 플러스', subtitle:'실버 + 블랙 묶음',  productIds:['dw_plus_s','dw_plus_b'], chips:['S','B'] },
+];
+
+// ── 날짜 유틸 ─────────────────────────────────────────────
+function simAdd(d, n) { const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function simMD(d)      { return `${d.getMonth()+1}/${d.getDate()}`; }
+function simMK(d)      { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function simWK(d)      { return `${simMK(d)}-W${Math.ceil(d.getDate()/7)}`; }
+function simML(k)      { return `${parseInt(k.split('-')[1])}월`; }
+function simWL(k)      { const p=k.split('-'); return `${parseInt(p[1])}월 ${p[2]}주`; }
+function simWon(v) {
+  const n=Math.round(v/10000);
+  if(n>=10000) return `${+(n/10000).toFixed(1)}억`;
+  if(n>=1000){ const c=Math.floor(n/1000),b=Math.floor((n%1000)/100); return b?`${c}천${b}백만`:`${c}천만`; }
+  if(n>0) return `${n}백만`;
+  return '0';
+}
+function simWonM(v) { return `${Math.round(v/10000).toLocaleString()}만`; }
+
+function applySheetDailySales(cfg) {
+  const map = { mk:'sim_daily_mk', ph_s:'sim_daily_ph_s', ph_b:'sim_daily_ph_b',
+    dw_pro_s:'sim_daily_dw_pro_s', dw_pro_b:'sim_daily_dw_pro_b',
+    dw_plus_s:'sim_daily_dw_plus_s', dw_plus_b:'sim_daily_dw_plus_b' };
+  SIM_PRODUCTS.forEach(p => {
+    const v=parseFloat(cfg[map[p.id]]);
+    if(!isNaN(v)&&v>0) p.dailySales=v;
+  });
+}
+
+function buildPrePaid(cfg) {
+  const china = [
+    { id:'dw_pro_s',  qty:+cfg['china_dw_pro_s'] ||500 },
+    { id:'dw_pro_b',  qty:+cfg['china_dw_pro_b'] ||600 },
+    { id:'dw_plus_s', qty:+cfg['china_dw_plus_s']||100 },
+    { id:'dw_plus_b', qty:+cfg['china_dw_plus_b']||530 },
+  ].filter(c=>c.qty>0);
+
+  const inProd = [
+    { id:'ph_s', qty:+cfg['prepaid_ph_s_1_qty']||2000, date:cfg['prepaid_ph_s_1_date']||'2026-06-04' },
+    { id:'ph_s', qty:+cfg['prepaid_ph_s_2_qty']||1500, date:cfg['prepaid_ph_s_2_date']||'2026-06-28' },
+    { id:'ph_b', qty:+cfg['prepaid_ph_b_1_qty']||1500, date:cfg['prepaid_ph_b_1_date']||'2026-06-28' },
+    { id:'mk',   qty:+cfg['prepaid_mk_prod_qty']||5336, date:'', leadDays:14 }, // 선금완료·제작미시작: 요청 후 14일
+    { id:'mk',   qty:+cfg['prepaid_mk_done_qty']||500,  date:'', leadDays:5  }, // 제작완료·중국재고: 요청 후 5일
+  ].filter(c=>c.qty>0);
+
+  return { china, inProd };
+}
+
+function initBuckets(today) {
+  const months={}, weeks={};
+  for(let m=today.getMonth(); m<=11; m++) {
+    const mk=`${today.getFullYear()}-${String(m+1).padStart(2,'0')}`;
+    months[mk]={ prepay:0, balance:0, total:0, events:[] };
+    for(let w=1; w<=5; w++)
+      weeks[`${mk}-W${w}`]={ prepay:0, balance:0, total:0, events:[], month:mk };
+  }
+  return { months, weeks };
+}
+
+function addToBucket(months, weeks, date, type, amount, note, qty) {
+  const mk=simMK(date), wk=simWK(date);
+  if(months[mk]){ months[mk][type]+=amount; months[mk].total=months[mk].prepay+months[mk].balance; months[mk].events.push({date,type,amount,note,qty:qty||0}); }
+  if(weeks[wk]) { weeks[wk][type] +=amount; weeks[wk].total =weeks[wk].prepay +weeks[wk].balance;  weeks[wk].events.push({date,type,amount,note,qty:qty||0}); }
+}
+
+// ── 이벤트 기반 시뮬레이션 (무한루프 없음) ──────────────
+// 날짜를 하루씩 돌지 않고, 이벤트(발주/입고) 기반으로 처리
+function runSimV4(products, initStocks, prePaid, months, weeks) {
+  const today   = new Date(); today.setHours(0,0,0,0);
+  const endDate = new Date(today.getFullYear(), 11, 31);
+  const allOrders  = [];
+  const risks      = [];
+  const stockTimeline = {};
+
+  products.forEach(p => {
+    const safeStock   = Math.ceil(p.dailySales * p.leadDays);
+    const monthlyNeed = Math.ceil(p.dailySales * 30);
+    const targetQty   = Math.max(p.moq, Math.ceil(p.dailySales * p.targetHoldDays / p.moq) * p.moq);
+
+    // 타임라인 초기화
+    stockTimeline[p.id] = { product:p, safeStock, snapshots:[] };
+
+    // 인벤토리: 현재고 + 입고 예정 이벤트 배열
+    let curStock = initStocks[p.id] ?? (p.dailySales * p.targetHoldDays);
+    // inboundEvents: { date, qty, balanceAmt, isSplit, splitRef? }
+    const inboundEvents = [];
+    // 발주 대기 방지: 마지막 발주일 기록
+    let lastOrderDate = new Date(0);
+
+    // ── 선금완료 중국재고 등록 (분할수령) ─────────────────
+    prePaid.china.filter(c=>c.id===p.id).forEach(c=>{
+      let rem = c.qty;
+      let bNum = 0;
+      while(rem > 0) {
+        const bQty  = Math.min(monthlyNeed, rem);
+        const bDate = simAdd(today, 5 + bNum * 30);
+        const bBal  = Math.round(bQty * p.unitCost * (1 - p.prepayPct));
+        inboundEvents.push({ date:bDate, qty:bQty, balanceAmt:bBal, label:'중국재고' });
+        addToBucket(months, weeks, bDate, 'balance', bBal, `${p.name} 중국재고 잔금`, bQty);
+        rem -= bQty; bNum++;
+      }
+      const totalBal = Math.round(c.qty * p.unitCost * (1 - p.prepayPct));
+      allOrders.push({ product:p, orderDate:today, receiveDate:simAdd(today,5), qty:c.qty,
+        prepayAmt:0, balanceAmt:totalBal, totalCost:c.qty*p.unitCost,
+        type:'china', label:'중국재고(선금완료,분할수령)',
+        batches: Array.from({length:Math.ceil(c.qty/monthlyNeed)}, (_,i)=>{
+          const q=Math.min(monthlyNeed, c.qty - i*monthlyNeed);
+          return { date:simAdd(today, 5+i*30), qty:q, balanceAmt:Math.round(q*p.unitCost*(1-p.prepayPct)) };
+        })
+      });
+    });
+
+    // ── 선금완료 제작중 등록 ─────────────────────────────
+    // leadDays가 짧은 항목(≤7일): 품절 임박 시 자동 트리거용 → 별도 대기열
+    // leadDays가 긴 항목(>7일): 즉시 요청, 분할수령으로 inboundEvents 등록
+    const urgentReserve = []; // 품절 방어용 소량 항목
+    prePaid.inProd.filter(c=>c.id===p.id).forEach(c=>{
+      const ld = c.leadDays || 60;
+      if(!c.date && ld <= 7) {
+        // 소량 긴급용: 품절 임박 시 트리거 (시뮬루프에서 처리)
+        urgentReserve.push({ qty:c.qty, leadDays:ld, unitCost:p.unitCost, prepayPct:p.prepayPct, used:false });
+        return;
+      }
+      // 대량 분할수령: 즉시 요청, leadDays 후 첫 수령
+      let firstDate;
+      if(c.date){ firstDate=new Date(c.date); firstDate.setHours(0,0,0,0); }
+      else       { firstDate=simAdd(today, ld); }
+      const totalBal = Math.round(c.qty * p.unitCost * (1 - p.prepayPct));
+      let rem=c.qty, bNum=0;
+      const batches=[];
+      while(rem>0){
+        const bQty=Math.min(monthlyNeed,rem);
+        const bDate=simAdd(firstDate, bNum*30);
+        const bBal=Math.round(totalBal*bQty/c.qty);
+        inboundEvents.push({ date:bDate, qty:bQty, balanceAmt:bBal, label:'선금완료(분할)' });
+        addToBucket(months, weeks, bDate, 'balance', bBal, `${p.name} 선금완료 잔금`, bQty);
+        batches.push({ date:bDate, qty:bQty, balanceAmt:bBal });
+        rem-=bQty; bNum++;
+      }
+      const label = c.date ? `선금완료(수령예정 ${simMD(firstDate)})` : `선금완료(요청→${ld}일후 분할수령)`;
+      allOrders.push({ product:p, orderDate:today, receiveDate:firstDate, qty:c.qty,
+        prepayAmt:0, balanceAmt:totalBal, totalCost:c.qty*p.unitCost, type:'prepaid', label, batches });
+    });
+
+    // ── 날짜별 순회 ───────────────────────────────────────
+    let d = new Date(today);
+    while(d <= endDate) {
+      // 오늘 입고 처리
+      inboundEvents.forEach(ev => {
+        if(ev.date.getTime() === d.getTime()) curStock += ev.qty;
+      });
+
+      // 리드타임 내에 도착하는 inbound만 계산 (그 이후는 현재 재고 부족을 메우지 못함)
+      const leadDeadline = simAdd(d, p.leadDays);
+      const futureInbound = inboundEvents
+        .filter(ev => ev.date > d && ev.date <= leadDeadline)
+        .reduce((s,ev) => s+ev.qty, 0);
+
+      const projected = curStock + futureInbound;
+
+      // ── 긴급 소량 트리거: leadDays×일판매 이하로 떨어지면 즉시 요청
+      urgentReserve.forEach(ur => {
+        if(!ur.used) {
+          const urgentSafe = Math.ceil(p.dailySales * (ur.leadDays + 7));
+          if(curStock <= urgentSafe) {
+            ur.used = true;
+            const receiveDate = simAdd(d, ur.leadDays);
+            const balAmt = Math.round(ur.qty * ur.unitCost * (1 - ur.prepayPct));
+            inboundEvents.push({ date:receiveDate, qty:ur.qty, balanceAmt:balAmt, label:'긴급입고' });
+            addToBucket(months, weeks, receiveDate, 'balance', balAmt, `${p.name} 긴급입고 잔금`, ur.qty);
+            const batches = [{ date:receiveDate, qty:ur.qty, balanceAmt:balAmt }];
+            allOrders.push({ product:p, orderDate:new Date(d), receiveDate, qty:ur.qty,
+              prepayAmt:0, balanceAmt:balAmt, totalCost:ur.qty*ur.unitCost,
+              type:'prepaid', label:`긴급입고(품절방어 D-${ur.leadDays})`, batches });
+          }
+        }
+      });
+
+      // 발주 트리거: 리드타임 내 입고 포함 재고가 safeStock 이하일 때
+      if(projected <= safeStock && lastOrderDate.getTime() < d.getTime()) {
+        // 발주일 결정 (월 한도 체크)
+        let actualOrderDate = new Date(d);
+        let adjusted = false, budgetForced = false;
+        const prepayAmt = Math.round(targetQty * p.unitCost * p.prepayPct);
+        const totalBal  = Math.round(targetQty * p.unitCost * (1 - p.prepayPct));
+        const totalCost = targetQty * p.unitCost;
+
+        for(let shift=0; shift<=28; shift++) {
+          const tryDate = simAdd(d, shift);
+          const tryMk   = simMK(tryDate);
+          const mBucket = months[tryMk];
+          if(!mBucket) { budgetForced=true; actualOrderDate=tryDate; break; }
+          if(mBucket.total + prepayAmt <= SIM_ORDER_LIMIT_WON) {
+            actualOrderDate = tryDate;
+            if(shift>0) adjusted=true;
+            break;
+          }
+          if(shift===28) {
+            budgetForced=true; actualOrderDate=tryDate;
+            risks.push({ type:'budget_exceed', product:p.name,
+              msg:`${p.name}: ${simML(simMK(tryDate))} 발주비 한도 초과 불가피 (선금 ${simWon(prepayAmt)})` });
+          }
+        }
+
+        // 발주 지연 품절 위험 체크
+        if(adjusted || budgetForced) {
+          const delay = Math.ceil((actualOrderDate-d)/86400000);
+          const stockAfterDelay = Math.max(0, curStock - p.dailySales*delay);
+          if(stockAfterDelay < safeStock) {
+            risks.push({ type:'stockout_risk', product:p.name,
+              msg:`${p.name}: 발주 ${delay}일 지연 → 안전재고 이탈 위험 (${simMD(simAdd(d,delay))} 기준 재고 ${stockAfterDelay.toLocaleString()}개)` });
+          }
+        }
+
+        // 분할 입고 등록
+        const batches = [];
+        let rem2 = targetQty, bNum2 = 0;
+        while(rem2>0) {
+          const bQty  = Math.min(monthlyNeed, rem2);
+          const bDate = simAdd(actualOrderDate, p.leadDays + bNum2*30);
+          const bBal  = Math.round(totalBal * bQty / targetQty);
+          inboundEvents.push({ date:bDate, qty:bQty, balanceAmt:bBal, label:'신규발주' });
+          addToBucket(months, weeks, bDate, 'balance', bBal, `${p.name} 잔금 ${bNum2+1}차`, bQty);
+          batches.push({ date:bDate, qty:bQty, balanceAmt:bBal });
+          rem2-=bQty; bNum2++;
+        }
+
+        // 선금 기록
+        addToBucket(months, weeks, actualOrderDate, 'prepay', prepayAmt, `${p.name} 선금`, targetQty);
+
+        allOrders.push({ product:p, orderDate:actualOrderDate,
+          receiveDate:batches[0].date, qty:targetQty,
+          prepayAmt, balanceAmt:totalBal, totalCost,
+          adjusted, budgetForced, type:'new',
+          label:adjusted?'일정조정':'신규발주', batches });
+
+        lastOrderDate = new Date(actualOrderDate);
+      }
+
+      // 스냅샷 (월요일 + 품절일)
+      if(d.getDay()===1 || curStock===0) {
+        const status = curStock===0?'out': curStock<=safeStock?'danger':'ok';
+        stockTimeline[p.id].snapshots.push({ date:new Date(d), stock:curStock, status });
+      }
+
+      // 하루 소진
+      curStock = Math.max(0, curStock - p.dailySales);
+      d = simAdd(d, 1);
+    }
+
+    // 말일 스냅샷
+    stockTimeline[p.id].snapshots.push({ date:new Date(endDate), stock:curStock,
+      status: curStock===0?'out': curStock<=safeStock?'danger':'ok' });
+  });
+
+  Object.values(months).forEach(m => m.total=m.prepay+m.balance);
+  Object.values(weeks).forEach(w  => w.total =w.prepay +w.balance);
+
+  return { allOrders, risks, stockTimeline };
+}
+
+// ── 간트 차트 ─────────────────────────────────────────────
+function renderStockGantt(stockTimeline, allOrders) {
+  const today   = new Date(); today.setHours(0,0,0,0);
+  const start   = new Date(today.getFullYear(), 4, 1); // 5/1 시작
+  const endDate = new Date(today.getFullYear(), 11, 31); // 12/31
+
+  const dates = [];
+  let d = new Date(start);
+  while(d <= endDate) { dates.push(new Date(d)); d.setDate(d.getDate()+1); }
+
+  function getStatusMap(pid) {
+    const tl = stockTimeline[pid];
+    if(!tl || tl.snapshots.length === 0) return {};
+    const map = {};
+    const snaps = tl.snapshots;
+    for(let si=0; si<snaps.length-1; si++) {
+      const s0 = snaps[si], s1 = snaps[si+1];
+      let dd = new Date(s0.date);
+      while(dd < s1.date) {
+        const key = dd.toISOString().slice(0,10);
+        map[key] = s0.stock <= 0 ? 'out' : s0.status === 'danger' ? 'danger' : 'ok';
+        dd.setDate(dd.getDate()+1);
+      }
+    }
+    const last = snaps[snaps.length-1];
+    const key = last.date.toISOString().slice(0,10);
+    map[key] = last.stock <= 0 ? 'out' : last.status === 'danger' ? 'danger' : 'ok';
+    return map;
+  }
+
+  function getEventMap(pid) {
+    const map = {};
+    allOrders.filter(o => o.product.id === pid).forEach(o => {
+      const isPrepaid = o.type==='prepaid'||o.type==='china';
+      const orderKey = o.orderDate.toISOString().slice(0,10);
+      if(!map[orderKey]) map[orderKey] = [];
+      map[orderKey].push({
+        kind: 'order',
+        isPrepaid,
+        label: isPrepaid ? `${o.product.name} 요청 ${o.qty.toLocaleString()}개` : `${o.product.name} 발주 ${o.qty.toLocaleString()}개`,
+      });
+      (o.batches||[]).forEach((b,i) => {
+        const bKey = b.date.toISOString().slice(0,10);
+        if(!map[bKey]) map[bKey] = [];
+        map[bKey].push({
+          kind: 'receive',
+          isPrepaid,
+          label: `${o.product.name} ${i+1}차 입고 ${b.qty.toLocaleString()}개`,
+        });
+      });
+    });
+    return map;
+  }
+
+  const statusMaps = {};
+  const eventMaps  = {};
+  SIM_PRODUCTS.forEach(p => {
+    statusMaps[p.id] = getStatusMap(p.id);
+    eventMaps[p.id]  = getEventMap(p.id);
+  });
+
+  const monthStarts = [];
+  let prevMonth = -1;
+  dates.forEach((dd, idx) => {
+    if(dd.getMonth() !== prevMonth) {
+      monthStarts.push({ idx, month: dd.getMonth()+1 });
+      prevMonth = dd.getMonth();
+    }
+  });
+
+  const CELL_W = 16;
+
+  const monthHeaderHTML = monthStarts.map((ms, i) => {
+    const nextIdx = monthStarts[i+1]?.idx ?? dates.length;
+    const spanDays = nextIdx - ms.idx;
+    return `<div style="display:inline-block;width:${spanDays*CELL_W}px;text-align:center;font-size:10px;font-weight:600;color:var(--muted);border-right:1px solid var(--border);box-sizing:border-box;padding:2px 0">${ms.month}월</div>`;
+  }).join('');
+
+  const dateHeaderHTML = dates.map(dd => {
+    const dom = dd.getDate();
+    const isToday = dd.getTime() === today.getTime();
+    const showLabel = dom===1||dom===5||dom===10||dom===15||dom===20||dom===25||
+      (new Date(dd.getFullYear(),dd.getMonth()+1,0).getDate()===dom);
+    return `<div style="display:inline-block;width:${CELL_W}px;text-align:center;font-size:8px;color:${isToday?'var(--accent)':'var(--muted)'};font-family:var(--mono);overflow:hidden;box-sizing:border-box;${isToday?'font-weight:700;':''}">${showLabel?dom:''}</div>`;
+  }).join('');
+
+  function mergedStatus(group, key) {
+    const statuses = group.productIds.map(pid => statusMaps[pid]?.[key] || 'ok');
+    if(statuses.includes('out')) return 'out';
+    if(statuses.includes('danger')) return 'danger';
+    return 'ok';
+  }
+
+  function groupEvents(group, key) {
+    return group.productIds.flatMap(pid => eventMaps[pid]?.[key] || []);
+  }
+
+  function firstStatusDate(group, status) {
+    const hit = dates.find(dd => group.productIds.some(pid => (statusMaps[pid]?.[dd.toISOString().slice(0,10)] || 'ok') === status));
+    return hit || null;
+  }
+
+  const groupRowsHTML = SIM_PRODUCT_GROUPS.map(group => {
+    const firstOut = firstStatusDate(group, 'out');
+    const firstWarn = firstStatusDate(group, 'danger');
+    const runwayDate = firstOut || firstWarn;
+    const runwayDays = runwayDate ? Math.ceil((runwayDate - today) / 86400000) : null;
+    const runwayCls = firstOut ? 'runway-danger' : firstWarn ? 'runway-warn' : 'runway-ok';
+    const runwayText = firstOut
+      ? (runwayDays <= 0 ? '품절' : `품절 D-${runwayDays}`)
+      : firstWarn
+        ? (runwayDays <= 0 ? '주의' : `주의 D-${runwayDays}`)
+    // 품절 구간: 연속 out 일 수 계산 → 중간 셀에 일수 표시
+    const outRuns = [];
+    let outStart = null, outCount = 0;
+    dates.forEach((dd, idx) => {
+      const k  = dd.toISOString().slice(0,10);
+      const st = mergedStatus(group, k);
+      if(st === 'out') {
+        if(outStart === null) { outStart = idx; outCount = 0; }
+        outCount++;
+      } else {
+        if(outStart !== null) {
+          outRuns.push({ midIdx: outStart + Math.floor(outCount/2), days: outCount });
+          outStart = null; outCount = 0;
+        }
+      }
+    });
+    if(outStart !== null) outRuns.push({ midIdx: outStart + Math.floor(outCount/2), days: outCount });
+    const outLabelMap = {};
+    outRuns.forEach(r => { outLabelMap[r.midIdx] = r.days; });
+
+    const cells = dates.map((dd, idx) => {
+      const key     = dd.toISOString().slice(0,10);
+      const status  = mergedStatus(group, key);
+      const events  = groupEvents(group, key);
+      const isToday = dd.getTime() === today.getTime();
+      const dom     = dd.getDate();
+      const isMonthStart = dom === 1;
+      const orderEvents   = events.filter(e => e.kind === 'order');
+      const receiveEvents = events.filter(e => e.kind === 'receive');
+      const hasPrepaidOrder   = orderEvents.some(e => e.isPrepaid);
+      const hasPrepaidReceive = receiveEvents.some(e => e.isPrepaid);
+      const statusLabel = status==='out' ? '품절' : status==='danger' ? '안전재고 이하' : '재고 안전';
+      const title = [`${dd.getMonth()+1}/${dom}`, statusLabel, ...events.map(e=>e.label)].join(' · ');
+      const cls = [
+        'stock-day-cell',
+        `stock-day-${status}`,
+        isToday ? 'stock-day-today' : (isMonthStart ? 'stock-day-month' : ''),
+        orderEvents.length   ? (hasPrepaidOrder   ? 'stock-day-has-order-prepaid'   : 'stock-day-has-order')   : '',
+        receiveEvents.length ? (hasPrepaidReceive ? 'stock-day-has-receive-prepaid' : 'stock-day-has-receive') : '',
+      ].filter(Boolean).join(' ');
+      const outLabel = outLabelMap[idx] ? `<div class="stock-out-label">${outLabelMap[idx]}일</div>` : '';
+      return `<div class="${cls}" title="${title}">${outLabel}</div>`;
+    }).join('');
+
+    return `<div class="stock-timeline-row">
+      <div class="stock-timeline-label">
+        <div class="stock-timeline-name">${group.name}</div>
+        <div class="stock-timeline-meta">
+          ${group.chips.map(chip => `<span class="sku-chip">${chip}</span>`).join('')}
+          <span class="runway-chip ${runwayCls}">${runwayText}</span>
+        </div>
+      </div>
+      <div class="stock-timeline-days">${cells}</div>
+    </div>`;
+  }).join('');
+
+  const todayStr = `${today.getMonth()+1}/${today.getDate()}`;
+
+  return `
+    <section class="sec">
+      <div class="sec-header">
+        <span class="sec-lbl">제품군별 재고 타임라인</span>
+        <span class="sec-sub">MK 단독 · PH/DW는 실버+블랙 묶음 · 오늘(${todayStr})</span>
+      </div>
+      <div class="table-card stock-timeline-card">
+        <div class="gantt-legend" style="padding:10px 14px 8px;border-bottom:1px solid var(--border);display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:10px;background:rgba(34,197,94,0.22);border-radius:2px;display:inline-block"></span>재고 안전</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:10px;background:rgba(245,158,11,0.30);border-radius:2px;display:inline-block"></span>안전재고 이하</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:10px;background:repeating-linear-gradient(45deg,#450a0a,#450a0a 3px,#991b1b 3px,#991b1b 6px);border-radius:2px;display:inline-block"></span>품절</span>
+          <span style="display:flex;align-items:center;gap:4px">
+            <span style="display:inline-block;width:14px;height:10px;position:relative;background:rgba(34,197,94,0.22);border-radius:2px"><span style="position:absolute;top:0;left:0;right:0;height:3px;background:#facc15;border-radius:2px 2px 0 0"></span></span>
+            신규 발주/요청일
+          </span>
+          <span style="display:flex;align-items:center;gap:4px">
+            <span style="display:inline-block;width:14px;height:10px;position:relative;background:rgba(34,197,94,0.22);border-radius:2px"><span style="position:absolute;bottom:0;left:0;right:0;height:3px;background:#38bdf8;border-radius:0 0 2px 2px"></span></span>
+            신규 입고일
+          </span>
+          <span style="display:flex;align-items:center;gap:4px">
+            <span style="display:inline-block;width:14px;height:10px;position:relative;background:rgba(34,197,94,0.22);border-radius:2px"><span style="position:absolute;top:0;left:0;right:0;height:3px;background:#f59e0b;border-radius:2px 2px 0 0"></span></span>
+            선금완료 요청/입고
+          </span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:2.5px;height:12px;background:var(--accent);display:inline-block;border-radius:1px"></span>오늘(${todayStr})</span>
+        </div>
+        <div class="stock-timeline-scroll">
+          <div class="stock-timeline-head">
+            <div class="stock-timeline-label-head"></div>
+            <div style="white-space:nowrap">
+              <div style="border-bottom:1px solid var(--border)">${monthHeaderHTML}</div>
+              <div style="border-bottom:1px solid var(--border)">${dateHeaderHTML}</div>
+            </div>
+          </div>
+          ${groupRowsHTML}
+        </div>
+        <div class="stock-timeline-note">묶음 제품은 실버/블랙 중 하나라도 품절이면 전체 줄이 품절로 표시됩니다. 주황 구간은 리드타임 기준 안전재고 이하라서 발주를 미루면 판매량 방어가 어려워지는 구간입니다.</div>
+      </div>
+    </section>`;
+}
+
+
+
+// ── 메인 렌더 ─────────────────────────────────────────────
+function renderSimulation(cfg) {
+  const cfgTarget=parseFloat(cfg['sim_monthly_target']);
+  const cfgPct   =parseFloat(cfg['sim_order_limit_pct']);
+  if(!isNaN(cfgTarget)&&cfgTarget>0) SIM_MONTHLY_SALES_TARGET=cfgTarget;
+  if(!isNaN(cfgPct)   &&cfgPct>0)   SIM_ORDER_LIMIT_PCT=cfgPct/100;
+  SIM_ORDER_LIMIT_WON = SIM_MONTHLY_SALES_TARGET * SIM_ORDER_LIMIT_PCT * 10000;
+
+  applySheetDailySales(cfg);
+  const prePaid = buildPrePaid(cfg);
+  const initStocks = {};
+  SIM_PRODUCTS.forEach(p => {
+    const v=parseFloat(cfg['stock_'+p.id]);
+    initStocks[p.id]=(!isNaN(v)&&v>=0)?v:p.dailySales*p.targetHoldDays;
+  });
+
+  const today = new Date(); today.setHours(0,0,0,0);
+  const { months, weeks } = initBuckets(today);
+  const { allOrders, risks, stockTimeline } = runSimV4(SIM_PRODUCTS, initStocks, prePaid, months, weeks);
+
+  const monthKeys = Object.keys(months).sort();
+  const weekKeys  = Object.keys(weeks).sort();
+  const maxTotal  = Math.max(...Object.values(months).map(m=>m.total), 1);
+  const limitH    = Math.round(SIM_ORDER_LIMIT_WON/maxTotal*120);
+  const activeMonthTotals = monthKeys.map(k => months[k].total);
+  const activeMonthAvg = activeMonthTotals.reduce((s,v)=>s+v,0) / Math.max(activeMonthTotals.length, 1);
+  const maxMonthTotal = Math.max(...activeMonthTotals, 0);
+  const overMonthCount = activeMonthTotals.filter(v => v > SIM_ORDER_LIMIT_WON).length;
+  const variancePct = activeMonthAvg > 0
+    ? Math.round(activeMonthTotals.reduce((s,v)=>s+Math.abs(v-activeMonthAvg),0) / activeMonthTotals.length / activeMonthAvg * 100)
+    : 0;
+
+  // ① 간트 차트
+  const ganttHTML = renderStockGantt(stockTimeline, allOrders);
+
+  // ② 리스크
+  const riskHTML = risks.length===0?'':`
+    <section class="sec">
+      <div class="sec-header"><span class="sec-lbl" style="color:var(--red)">⚠ 리스크 알림</span><span class="sec-sub">${risks.length}건</span></div>
+      <div class="risk-list">
+        ${risks.map(r=>`<div class="risk-item risk-${r.type}"><span class="risk-icon">${r.type==='stockout_risk'?'📦':'💰'}</span><div><div class="risk-title">${r.type==='stockout_risk'?'품절 위험':'예산 초과'}</div><div class="risk-msg">${r.msg}</div></div></div>`).join('')}
+      </div>
+    </section>`;
+
+  // ③ 선금완료 항목
+  const prepaidOrders=allOrders.filter(o=>o.type==='china'||o.type==='prepaid');
+  const prepaidHTML=prepaidOrders.length===0?'':`
+    <section class="sec">
+      <div class="sec-header"><span class="sec-lbl">선금완료 입고 예정</span><span class="sec-sub">잔금 분할수령 기준</span></div>
+      <div class="table-card"><div class="table-wrap">
+        <table>
+          <thead><tr><th>구분</th><th>제품</th><th class="num">총수량</th><th>분할수령 일정</th><th class="num">잔금 합계</th></tr></thead>
+          <tbody>${prepaidOrders.map(o=>`<tr><td><span class="sim-tag-prepay">${o.label}</span></td><td>${o.product.name}</td><td class="num">${o.qty.toLocaleString()}개</td><td style="font-size:11px;color:var(--muted)">${o.batches.map((b,i)=>`${i+1}차 ${simMD(b.date)} ${b.qty.toLocaleString()}개`).join(' / ')}</td><td class="num fw" style="color:#38bdf8">${simWon(o.balanceAmt)}</td></tr>`).join('')}</tbody>
+        </table>
+      </div><div class="table-footer">분할수령 시 수령분만큼 잔금 납부</div></div>
+    </section>`;
+
+  // ④ 제품별 다음 발주
+  const nextMap={};
+  allOrders.filter(o=>o.type==='new').forEach(o=>{
+    if(!nextMap[o.product.id]&&o.orderDate>=today) nextMap[o.product.id]=o;
+  });
+  const prodRowsHTML=SIM_PRODUCT_GROUPS.map(group=>{
+    const products = group.productIds.map(id => SIM_PRODUCTS.find(p => p.id === id)).filter(Boolean);
+    const groupOrders = group.productIds.map(id => nextMap[id]).filter(Boolean).sort((a,b)=>a.orderDate-b.orderDate);
+    const next=groupOrders[0];
+    const daily = products.reduce((s,p)=>s+p.dailySales,0);
+    const safe = products.reduce((s,p)=>s+Math.ceil(p.dailySales*p.leadDays),0);
+    const leadDays = Math.max(...products.map(p=>p.leadDays));
+    const moq = products.reduce((s,p)=>s+p.moq,0);
+    const maker = [...new Set(products.map(p=>p.maker))].join(' / ');
+    const prepayPct = products.length ? Math.round(products.reduce((s,p)=>s+p.prepayPct,0)/products.length*100) : 0;
+    const unitCostAvg = products.length ? Math.round(products.reduce((s,p)=>s+p.unitCost,0)/products.length) : 0;
+    const d2n=next?Math.ceil((next.orderDate-today)/86400000):null;
+    const urg=d2n===null?'muted':d2n<=7?'red':d2n<=14?'amber':'green';
+    return `<div class="sim-prod-row">
+      <div class="sim-prod-info"><div class="sim-prod-name">${group.name}</div><div class="sim-prod-meta">${group.subtitle} · ${maker} · MOQ 합계 ${moq.toLocaleString()} · 최대 리드타임 ${leadDays}일 · 안전재고 합계 ${safe.toLocaleString()}개</div></div>
+      <div class="sim-prod-daily"><div class="sim-prod-daily-val">${daily}<span>개/일</span></div><div class="sim-prod-daily-lbl">묶음 일평균</div></div>
+      <div class="sim-prod-next">${next?`<div class="sim-next-date ${urg}">${d2n===0?'오늘 발주':`D-${d2n} (${simMD(next.orderDate)})`}${next.adjusted?'<span class="sim-adj-tag">조정</span>':''}</div><div class="sim-next-detail">${next.product.name} ${next.qty.toLocaleString()}개 → ${next.batches.length}회 분할수령 (${next.batches.map((b,i)=>`${i+1}차 ${simMD(b.date)}`).join(', ')})${groupOrders.length>1?` 외 ${groupOrders.length-1}건`:''}</div><div class="sim-next-cost"><span class="sim-tag-prepay">선금 ${simWon(next.prepayAmt)}</span><span class="sim-tag-balance">잔금 ${simWon(next.balanceAmt)}</span></div>`:'<div class="sim-next-date muted">발주 없음</div>'}</div>
+      <div class="sim-prod-prepay"><div style="font-size:11px;color:var(--muted)">평균 선금비율</div><div style="font-size:18px;font-weight:700;font-family:var(--mono)">${prepayPct}%</div><div style="font-size:10px;color:var(--muted)">${unitCostAvg.toLocaleString()}원/개 평균</div></div>
+    </div>`;
+  }).join('');
+
+  // ⑤ 월별 차트
+  const chartHTML=monthKeys.map(mk=>{
+    const m=months[mk]; const isCur=mk===simMK(today); const isOver=m.total>SIM_ORDER_LIMIT_WON;
+    const pH=Math.round(m.prepay/maxTotal*120), bH=Math.round(m.balance/maxTotal*120);
+    return `<div class="sim-month-card ${isCur?'sim-month-current':''} ${isOver?'sim-month-over':''}">
+      <div class="sim-month-label">${simML(mk)}</div>
+      <div class="sim-month-bar-wrap" style="position:relative;overflow:visible">
+        <div style="position:absolute;bottom:${limitH}px;left:0;right:0;border-top:2px dashed rgba(239,68,68,0.6);pointer-events:none;z-index:3"></div>
+        <div class="sim-month-bar-prepay" style="height:${pH}px"></div>
+        <div class="sim-month-bar-balance" style="height:${bH}px"></div>
+      </div>
+      <div class="sim-month-total ${isOver?'over':''}">${simWon(m.total)}</div>
+      <div class="sim-month-sub"><span class="sim-tag-prepay">선 ${simWon(m.prepay)}</span><span class="sim-tag-balance">잔 ${simWon(m.balance)}</span></div>
+      ${isOver?'<span class="sim-over-badge">초과</span>':''}
+    </div>`;
+  }).join('');
+
+  // ⑥ 주차별
+  let prevMk='';
+  const weekRowsHTML=weekKeys.map(wk=>{
+    const w=weeks[wk]; const mk=w.month; const isNew=mk!==prevMk; prevMk=mk;
+    const isCur=simWK(today)===wk; const isOver=w.total>SIM_ORDER_LIMIT_WON;
+    const rs=weekKeys.filter(k=>k.startsWith(mk)).length;
+    const eventDetail=w.events.length===0?'—':w.events.map(ev=>{
+      const tag=ev.type==='prepay'?`<span class="sim-tag-prepay">선금</span>`:`<span class="sim-tag-balance">잔금</span>`;
+      const qtyTxt=ev.qty>0?`<span style="font-size:10px;color:var(--muted);font-family:var(--mono)">${ev.qty.toLocaleString()}개</span>`:'';
+      return `<div style="display:flex;align-items:center;gap:5px;margin-bottom:3px">${tag}<span style="font-size:11px;color:var(--text)">${ev.note}</span>${qtyTxt}<span style="font-size:11px;font-family:var(--mono);color:${ev.type==='prepay'?'#f59e0b':'#38bdf8'};margin-left:auto;padding-left:8px">${simWonM(ev.amount)}</span></div>`;
+    }).join('');
+    return `<tr class="${isCur?'row-current':''} ${isOver?'row-over':''}">
+      ${isNew?`<td class="fw week-month-cell" rowspan="${rs}">${simML(mk)}<br><span style="font-size:10px;color:var(--muted);font-weight:400">${simWon(months[mk].total)}</span></td>`:''}
+      <td style="font-size:12px;white-space:nowrap">${simWL(wk)}</td>
+      <td class="num" style="color:#f59e0b">${w.prepay>0?simWonM(w.prepay):'—'}</td>
+      <td class="num" style="color:#38bdf8">${w.balance>0?simWonM(w.balance):'—'}</td>
+      <td class="num fw ${isOver?'neg':w.total>0?'':'muted'}">${w.total>0?simWonM(w.total):'—'}</td>
+      <td style="min-width:220px">${eventDetail}</td>
+      <td style="font-size:11px;white-space:nowrap">${isOver?'<span style="color:var(--red)">⚠ 초과</span>':isCur?'<span style="color:var(--accent)">현재</span>':''}</td>
+    </tr>`;
+  }).join('');
+
+  const monthTotalsHTML=monthKeys.map(mk=>{
+    const m=months[mk]; const isOver=m.total>SIM_ORDER_LIMIT_WON; const isCur=mk===simMK(today);
+    return `<tr class="tfoot-row ${isOver?'row-over':''} ${isCur?'row-current':''}">
+      <td class="fw" colspan="2">${simML(mk)} 합계</td>
+      <td class="num fw" style="color:#f59e0b">${simWon(m.prepay)}</td>
+      <td class="num fw" style="color:#38bdf8">${simWon(m.balance)}</td>
+      <td class="num fw ${isOver?'neg':''}">${simWon(m.total)}</td>
+      <td colspan="2" style="font-size:11px;color:${isOver?'var(--red)':'var(--muted)'}">
+        ${isOver?`⚠ 한도(${simWon(SIM_ORDER_LIMIT_WON)}) 초과`:`한도 대비 ${Math.round(m.total/SIM_ORDER_LIMIT_WON*100)}%`}
+      </td>
+    </tr>`;
+  }).join('');
+
+  // ⑦ 타임라인
+  const newOrders=allOrders.filter(o=>o.type==='new'&&o.orderDate>=today).sort((a,b)=>a.orderDate-b.orderDate);
+  const timelineHTML=newOrders.length===0?'<div style="padding:20px;color:var(--muted);text-align:center">발주 이벤트 없음</div>':`<table>
+    <thead><tr><th>발주일</th><th>제품</th><th class="num">수량</th><th class="num">발주총액</th><th class="num">선금</th><th>분할수령</th><th class="num">잔금합계</th><th>비고</th></tr></thead>
+    <tbody>${newOrders.map(o=>{
+      const d2o=Math.ceil((o.orderDate-today)/86400000);
+      return `<tr class="${o.budgetForced?'row-over':o.adjusted?'row-amber':d2o<=7?'row-current':''}">
+        <td class="fw">${simMD(o.orderDate)}<span style="font-size:10px;color:var(--muted);margin-left:3px">${d2o===0?'오늘':`D-${d2o}`}</span></td>
+        <td>${o.product.name}</td><td class="num">${o.qty.toLocaleString()}</td>
+        <td class="num fw">${simWon(o.totalCost)}</td>
+        <td class="num" style="color:#f59e0b">${simWon(o.prepayAmt)}</td>
+        <td style="font-size:11px;color:var(--muted)">${o.batches.map((b,i)=>`${i+1}차 ${simMD(b.date)} ${b.qty.toLocaleString()}개 (${simWon(b.balanceAmt)})`).join('<br>')}</td>
+        <td class="num" style="color:#38bdf8">${simWon(o.balanceAmt)}</td>
+        <td style="font-size:11px">${o.budgetForced?'<span style="color:var(--red)">예산초과불가피</span>':o.adjusted?'<span style="color:var(--amber)">일정조정</span>':''}</td>
+      </tr>`;}).join('')}
+    </tbody></table>`;
+
+  document.getElementById('sim-content').innerHTML = `
+    ${ganttHTML}
+    <section class="sim-kpi-row">
+      <div class="sim-kpi-card ${overMonthCount===0?'good':'bad'}">
+        <div class="sim-kpi-label">월 한도 초과</div>
+        <div class="sim-kpi-value" style="color:${overMonthCount===0?'var(--green)':'var(--red)'}">${overMonthCount}개월</div>
+        <div class="sim-kpi-sub">한도 ${simWon(SIM_ORDER_LIMIT_WON)} 기준</div>
+      </div>
+      <div class="sim-kpi-card ${variancePct<=25?'good':variancePct<=45?'warn':'bad'}">
+        <div class="sim-kpi-label">월별 발주비 흔들림</div>
+        <div class="sim-kpi-value" style="color:${variancePct<=25?'var(--green)':variancePct<=45?'var(--amber)':'var(--red)'}">${variancePct}%</div>
+        <div class="sim-kpi-sub">낮을수록 현금흐름 예측이 쉬움</div>
+      </div>
+      <div class="sim-kpi-card">
+        <div class="sim-kpi-label">월 평균 발주비</div>
+        <div class="sim-kpi-value">${simWon(activeMonthAvg)}</div>
+        <div class="sim-kpi-sub">5월~12월 분할 집행 평균</div>
+      </div>
+      <div class="sim-kpi-card ${maxMonthTotal<=SIM_ORDER_LIMIT_WON?'good':'warn'}">
+        <div class="sim-kpi-label">최대 집중 월</div>
+        <div class="sim-kpi-value" style="color:${maxMonthTotal<=SIM_ORDER_LIMIT_WON?'var(--text)':'var(--amber)'}">${simWon(maxMonthTotal)}</div>
+        <div class="sim-kpi-sub">가장 크게 몰리는 월의 발주비</div>
+      </div>
+    </section>
+    ${riskHTML}
+    ${prepaidHTML}
+    <section class="sec">
+      <div class="sec-header"><span class="sec-lbl">제품군별 다음 발주 시점</span><span class="sec-sub">MK 단독 · PH/DW는 실버+블랙 묶음 · 월 한도 ${simWon(SIM_ORDER_LIMIT_WON)}</span></div>
+      <div class="table-card" style="padding:0">${prodRowsHTML}</div>
+    </section>
+    <section class="sec">
+      <div class="sec-header"><span class="sec-lbl">월별 발주비 현금흐름</span><span class="sec-sub">점선 = 월 한도 ${simWon(SIM_ORDER_LIMIT_WON)}</span></div>
+      <div class="table-card" style="padding:1.25rem">
+        <div class="sim-legend">
+          <span><i style="background:#f59e0b"></i>선금</span>
+          <span><i style="background:#38bdf8"></i>잔금</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:18px;height:0;border-top:2px dashed rgba(239,68,68,0.6);display:inline-block"></span>한도 ${simWon(SIM_ORDER_LIMIT_WON)}</span>
+        </div>
+        <div class="sim-month-row">${chartHTML}</div>
+      </div>
+    </section>
+    <section class="sec">
+      <div class="sec-header"><span class="sec-lbl">주차별 발주비 집계</span></div>
+      <div class="table-card"><div class="table-wrap">
+        <table>
+          <thead><tr><th>월</th><th>주차</th><th class="num">선금</th><th class="num">잔금</th><th class="num">합계</th><th>상세 내역</th><th>상태</th></tr></thead>
+          <tbody>${weekRowsHTML}</tbody>
+          <tfoot>${monthTotalsHTML}</tfoot>
+        </table>
+      </div><div class="table-footer">선금=발주일 기준 / 잔금=분할수령일 기준 / 한도 ${simWon(SIM_ORDER_LIMIT_WON)}/월</div></div>
+    </section>
+    <section class="sec">
+      <div class="sec-header"><span class="sec-lbl">신규 발주 타임라인</span><span class="sec-sub">오늘~12월</span></div>
+      <div class="table-card"><div class="table-wrap">${timelineHTML}</div>
+        <div class="table-footer">발주 시 선금 일괄 납부 → 수령은 월 소비량 단위 분할 → 잔금도 수령분만큼 분납</div>
+      </div>
+    </section>
+  `;
+}
+// ============================================================
+// END SIMULATION ENGINE
+
+// 5분마다 자동 새로고침
+setInterval(load, 5 * 60 * 1000);
+load();
+
+
+// ============================================================
+// ============================================================
+
+
+
+</script>
 </body>
 </html>
