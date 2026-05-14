@@ -303,10 +303,10 @@ html, body {
 .scenario-group-label.dn { color: #ef4444; }
 
 .sc-btn {
-  padding: 4px 11px;
-  border-radius: 5px;
+  padding: 5px 12px;
+  border-radius: 6px;
   border: 1px solid var(--border2);
-  background: #0d0f12;
+  background: var(--bg3);
   color: var(--muted);
   font-size: 12px;
   font-family: var(--mono);
@@ -314,18 +314,36 @@ html, body {
   transition: all 0.15s;
   font-weight: 500;
 }
-/* 상향 버튼 */
-.sc-btn.sc-up { color: #3b82f6; border-color: rgba(59,130,246,0.3); }
-.sc-btn.sc-up:hover { border-color: #3b82f6; background: rgba(59,130,246,0.08); }
-.sc-btn.sc-up.active { background: #0d0f12; border-color: #3b82f6; color: #3b82f6; font-weight: 700; box-shadow: 0 0 0 1px #3b82f6; }
+/* 상향 버튼 — 박스는 bg3, 숫자만 파란색 */
+.sc-btn.sc-up { color: #3b82f6; border-color: var(--border2); }
+.sc-btn.sc-up:hover { border-color: rgba(59,130,246,0.5); background: var(--bg3); }
+.sc-btn.sc-up.active {
+  background: var(--bg3);
+  border-color: #3b82f6;
+  color: #3b82f6;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px #3b82f6;
+}
 /* 기준 버튼 */
 .sc-btn.sc-base { color: var(--text); border-color: var(--border2); }
-.sc-btn.sc-base:hover { border-color: var(--accent); color: var(--accent); }
-.sc-btn.sc-base.active { background: #0d0f12; border-color: var(--accent); color: var(--accent); font-weight: 700; box-shadow: 0 0 0 1px var(--accent); }
-/* 하향 버튼 */
-.sc-btn.sc-dn { color: #ef4444; border-color: rgba(239,68,68,0.3); }
-.sc-btn.sc-dn:hover { border-color: #ef4444; background: rgba(239,68,68,0.08); }
-.sc-btn.sc-dn.active { background: #0d0f12; border-color: #ef4444; color: #ef4444; font-weight: 700; box-shadow: 0 0 0 1px #ef4444; }
+.sc-btn.sc-base:hover { border-color: var(--color-border-secondary); }
+.sc-btn.sc-base.active {
+  background: var(--bg3);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+/* 하향 버튼 — 박스는 bg3, 숫자만 빨간색 */
+.sc-btn.sc-dn { color: #ef4444; border-color: var(--border2); }
+.sc-btn.sc-dn:hover { border-color: rgba(239,68,68,0.5); background: var(--bg3); }
+.sc-btn.sc-dn.active {
+  background: var(--bg3);
+  border-color: #ef4444;
+  color: #ef4444;
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px #ef4444;
+}
 
 .scenario-note {
   font-size: 11px;
