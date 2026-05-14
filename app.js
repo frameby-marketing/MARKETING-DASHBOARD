@@ -23,12 +23,25 @@ function setScenario(rate) {
   const note = document.getElementById('scenarioNote');
   const baseRev = CONFIG.PLAN_REV_6_12;
   const adjRev  = Math.round(baseRev * (1 + rate / 100));
+  // 억 단위 포맷
+  function toEok(v) {
+    const man = Math.round(v);
+    const eok  = Math.floor(man / 10000);
+    const rem  = man % 10000;
+    const chun = Math.floor(rem / 1000);
+    const baek = Math.floor((rem % 1000) / 100);
+    let s = eok > 0 ? `${eok}억 ` : '';
+    if (chun > 0) s += `${chun}천`;
+    if (baek > 0) s += `${baek}백`;
+    if (s.trim()) s += '만';
+    return s.trim() || '0';
+  }
   if (rate === 0) {
-    note.textContent = '기준값 그대로';
+    note.textContent = `기준 ${toEok(baseRev)}원`;
   } else if (rate > 0) {
-    note.textContent = `↑ 기준 ${fmt(baseRev)}만 → ${fmt(adjRev)}만원/월 (+${rate}%)`;
+    note.textContent = `기준 ${toEok(baseRev)} → ${toEok(adjRev)} (+${rate}%)`;
   } else {
-    note.textContent = `↓ 기준 ${fmt(baseRev)}만 → ${fmt(adjRev)}만원/월 (${rate}%)`;
+    note.textContent = `기준 ${toEok(baseRev)} → ${toEok(adjRev)} (${rate}%)`;
   }
   renderAll();
 }
@@ -390,11 +403,14 @@ function renderTargetTable(rows) {
       <span class="target-mon">${r.month}</span>
       <span class="target-days">${CONFIG.DAYS[r.idx]}일</span>
       <span class="target-val">${fmt(r.dailyTarget)}만원/일</span>
-      ${r.sheetDaily ? `<span class="target-actual">실입력: ${fmt(r.sheetDaily)}만원
-        <span class="target-diff ${r.sheetDaily >= r.dailyTarget ? 'diff-pos' : 'diff-neg'}">
-          ${r.sheetDaily >= r.dailyTarget ? '▲' : '▼'}${fmt(Math.abs(r.sheetDaily - r.dailyTarget))}
-        </span>
-      </span>` : '<span class="target-actual muted">미입력</span>'}
+      ${r.sheetDaily ? (() => {
+        const diff = r.sheetDaily - r.dailyTarget;
+        const sign = diff >= 0 ? '+' : '';
+        const cls  = diff >= 0 ? 'diff-pos' : 'diff-neg';
+        return `<span class="target-actual">실입력: ${fmt(r.sheetDaily)}만원
+          <span class="target-diff ${cls}">${sign}${fmt(diff)}만</span>
+        </span>`;
+      })() : '<span class="target-actual muted">미입력</span>'}
     </div>
   `).join('');
 }
