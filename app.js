@@ -106,11 +106,11 @@ function renderRepaymentStatus() {
         <div class="repay-progress-fill ${isOver ? 'over' : ''}" style="width:${pct}%"></div>
       </div>
       <div class="repay-progress-ticks">
-        <span class="repay-progress-tick">0</span>
-        <span class="repay-progress-tick">${Math.round(total*0.25).toLocaleString()}만</span>
-        <span class="repay-progress-tick">${Math.round(total*0.5).toLocaleString()}만</span>
-        <span class="repay-progress-tick">${Math.round(total*0.75).toLocaleString()}만</span>
-        <span class="repay-progress-tick">${total.toLocaleString()}만</span>
+        <span class="repay-progress-tick" style="left:0%">0</span>
+        <span class="repay-progress-tick" style="left:25%">${Math.round(total*0.25).toLocaleString()}만</span>
+        <span class="repay-progress-tick" style="left:50%">${Math.round(total*0.5).toLocaleString()}만</span>
+        <span class="repay-progress-tick" style="left:75%">${Math.round(total*0.75).toLocaleString()}만</span>
+        <span class="repay-progress-tick" style="left:100%">${total.toLocaleString()}만</span>
       </div>
     </div>`;
 }
