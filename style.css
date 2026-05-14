@@ -694,7 +694,7 @@ code {
   display: flex;
   gap: 20px;
   flex-wrap: wrap;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 .repay-status-item { display: flex; flex-direction: column; gap: 2px; }
 .repay-status-label { font-size: 10px; color: var(--muted); }
@@ -706,48 +706,36 @@ code {
 }
 .repay-status-val.pos { color: var(--green); }
 .repay-status-val.neg { color: var(--red); }
-.repay-progress-track {
-  height: 5px;
-  background: var(--bg3);
-  border-radius: 3px;
-  overflow: hidden;
-}
-.repay-progress-fill {
-  height: 100%;
-  background: var(--blue);
-  border-radius: 3px;
-  transition: width 0.5s cubic-bezier(.4,0,.2,1);
-}
-.repay-progress-fill.over { background: var(--red); }
+/* 상환 월별 카드 — tmc와 동일한 가로 그리드 */
 .repay-months-row {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-columns: repeat(7, minmax(120px, 1fr));
   gap: 8px;
   margin-top: 12px;
   overflow-x: auto;
+  padding-bottom: 4px;
 }
 .repay-month-card {
   background: var(--bg3);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 10px 8px 8px;
+  padding: 10px 10px 8px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-width: 100px;
+  min-width: 120px;
 }
-.repay-month-card.repay-set {
-  border-color: rgba(56,189,248,0.4);
-}
+.repay-month-card.repay-set { border-color: rgba(56,189,248,0.4); }
 .repay-mc-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 5px;
 }
 .repay-mc-month {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   color: var(--text);
+  flex: 1;
 }
 .repay-mc-amt {
   font-size: 11px;
@@ -760,13 +748,14 @@ code {
   flex-wrap: wrap;
   gap: 3px;
 }
+/* tmc 버튼과 동일한 스타일 */
 .repay-btn {
-  padding: 3px 6px;
+  padding: 3px 8px;
   border-radius: 4px;
   border: 1px solid var(--border2);
   background: var(--bg2);
   color: var(--muted);
-  font-size: 10px;
+  font-size: 11px;
   font-family: var(--mono);
   font-weight: 500;
   cursor: pointer;
@@ -782,8 +771,8 @@ code {
 }
 .repay-fixed-badge {
   display: inline-block;
-  font-size: 10px;
-  padding: 3px 7px;
+  font-size: 11px;
+  padding: 3px 8px;
   border-radius: 4px;
   background: rgba(56,189,248,0.12);
   color: var(--accent);
@@ -798,6 +787,50 @@ code {
 }
 .repay-mc-remain.neg  { color: var(--red); }
 .repay-mc-remain.warn { color: var(--amber); }
+
+/* 상환 프로그레스 — 막대 차는 형태 */
+.repay-progress-wrap {
+  margin: 10px 0 4px;
+}
+.repay-progress-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.repay-progress-label-left  { font-size: 12px; font-weight: 600; color: var(--text); }
+.repay-progress-label-right { font-size: 11px; color: var(--muted); font-family: var(--mono); }
+.repay-progress-track {
+  height: 12px;
+  background: var(--bg3);
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.repay-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #0ea5e9);
+  border-radius: 6px;
+  transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  position: relative;
+}
+.repay-progress-fill.over {
+  background: linear-gradient(90deg, var(--red), #f97316);
+}
+.repay-progress-ticks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding: 0 1px;
+}
+.repay-progress-tick {
+  font-size: 9px;
+  color: var(--muted);
+  font-family: var(--mono);
+}
+
 .repay-cell { color: var(--accent) !important; }
 .pos { color: var(--green); }
 .neg { color: var(--red); }
