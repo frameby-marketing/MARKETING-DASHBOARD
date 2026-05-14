@@ -4,22 +4,31 @@
 
 // ── 상태 ─────────────────────────────────────────────────────
 let state = {
-  sheetDailyAvg: new Array(12).fill(null),
-  sheetMemos:    new Array(12).fill(''),
-  profitChart:   null,
-  balanceChart:  null,
-  scenarioRate:  0,
-  adRatio:       CONFIG.AD_RATIO,    // 구글 시트에서 동적으로 갱신
-  orderRatio:    CONFIG.ORDER_RATIO,  // 구글 시트에서 동적으로 갱신
+  sheetDailyAvg:   new Array(12).fill(null),
+  sheetMemos:      new Array(12).fill(''),
+  profitChart:     null,
+  balanceChart:    null,
+  scenarioRate:    0,                        // 전체 일괄 적용 (레거시)
+  monthScenario:   new Array(12).fill(0),    // 월별 개별 시나리오 [0]=1월 ~ [11]=12월
+  adRatio:         CONFIG.AD_RATIO,
+  orderRatio:      CONFIG.ORDER_RATIO,
 };
 
 // ── 시나리오 전환 ─────────────────────────────────────────────
 function setScenario(rate) {
   state.scenarioRate = rate;
-  // 모든 sc-btn active 해제 후 해당 rate만 active
-  document.querySelectorAll('.sc-btn').forEach(btn => {
+  // 6~12월 전체 월별 시나리오도 동일하게 설정
+  for (let i = 5; i < 12; i++) state.monthScenario[i] = rate;
+  // 전체 버튼 active 동기화
+  document.querySelectorAll('.sc-btn[data-global]').forEach(btn => {
     btn.classList.toggle('active', parseFloat(btn.dataset.rate) === rate);
   });
+  // 월별 버튼도 동기화
+  for (let i = 5; i < 12; i++) {
+    document.querySelectorAll(`.sc-month-btn[data-month="${i}"]`).forEach(btn => {
+      btn.classList.toggle('active', parseFloat(btn.dataset.rate) === rate);
+    });
+  }
   const note = document.getElementById('scenarioNote');
   const baseRev = CONFIG.PLAN_REV_6_12;
   const adjRev  = Math.round(baseRev * (1 + rate / 100));
@@ -43,6 +52,21 @@ function setScenario(rate) {
   } else {
     note.textContent = `기준 ${toEok(baseRev)} → ${toEok(adjRev)} (${rate}%)`;
   }
+  renderAll();
+}
+
+// ── 월별 개별 시나리오 전환 ──────────────────────────────────
+function setMonthScenario(monthIdx, rate) {
+  state.monthScenario[monthIdx] = rate;
+  // 해당 월 버튼만 active 업데이트
+  document.querySelectorAll(`.sc-month-btn[data-month="${monthIdx}"]`).forEach(btn => {
+    btn.classList.toggle('active', parseFloat(btn.dataset.rate) === rate);
+  });
+  // 전체 버튼은 모든 월이 동일한 rate면 active, 아니면 해제
+  const allSame = state.monthScenario.slice(5).every(r => r === rate);
+  document.querySelectorAll('.sc-btn[data-global]').forEach(btn => {
+    btn.classList.toggle('active', allSame && parseFloat(btn.dataset.rate) === rate);
+  });
   renderAll();
 }
 
@@ -172,19 +196,18 @@ function calcRows() {
       dailyTarget = null;
     } else {
       // 6~12월: 시트 입력값 있으면 우선, 없으면 광고비 역산 + 시나리오 적용
-      const sheetD = state.sheetDailyAvg[i];
-      const factor = 1 + state.scenarioRate / 100;
+      const sheetD     = state.sheetDailyAvg[i];
+      const monthRate  = state.monthScenario[i] ?? 0;  // 월별 개별 시나리오
+      const factor     = 1 + monthRate / 100;
       let basisTag;
 
       if (sheetD && sheetD > 0) {
-        // 시트에 일평균 입력된 경우
         const adjustedDaily = Math.round(sheetD * factor);
         revenue  = Math.round((adjustedDaily * CONFIG.DAYS[i]) / CONFIG.NAVER_RATIO);
-        basisTag = `시트입력 ${fmt(sheetD)}만${state.scenarioRate !== 0 ? '×(1' + state.scenarioRate + '%)' : ''}`;
+        basisTag = `시트입력 ${fmt(sheetD)}만${monthRate !== 0 ? `×${monthRate > 0 ? '+' : ''}${monthRate}%` : ''}`;
       } else {
-        // 시트 미입력 → 광고비 역산
         revenue  = Math.round(CONFIG.PLAN_REV_6_12 * factor);
-        basisTag = `광고비역산${state.scenarioRate !== 0 ? '(' + state.scenarioRate + '%)' : ''}`;
+        basisTag = `광고비역산${monthRate !== 0 ? `(${monthRate > 0 ? '+' : ''}${monthRate}%)` : ''}`;
       }
 
       // 광고비·발주비: 매출 × 동적 비율 (시트에서 변경 가능)
@@ -397,22 +420,38 @@ function renderCharts(rows) {
 }
 
 function renderTargetTable(rows) {
-  const planRows = rows.filter(r => r.isPlan);
-  document.getElementById('targetTable').innerHTML = planRows.map(r => `
-    <div class="target-item">
-      <span class="target-mon">${r.month}</span>
-      <span class="target-days">${CONFIG.DAYS[r.idx]}일</span>
-      <span class="target-val">${fmt(r.dailyTarget)}만원/일</span>
-      ${r.sheetDaily ? (() => {
-        const diff = r.sheetDaily - r.dailyTarget;
-        const sign = diff >= 0 ? '+' : '';
-        const cls  = diff >= 0 ? 'diff-pos' : 'diff-neg';
-        return `<span class="target-actual">실입력: ${fmt(r.sheetDaily)}만원
-          <span class="target-diff ${cls}">${sign}${fmt(diff)}만</span>
-        </span>`;
-      })() : '<span class="target-actual muted">미입력</span>'}
-    </div>
-  `).join('');
+  const planRows = rows.filter(r => r.isPlan); // 6~12월
+  const RATES = [20, 15, 10, 5, 0, -5, -10, -15, -20];
+
+  document.getElementById('targetTable').innerHTML = planRows.map(r => {
+    const monthRate = state.monthScenario[r.idx] ?? 0;
+    const diff = r.sheetDaily != null ? (r.sheetDaily - r.dailyTarget) : null;
+    const diffSign = diff != null ? (diff >= 0 ? '+' : '') : '';
+    const diffCls  = diff != null ? (diff >= 0 ? 'diff-pos' : 'diff-neg') : '';
+
+    // 월별 버튼 HTML
+    const btnHTML = RATES.map(rate => {
+      const cls = rate > 0 ? 'sc-month-btn sc-up' : rate < 0 ? 'sc-month-btn sc-dn' : 'sc-month-btn sc-base';
+      const label = rate === 0 ? '기준' : (rate > 0 ? `+${rate}%` : `${rate}%`);
+      const isActive = monthRate === rate ? 'active' : '';
+      return `<button class="${cls} ${isActive}" data-month="${r.idx}" data-rate="${rate}"
+        onclick="setMonthScenario(${r.idx}, ${rate})">${label}</button>`;
+    }).join('');
+
+    return `
+    <div class="target-month-card">
+      <div class="tmc-header">
+        <div class="tmc-month">${r.month}</div>
+        <div class="tmc-days">${CONFIG.DAYS[r.idx]}일</div>
+        ${monthRate !== 0 ? `<span class="tmc-rate-badge ${monthRate > 0 ? 'up' : 'dn'}">${monthRate > 0 ? '+' : ''}${monthRate}%</span>` : ''}
+      </div>
+      <div class="tmc-daily">
+        <span class="tmc-daily-val">${r.dailyTarget != null ? fmt(r.dailyTarget) + '만/일' : '—'}</span>
+        ${diff != null ? `<span class="target-diff ${diffCls}">${diffSign}${fmt(Math.abs(diff))}만</span>` : '<span class="tmc-no-input">미입력</span>'}
+      </div>
+      <div class="tmc-btns">${btnHTML}</div>
+    </div>`;
+  }).join('');
 }
 
 function renderTable(rows) {
