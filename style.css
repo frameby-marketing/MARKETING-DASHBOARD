@@ -668,3 +668,137 @@ code {
 .sc-month-btn.sc-up.active  { background: var(--bg2); border-color: #3b82f6; color: #3b82f6; font-weight: 700; box-shadow: inset 0 0 0 1px #3b82f6; }
 .sc-month-btn.sc-dn.active  { background: var(--bg2); border-color: #ef4444; color: #ef4444; font-weight: 700; box-shadow: inset 0 0 0 1px #ef4444; }
 .sc-month-btn.sc-base.active { background: var(--bg2); border-color: var(--accent); color: var(--accent); font-weight: 700; box-shadow: inset 0 0 0 1px var(--accent); }
+
+/* ── 상환 계획 섹션 ─────────────────────────────────────── */
+.repay-section-wrap {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius-lg);
+  padding: 1rem 1.25rem 1.25rem;
+  margin-bottom: 1rem;
+}
+.repay-section-header { margin-bottom: 1rem; }
+.repay-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.repay-section-sub {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--muted);
+  margin-left: 6px;
+}
+.repay-status-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.repay-status-item { display: flex; flex-direction: column; gap: 2px; }
+.repay-status-label { font-size: 10px; color: var(--muted); }
+.repay-status-val {
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--mono);
+  color: var(--text);
+}
+.repay-status-val.pos { color: var(--green); }
+.repay-status-val.neg { color: var(--red); }
+.repay-progress-track {
+  height: 5px;
+  background: var(--bg3);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.repay-progress-fill {
+  height: 100%;
+  background: var(--blue);
+  border-radius: 3px;
+  transition: width 0.5s cubic-bezier(.4,0,.2,1);
+}
+.repay-progress-fill.over { background: var(--red); }
+.repay-months-row {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+  overflow-x: auto;
+}
+.repay-month-card {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 100px;
+}
+.repay-month-card.repay-set {
+  border-color: rgba(56,189,248,0.4);
+}
+.repay-mc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.repay-mc-month {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+}
+.repay-mc-amt {
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--mono);
+  color: var(--accent);
+}
+.repay-mc-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+.repay-btn {
+  padding: 3px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: var(--bg2);
+  color: var(--muted);
+  font-size: 10px;
+  font-family: var(--mono);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.repay-btn:hover { border-color: var(--accent); color: var(--accent); }
+.repay-btn.active {
+  background: var(--bg2);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+.repay-fixed-badge {
+  display: inline-block;
+  font-size: 10px;
+  padding: 3px 7px;
+  border-radius: 4px;
+  background: rgba(56,189,248,0.12);
+  color: var(--accent);
+  font-weight: 600;
+  font-family: var(--mono);
+}
+.repay-mc-remain {
+  font-size: 10px;
+  color: var(--muted);
+  font-family: var(--mono);
+  margin-top: 2px;
+}
+.repay-mc-remain.neg  { color: var(--red); }
+.repay-mc-remain.warn { color: var(--amber); }
+.repay-cell { color: var(--accent) !important; }
+.pos { color: var(--green); }
+.neg { color: var(--red); }
+.warn { color: var(--amber); }
