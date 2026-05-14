@@ -71,13 +71,15 @@ function setRepayment(monthIdx, amount) {
 }
 
 function renderRepaymentStatus() {
-  const total = state.totalRepayment;
-  const paid  = state.repayment.reduce((s, v) => s + v, 0);
+  const total  = state.totalRepayment;
+  const paid   = state.repayment.reduce((s, v) => s + v, 0);
   const remain = total - paid;
   const el = document.getElementById('repayStatusBar');
   if (!el) return;
-  const pct = Math.min(100, Math.round(paid / total * 100));
-  const overPct = paid > total ? Math.round((paid - total) / total * 100) : 0;
+  const pct    = Math.min(100, Math.round(paid / total * 100));
+  const isOver = paid > total;
+  const isDone = paid === total;
+
   el.innerHTML = `
     <div class="repay-status-row">
       <div class="repay-status-item">
@@ -86,19 +88,30 @@ function renderRepaymentStatus() {
       </div>
       <div class="repay-status-item">
         <span class="repay-status-label">설정된 상환액</span>
-        <span class="repay-status-val ${paid > total ? 'neg' : ''}">${paid.toLocaleString()}만원</span>
+        <span class="repay-status-val ${isOver ? 'neg' : isDone ? 'pos' : ''}">${paid.toLocaleString()}만원</span>
       </div>
       <div class="repay-status-item">
         <span class="repay-status-label">잔여 상환액</span>
-        <span class="repay-status-val ${remain < 0 ? 'neg' : remain === 0 ? 'pos' : ''}">${remain < 0 ? '초과 ' + Math.abs(remain).toLocaleString() : remain.toLocaleString()}만원</span>
+        <span class="repay-status-val ${remain < 0 ? 'neg' : remain === 0 ? 'pos' : ''}">
+          ${remain < 0 ? '초과 ' + Math.abs(remain).toLocaleString() : remain === 0 ? '완료 ✓' : remain.toLocaleString() + '만원'}
+        </span>
       </div>
       <div class="repay-status-item">
         <span class="repay-status-label">완료율</span>
         <span class="repay-status-val ${pct >= 100 ? 'pos' : ''}">${pct}%</span>
       </div>
     </div>
-    <div class="repay-progress-track">
-      <div class="repay-progress-fill ${paid > total ? 'over' : ''}" style="width:${Math.min(pct,100)}%"></div>
+    <div class="repay-progress-wrap">
+      <div class="repay-progress-track">
+        <div class="repay-progress-fill ${isOver ? 'over' : ''}" style="width:${pct}%"></div>
+      </div>
+      <div class="repay-progress-ticks">
+        <span class="repay-progress-tick">0</span>
+        <span class="repay-progress-tick">${Math.round(total*0.25).toLocaleString()}만</span>
+        <span class="repay-progress-tick">${Math.round(total*0.5).toLocaleString()}만</span>
+        <span class="repay-progress-tick">${Math.round(total*0.75).toLocaleString()}만</span>
+        <span class="repay-progress-tick">${total.toLocaleString()}만</span>
+      </div>
     </div>`;
 }
 
@@ -509,9 +522,10 @@ function renderRepaymentSection(rows) {
       ? `<span class="repay-fixed-badge">4,000만 고정</span>`
       : AMOUNTS.map(amt => {
           const isActive = repayAmt === amt;
+          const label = amt >= 10000 ? `${amt/10000}억` : `${amt/1000}천만`;
           return `<button class="repay-btn ${isActive ? 'active' : ''}"
             data-month="${r.idx}" data-amount="${amt}"
-            onclick="setRepayment(${r.idx}, ${isActive ? 0 : amt})">${(amt/1000).toFixed(0)}천만</button>`;
+            onclick="setRepayment(${r.idx}, ${isActive ? 0 : amt})">${label}</button>`;
         }).join('');
 
     return `
