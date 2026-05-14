@@ -218,20 +218,23 @@ function calcRows() {
   let balance = 0;
 
   for (let i = 0; i < 12; i++) {
-    const fixed = CONFIG.COSTS.fixed[i];
-    const order = CONFIG.COSTS.order[i];
-    const ad    = CONFIG.COSTS.ad[i];
-    const other = CONFIG.COSTS.other[i];
-
     let revenue, basis, dailyTarget;
+    let fixed, order, ad, other, repay;
+
+    repay = state.repayment[i] || 0;
 
     if (i < 4) {
-      // 1~4월: 확정 실적
+      // 1~4월: 확정 실적, 고정 비용
       revenue     = CONFIG.ACTUAL.revenue[i];
       basis       = '확정실적';
       dailyTarget = null;
+      fixed = CONFIG.COSTS.fixed[i];
+      order = CONFIG.COSTS.order[i];
+      ad    = CONFIG.COSTS.ad[i];
+      other = CONFIG.COSTS.other[i];
+
     } else if (i === 4) {
-      // 5월: 시트 입력값 우선, 없으면 0
+      // 5월: 시트 입력 일평균 기반, 고정 비용
       const d = state.sheetDailyAvg[4];
       if (d && d > 0) {
         revenue = Math.round((d * CONFIG.DAYS[4]) / CONFIG.NAVER_RATIO);
@@ -241,11 +244,16 @@ function calcRows() {
         basis   = '미입력';
       }
       dailyTarget = null;
+      fixed = CONFIG.COSTS.fixed[i];
+      order = CONFIG.COSTS.order[i];
+      ad    = CONFIG.COSTS.ad[i];
+      other = CONFIG.COSTS.other[i];
+
     } else {
-      // 6~12월: 시트 입력값 있으면 우선, 없으면 광고비 역산 + 시나리오 적용
-      const sheetD     = state.sheetDailyAvg[i];
-      const monthRate  = state.monthScenario[i] ?? 0;  // 월별 개별 시나리오
-      const factor     = 1 + monthRate / 100;
+      // 6~12월: 시나리오 적용 매출, 동적 비율 비용
+      const sheetD    = state.sheetDailyAvg[i];
+      const monthRate = state.monthScenario[i] ?? 0;
+      const factor    = 1 + monthRate / 100;
       let basisTag;
 
       if (sheetD && sheetD > 0) {
@@ -257,55 +265,27 @@ function calcRows() {
         basisTag = `광고비역산${monthRate !== 0 ? `(${monthRate > 0 ? '+' : ''}${monthRate}%)` : ''}`;
       }
 
-      // 광고비·발주비: 매출 × 동적 비율 (시트에서 변경 가능)
-      const adCost    = Math.round(revenue * state.adRatio);
-      const orderCost = Math.round(revenue * state.orderRatio);
-      dailyTarget     = Math.round((revenue * CONFIG.NAVER_RATIO) / CONFIG.DAYS[i]);
-      basis           = `${basisTag} · 목표 ${fmt(dailyTarget)}만원/일 · 광고${Math.round(state.adRatio*100)}% · 발주${Math.round(state.orderRatio*100)}%`;
-
-      const fixedM    = CONFIG.COSTS.fixed[i];
-      const otherM    = CONFIG.COSTS.other[i];
-      const totalCost = fixedM + orderCost + adCost + otherM;
-      const profit    = revenue - totalCost;
-      // balance는 repay 포함해서 아래 push에서 처리
-
-      const repay = state.repayment[i] || 0;
-      const totalCostR = totalCost + repay;
-      const profitR    = revenue - totalCostR;
-      balance += profitR;
-      rows.push({
-        idx: i,
-        month: CONFIG.MONTH_LABELS[i],
-        isActual: false, isMay: false, isPlan: true,
-        revenue, fixed: fixedM, order: orderCost, ad: adCost, other: otherM, repay,
-        totalCost: totalCostR, profit: profitR, balance, basis,
-        dailyTarget,
-        memo: state.sheetMemos[i] || '',
-        sheetDaily: sheetD,
-      });
-      continue;
+      fixed = CONFIG.COSTS.fixed[i];
+      order = Math.round(revenue * state.orderRatio);
+      ad    = Math.round(revenue * state.adRatio);
+      other = CONFIG.COSTS.other[i];
+      dailyTarget = Math.round((revenue * CONFIG.NAVER_RATIO) / CONFIG.DAYS[i]);
+      basis = `${basisTag} · 목표 ${fmt(dailyTarget)}만원/일 · 광고${Math.round(state.adRatio*100)}% · 발주${Math.round(state.orderRatio*100)}%`;
     }
 
-    // 5월: 광고비·발주비는 기존 계획값 사용 (1~4월은 확정값)
-    const totalCost = fixed + order + ad + other;
+    const totalCost = fixed + order + ad + other + repay;
     const profit    = revenue - totalCost;
     balance        += profit;
 
-    const repay14 = state.repayment[i] || 0;
     rows.push({
       idx: i,
       month: CONFIG.MONTH_LABELS[i],
-      isActual: i < 4,
-      isMay:    i === 4,
-      isPlan:   i >= 5,
-      revenue, fixed, order, ad, other, repay: repay14,
-      totalCost: totalCost + repay14, profit: profit - repay14,
-      balance: balance - repay14,
-      basis, dailyTarget,
+      isActual: i < 4, isMay: i === 4, isPlan: i >= 5,
+      revenue, fixed, order, ad, other, repay,
+      totalCost, profit, balance, basis, dailyTarget,
       memo: state.sheetMemos[i] || '',
       sheetDaily: state.sheetDailyAvg[i],
     });
-    balance -= repay14;
   }
   return rows;
 }
