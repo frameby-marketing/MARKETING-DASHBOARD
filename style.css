@@ -276,7 +276,71 @@ html, body {
 }
 
 /* ── TARGET SECTION ─────────────────────────────────────── */
-.target-section { margin-bottom: 1rem; }
+.target-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+/* ── 시나리오 버튼 그룹 ─────────────────────────────────── */
+.scenario-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.scenario-group-label {
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--mono);
+  width: 44px;
+  flex-shrink: 0;
+}
+.scenario-group-label.up { color: #3b82f6; }
+.scenario-group-label.dn { color: #ef4444; }
+
+.sc-btn {
+  padding: 4px 11px;
+  border-radius: 5px;
+  border: 1px solid var(--border2);
+  background: #0d0f12;
+  color: var(--muted);
+  font-size: 12px;
+  font-family: var(--mono);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-weight: 500;
+}
+/* 상향 버튼 */
+.sc-btn.sc-up { color: #3b82f6; border-color: rgba(59,130,246,0.3); }
+.sc-btn.sc-up:hover { border-color: #3b82f6; background: rgba(59,130,246,0.08); }
+.sc-btn.sc-up.active { background: #0d0f12; border-color: #3b82f6; color: #3b82f6; font-weight: 700; box-shadow: 0 0 0 1px #3b82f6; }
+/* 기준 버튼 */
+.sc-btn.sc-base { color: var(--text); border-color: var(--border2); }
+.sc-btn.sc-base:hover { border-color: var(--accent); color: var(--accent); }
+.sc-btn.sc-base.active { background: #0d0f12; border-color: var(--accent); color: var(--accent); font-weight: 700; box-shadow: 0 0 0 1px var(--accent); }
+/* 하향 버튼 */
+.sc-btn.sc-dn { color: #ef4444; border-color: rgba(239,68,68,0.3); }
+.sc-btn.sc-dn:hover { border-color: #ef4444; background: rgba(239,68,68,0.08); }
+.sc-btn.sc-dn.active { background: #0d0f12; border-color: #ef4444; color: #ef4444; font-weight: 700; box-shadow: 0 0 0 1px #ef4444; }
+
+.scenario-note {
+  font-size: 11px;
+  color: var(--muted);
+  font-family: var(--mono);
+  margin-left: 6px;
+}
+/* 월별 상세 테이블 헤더 */
+.table-section-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--border);
+}
 .target-card {
   background: var(--bg2);
   border: 1px solid var(--border);
@@ -287,7 +351,6 @@ html, body {
   font-size: 13px;
   font-weight: 500;
   color: var(--text);
-  margin-bottom: 1rem;
 }
 .target-row { overflow-x: auto; }
 .target-month {
