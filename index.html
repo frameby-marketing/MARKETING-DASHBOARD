@@ -540,12 +540,32 @@ async function fetchSheetData() {
 }
 
 function parseCSV(text) {
-  const lines = text.trim().split('\n').map(l => l.split(',').map(c => c.replace(/^"|"$/g,'').trim()));
+  const lines = text.trim().split('\n');
   if (lines.length < 2) { useDemoData(); return; }
-  rawRows = lines.slice(1).map(cols => {
+
+  function parseLine(line) {
+    const result = [];
+    let cur = '', inQuote = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        inQuote = !inQuote;
+      } else if (ch === ',' && !inQuote) {
+        result.push(cur.trim());
+        cur = '';
+      } else {
+        cur += ch;
+      }
+    }
+    result.push(cur.trim());
+    return result;
+  }
+
+  rawRows = lines.slice(1).map(line => {
+    const cols = parseLine(line);
     const month    = cols[0] || '';
-    const dailyAvg = parseNum(cols[1]); // B열: 일평균매출(자사+네이버)
-    const revenue  = parseNum(cols[2]); // C열: 전체매출 (시트에서 직접 입력)
+    const dailyAvg = parseNum(cols[1]);
+    const revenue  = parseNum(cols[2]);
     return {
       month,
       dailyAvg,
@@ -564,7 +584,7 @@ function parseCSV(text) {
 
 function parseNum(v) {
   if (v === undefined || v === null || v === '') return 0;
-  const n = parseFloat(String(v).replace(/,/g,'')) || 0;
+  const n = parseFloat(String(v).replace(/[₩,\s]/g,'')) || 0;
   return n / 10000; // 원 → 만원 변환
 }
 
