@@ -564,7 +564,8 @@ function parseCSV(text) {
 
 function parseNum(v) {
   if (v === undefined || v === null || v === '') return 0;
-  return parseFloat(String(v).replace(/,/g,'')) || 0;
+  const n = parseFloat(String(v).replace(/,/g,'')) || 0;
+  return n / 10000; // 원 → 만원 변환
 }
 
 // ─── 데모 데이터 ─────────────────────────────────────────────────
