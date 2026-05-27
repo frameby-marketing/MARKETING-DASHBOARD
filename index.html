@@ -363,7 +363,7 @@
             <thead>
               <tr>
                 <th>월</th>
-                <th>일평균매출</th>
+                <th>일평균(자사+네이버)</th>
                 <th>전체매출</th>
                 <th>고정비</th>
                 <th>발주비</th>
@@ -406,8 +406,8 @@
           </div>
           <div class="form-group">
             <label>데이터 범위</label>
-            <input type="text" id="sheetRange" placeholder="A1:I13" />
-            <p class="form-hint">A열:월, B:전체매출, C:고정비, D:발주비, E:광고비, F:변동비, G:상환비, H:메모, I:산정기준</p>
+            <input type="text" id="sheetRange" placeholder="A1:J13" />
+            <p class="form-hint">A열:월, B:일평균매출, C:전체매출, D:고정비, E:발주비, F:광고비, G:변동비, H:상환비, I:메모, J:산정기준</p>
           </div>
           <button class="save-btn" onclick="saveSettings()">설정 저장 및 연결</button>
           <div class="settings-note">
@@ -437,20 +437,21 @@
               </thead>
               <tbody>
                 <tr><td>A열</td><td>월</td><td>26-01, 26-02 …</td><td>행 2부터 입력 (1행 헤더)</td></tr>
-                <tr><td>B열</td><td>전체매출 (만원)</td><td>3200</td><td>확정 또는 예측값</td></tr>
-                <tr><td>C열</td><td>고정비 (만원)</td><td>800</td><td>인건비·임차료 등</td></tr>
-                <tr><td>D열</td><td>발주비 (만원)</td><td>960</td><td>재고 매입비</td></tr>
-                <tr><td>E열</td><td>광고비 (만원)</td><td>640</td><td>마케팅 비용</td></tr>
-                <tr><td>F열</td><td>변동비 (만원)</td><td>200</td><td>배송·수수료 등 기타</td></tr>
-                <tr><td>G열</td><td>상환비 (만원)</td><td>1000</td><td>대출 상환액</td></tr>
-                <tr><td>H열</td><td>메모 (선택)</td><td>프로모션 기간</td><td>대시보드 참고 표시</td></tr>
-                <tr><td>I열</td><td>산정기준 (선택)</td><td>확정 / 시뮬레이션</td><td>행 태그용</td></tr>
+                <tr><td>B열</td><td>일평균매출 — 자사+네이버 (만원)</td><td>120</td><td>직접 입력</td></tr>
+                <tr><td>C열</td><td>전체매출 (만원)</td><td>=B2/0.7*30+B2 등</td><td>시트 계산식으로 직접 입력</td></tr>
+                <tr><td>D열</td><td>고정비 (만원)</td><td>820</td><td>인건비·임차료 등</td></tr>
+                <tr><td>E열</td><td>발주비 (만원)</td><td>980</td><td>재고 매입비</td></tr>
+                <tr><td>F열</td><td>광고비 (만원)</td><td>700</td><td>마케팅 비용</td></tr>
+                <tr><td>G열</td><td>변동비 (만원)</td><td>200</td><td>배송·수수료 등 기타</td></tr>
+                <tr><td>H열</td><td>상환비 (만원)</td><td>1000</td><td>대출 상환액</td></tr>
+                <tr><td>I열</td><td>메모 (선택)</td><td>프로모션 기간</td><td>대시보드 참고 표시</td></tr>
+                <tr><td>J열</td><td>산정기준 (선택)</td><td>확정 / 시뮬레이션</td><td>확정 시 시나리오 미적용</td></tr>
               </tbody>
             </table>
           </div>
           <div class="guide-steps">
             <div class="guide-step"><span class="step-num">1</span><span>Google Sheets 새 시트 생성 → 시트 이름 설정</span></div>
-            <div class="guide-step"><span class="step-num">2</span><span>1행에 헤더: <code>월 | 전체매출 | 고정비 | 발주비 | 광고비 | 변동비 | 상환비 | 메모 | 산정기준</code></span></div>
+            <div class="guide-step"><span class="step-num">2</span><span>1행에 헤더: <code>월 | 일평균매출 | 전체매출 | 고정비 | 발주비 | 광고비 | 변동비 | 상환비 | 메모 | 산정기준</code></span></div>
             <div class="guide-step"><span class="step-num">3</span><span>2행부터 월별 데이터 입력 — 확정된 달은 실적, 미래 달은 예측값 입력</span></div>
             <div class="guide-step"><span class="step-num">4</span><span>공유 설정 → <strong>링크가 있는 모든 사용자 → 뷰어</strong>로 변경</span></div>
             <div class="guide-step"><span class="step-num">5</span><span>URL에서 스프레드시트 ID 복사 → 위 설정에 붙여넣기 후 저장</span></div>
@@ -541,18 +542,23 @@ async function fetchSheetData() {
 function parseCSV(text) {
   const lines = text.trim().split('\n').map(l => l.split(',').map(c => c.replace(/^"|"$/g,'').trim()));
   if (lines.length < 2) { useDemoData(); return; }
-  const header = lines[0];
-  rawRows = lines.slice(1).map(cols => ({
-    month:    cols[0] || '',
-    revenue:  parseNum(cols[1]),
-    fixed:    parseNum(cols[2]),
-    order:    parseNum(cols[3]),
-    ad:       parseNum(cols[4]),
-    variable: parseNum(cols[5]),
-    repay:    parseNum(cols[6]),
-    memo:     cols[7] || '',
-    basis:    cols[8] || '',
-  })).filter(r => r.month);
+  rawRows = lines.slice(1).map(cols => {
+    const month    = cols[0] || '';
+    const dailyAvg = parseNum(cols[1]); // B열: 일평균매출(자사+네이버)
+    const revenue  = parseNum(cols[2]); // C열: 전체매출 (시트에서 직접 입력)
+    return {
+      month,
+      dailyAvg,
+      revenue,
+      fixed:    parseNum(cols[3]),
+      order:    parseNum(cols[4]),
+      ad:       parseNum(cols[5]),
+      variable: parseNum(cols[6]),
+      repay:    parseNum(cols[7]),
+      memo:     cols[8] || '',
+      basis:    cols[9] || '',
+    };
+  }).filter(r => r.month);
   renderAll();
 }
 
@@ -563,20 +569,27 @@ function parseNum(v) {
 
 // ─── 데모 데이터 ─────────────────────────────────────────────────
 function useDemoData() {
-  rawRows = [
-    { month:'26-01', revenue:3200, fixed:820, order:900, ad:600, variable:180, repay:0,    memo:'', basis:'확정' },
-    { month:'26-02', revenue:2800, fixed:820, order:800, ad:520, variable:160, repay:0,    memo:'', basis:'확정' },
-    { month:'26-03', revenue:3500, fixed:820, order:980, ad:680, variable:200, repay:0,    memo:'', basis:'확정' },
-    { month:'26-04', revenue:3100, fixed:820, order:860, ad:620, variable:170, repay:0,    memo:'', basis:'확정' },
-    { month:'26-05', revenue:3300, fixed:820, order:920, ad:650, variable:185, repay:0,    memo:'', basis:'확정' },
-    { month:'26-06', revenue:3600, fixed:820, order:980, ad:700, variable:200, repay:1000, memo:'', basis:'시뮬레이션' },
-    { month:'26-07', revenue:3800, fixed:820, order:1050,ad:750, variable:215, repay:1500, memo:'', basis:'시뮬레이션' },
-    { month:'26-08', revenue:4000, fixed:820, order:1100,ad:800, variable:230, repay:1500, memo:'', basis:'시뮬레이션' },
-    { month:'26-09', revenue:3700, fixed:820, order:1020,ad:720, variable:205, repay:2000, memo:'', basis:'시뮬레이션' },
-    { month:'26-10', revenue:3900, fixed:820, order:1080,ad:770, variable:220, repay:2000, memo:'', basis:'시뮬레이션' },
-    { month:'26-11', revenue:4200, fixed:820, order:1160,ad:840, variable:240, repay:2000, memo:'', basis:'시뮬레이션' },
-    { month:'26-12', revenue:4500, fixed:820, order:1250,ad:900, variable:255, repay:2000, memo:'', basis:'시뮬레이션' },
+  const demo = [
+    { month:'26-01', dailyAvg:103, fixed:820, order:900, ad:600, variable:180, repay:0,    memo:'', basis:'확정' },
+    { month:'26-02', dailyAvg:100, fixed:820, order:800, ad:520, variable:160, repay:0,    memo:'', basis:'확정' },
+    { month:'26-03', dailyAvg:113, fixed:820, order:980, ad:680, variable:200, repay:0,    memo:'', basis:'확정' },
+    { month:'26-04', dailyAvg:103, fixed:820, order:860, ad:620, variable:170, repay:0,    memo:'', basis:'확정' },
+    { month:'26-05', dailyAvg:106, fixed:820, order:920, ad:650, variable:185, repay:0,    memo:'', basis:'확정' },
+    { month:'26-06', dailyAvg:120, fixed:820, order:980, ad:700, variable:200, repay:1000, memo:'', basis:'시뮬레이션' },
+    { month:'26-07', dailyAvg:123, fixed:820, order:1050,ad:750, variable:215, repay:1500, memo:'', basis:'시뮬레이션' },
+    { month:'26-08', dailyAvg:129, fixed:820, order:1100,ad:800, variable:230, repay:1500, memo:'', basis:'시뮬레이션' },
+    { month:'26-09', dailyAvg:123, fixed:820, order:1020,ad:720, variable:205, repay:2000, memo:'', basis:'시뮬레이션' },
+    { month:'26-10', dailyAvg:126, fixed:820, order:1080,ad:770, variable:220, repay:2000, memo:'', basis:'시뮬레이션' },
+    { month:'26-11', dailyAvg:140, fixed:820, order:1160,ad:840, variable:240, repay:2000, memo:'', basis:'시뮬레이션' },
+    { month:'26-12', dailyAvg:145, fixed:820, order:1250,ad:900, variable:255, repay:2000, memo:'', basis:'시뮬레이션' },
   ];
+  rawRows = demo.map(r => {
+    const parts = r.month.split('-');
+    const year = 2000 + parseInt(parts[0]);
+    const mon  = parseInt(parts[1]);
+    const daysInMonth = new Date(year, mon, 0).getDate();
+    return { ...r, revenue: r.dailyAvg * daysInMonth, daysInMonth };
+  });
   renderAll();
 }
 
@@ -601,29 +614,21 @@ function calcRows() {
   const cfg = loadConfig();
   let balance = cfg.initBalance || 0;
   return rawRows.map((r, i) => {
-    // 6월 이후(index 5+)이고 시나리오 적용 대상이면 매출 조정
-    // basis가 '확정'이 아닌 경우만 시나리오 적용
     const isSimulated = r.basis !== '확정';
-    const isFuture = i >= 5; // 6월 이후
-    const revenueAdj = (isSimulated && isFuture)
-      ? r.revenue * (1 + scenarioRate / 100)
-      : r.revenue;
+    const isFuture = i >= 5;
+    const factor = (isSimulated && isFuture) ? (1 + scenarioRate / 100) : 1;
+
+    const revenueAdj = r.revenue * factor;
+    const dailyAvgAdj = r.dailyAvg * factor;
 
     const totalCost = r.fixed + r.order + r.ad + r.variable + r.repay;
     const profit = revenueAdj - totalCost;
     balance += profit;
 
-    // 월 일수 계산 (month 형식: "26-01" 등)
-    const parts = r.month.split('-');
-    const year = parts[0] ? 2000 + parseInt(parts[0]) : new Date().getFullYear();
-    const mon  = parts[1] ? parseInt(parts[1]) : 1;
-    const daysInMonth = new Date(year, mon, 0).getDate();
-    const dailyAvg = daysInMonth > 0 ? revenueAdj / daysInMonth : 0;
-
     return {
       ...r,
       revenueAdj,
-      dailyAvg,
+      dailyAvg: dailyAvgAdj,
       totalCost,
       profit,
       balance,
