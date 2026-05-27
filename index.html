@@ -363,6 +363,7 @@
             <thead>
               <tr>
                 <th>월</th>
+                <th>일평균매출</th>
                 <th>전체매출</th>
                 <th>고정비</th>
                 <th>발주비</th>
@@ -612,9 +613,17 @@ function calcRows() {
     const profit = revenueAdj - totalCost;
     balance += profit;
 
+    // 월 일수 계산 (month 형식: "26-01" 등)
+    const parts = r.month.split('-');
+    const year = parts[0] ? 2000 + parseInt(parts[0]) : new Date().getFullYear();
+    const mon  = parts[1] ? parseInt(parts[1]) : 1;
+    const daysInMonth = new Date(year, mon, 0).getDate();
+    const dailyAvg = daysInMonth > 0 ? revenueAdj / daysInMonth : 0;
+
     return {
       ...r,
       revenueAdj,
+      dailyAvg,
       totalCost,
       profit,
       balance,
@@ -821,6 +830,7 @@ function renderTable(rows) {
         : '<span class="tag-forecast">시뮬레이션</span>';
     return `<tr>
       <td>${r.month}</td>
+      <td style="color:var(--text-sub)">${fmt(r.dailyAvg)}</td>
       <td>${fmt(r.revenueAdj)}</td>
       <td>${fmt(r.fixed)}</td>
       <td>${fmt(r.order)}</td>
