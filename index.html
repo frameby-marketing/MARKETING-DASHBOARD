@@ -323,7 +323,6 @@
             <span class="chart-legend">
               <i class="leg-dot" style="background:#22c55e"></i>흑자
               <i class="leg-dot" style="background:#ef4444"></i>적자
-              <i class="leg-dot" style="background:#94a3b8"></i>확정
             </span>
           </div>
           <div class="chart-wrap"><canvas id="profitChart"></canvas></div>
@@ -825,9 +824,7 @@ function renderCharts(rows) {
   const profits = rows.map(r => r.profit);
   const balances = rows.map(r => r.balance);
 
-  const profitColors = rows.map(r =>
-    r.basis === '확정' ? '#94a3b8' : r.profit >= 0 ? '#22c55e' : '#ef4444'
-  );
+  const profitColors = rows.map(r => r.profit >= 0 ? '#22c55e' : '#ef4444');
   const balanceColors = rows.map(r => r.balance >= 0 ? '#3b82f6' : '#ef4444');
 
   const datalabelPlugin = {
