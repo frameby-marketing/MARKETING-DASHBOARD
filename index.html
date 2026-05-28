@@ -17,6 +17,24 @@
       --yellow:#f59e0b;--accent:#6366f1;
       --radius:10px;--radius-sm:6px;
     }
+    html.light {
+      --bg:#f4f6fa;--bg-card:#ffffff;--bg-card2:#eef1f7;
+      --border:#d4d8e8;--border-light:#c5cbdc;
+      --text:#1a1d2e;--text-sub:#4b5270;--text-muted:#9299b0;
+      --green:#16a34a;--green-dim:#dcfce7;
+      --red:#dc2626;--red-dim:#fee2e2;
+      --blue:#2563eb;--blue-dim:#dbeafe;
+      --yellow:#d97706;--accent:#4f46e5;
+    }
+    .theme-toggle{display:flex;align-items:center;gap:2px;background:var(--bg-card2);border:1px solid var(--border);border-radius:20px;padding:3px;flex-shrink:0}
+    .theme-btn{padding:5px 14px;border-radius:16px;border:none;background:none;color:var(--text-muted);font-size:12px;font-family:'Pretendard',sans-serif;font-weight:500;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;gap:5px}
+    .theme-btn:hover{color:var(--text)}
+    .theme-btn.active{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+    @media print{
+      .sidebar,.theme-toggle,.refresh-btn{display:none!important}
+      .app{height:auto}
+      .main{overflow:visible;padding:16px}
+    }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Pretendard',sans-serif;font-size:14px}
     .app{display:flex;height:100vh;overflow:hidden}
@@ -216,7 +234,13 @@
           <h1 class="page-title">영업이익 · 기말잔액 시뮬레이션</h1>
           <p class="page-sub" id="lastUpdated">Google Sheets 데이터 로딩 중...</p>
         </div>
-        <span class="period-badge">26년 1월 ~ 12월</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="theme-toggle">
+            <button class="theme-btn" id="btnLight" onclick="setTheme('light')">&#9728;&#65039; 일반모드</button>
+            <button class="theme-btn active" id="btnDark" onclick="setTheme('dark')">&#127769; 다크모드</button>
+          </div>
+          <span class="period-badge">26년 1월 ~ 12월</span>
+        </div>
       </header>
 
       <!-- ① 차트 2칸 나란히 -->
@@ -399,6 +423,21 @@ var FUTURE_MONTHS    = ['26-06','26-07','26-08','26-09','26-10','26-11','26-12']
 var REPAY_MONTHS     = ['26-07','26-08','26-09','26-10','26-11','26-12'];
 var TOTAL_REPAY_GOAL = 15000;
 var CFG_KEYS = {sheetId:'',sheetName:'매출데이터',sheetRange:'A1:I13',initBalance:0};
+
+
+function setTheme(mode){
+  if(mode==='light'){
+    document.documentElement.classList.add('light');
+    document.getElementById('btnLight').classList.add('active');
+    document.getElementById('btnDark').classList.remove('active');
+  }else{
+    document.documentElement.classList.remove('light');
+    document.getElementById('btnDark').classList.add('active');
+    document.getElementById('btnLight').classList.remove('active');
+  }
+  localStorage.setItem('rmv2_theme', mode);
+  renderAll();
+}
 
 function loadConfig(){return Object.assign({},CFG_KEYS,JSON.parse(localStorage.getItem('rmv2_cfg')||'{}'))}
 function saveConfig(c){localStorage.setItem('rmv2_cfg',JSON.stringify(c))}
@@ -607,13 +646,16 @@ function renderBarChart(cid,rows,field){
   var halfH=chartH/2*0.90;
   var barW=(W-mLeft-mRight)/rows.length;
   var barPad=5;
+  var isLight=document.documentElement.classList.contains('light');
+  var guideColor=isLight?'#d4d8e8':'#2a2d3a';
+  var monthLabelColor=isLight?'#4b5270':'#5a6070';
   var svg='';
   // 가이드
   var guides=[0.25,0.5,0.75];
   for(var g=0;g<guides.length;g++){
     var p=guides[g];
     var gy=mTop+chartH*p;
-    svg+='<line x1="'+mLeft+'" y1="'+gy.toFixed(1)+'" x2="'+(W-mRight)+'" y2="'+gy.toFixed(1)+'" stroke="#2a2d3a" stroke-width="'+(p===0.5?'1.2':'0.5')+'" '+(p!==0.5?'stroke-dasharray="3,3"':'')+'/>';
+    svg+='<line x1="'+mLeft+'" y1="'+gy.toFixed(1)+'" x2="'+(W-mRight)+'" y2="'+gy.toFixed(1)+'" stroke="'+guideColor+'" stroke-width="'+(p===0.5?'1.2':'0.5')+'" '+(p!==0.5?'stroke-dasharray="3,3"':'')+'/>';
   }
   for(var i=0;i<rows.length;i++){
     var val=values[i];
@@ -627,7 +669,7 @@ function renderBarChart(cid,rows,field){
     var lbl=fmtKoreanShort(val);
     var lblY=isPos?(by-3):(by+barH+11);
     svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+lblY.toFixed(1)+'" text-anchor="middle" fill="'+color+'" font-size="8.5" font-family="DM Mono,monospace" font-weight="600">'+lbl+'</text>';
-    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(H-5).toFixed(1)+'" text-anchor="middle" fill="#5a6070" font-size="9.5" font-family="Pretendard,sans-serif">'+months[i]+'</text>';
+    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(H-5).toFixed(1)+'" text-anchor="middle" fill="'+monthLabelColor+'" font-size="9.5" font-family="Pretendard,sans-serif">'+months[i]+'</text>';
   }
   el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'">'+svg+'</svg>';
 }
@@ -751,6 +793,8 @@ function fmtKorean(v,showSign){
 }
 
 window.addEventListener('DOMContentLoaded',function(){
+  var savedTheme=localStorage.getItem('rmv2_theme')||'dark';
+  setTheme(savedTheme);
   applyConfigToUI();
   buildMonthScenarioUI();
   updateScenarioSummary();
