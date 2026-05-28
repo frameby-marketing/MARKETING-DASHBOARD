@@ -872,8 +872,11 @@ function renderCharts(rows) {
     }
   };
 
-  if (profitChart) profitChart.destroy();
-  profitChart = new Chart(document.getElementById('profitChart'), {
+  if (profitChart) { profitChart.destroy(); profitChart = null; }
+  const pc = document.getElementById('profitChart');
+  const pcNew = pc.cloneNode(false);
+  pc.parentNode.replaceChild(pcNew, pc);
+  profitChart = new Chart(pcNew, {
     type: 'bar',
     data: {
       labels,
@@ -883,8 +886,11 @@ function renderCharts(rows) {
     plugins: [datalabelPlugin]
   });
 
-  if (balanceChart) balanceChart.destroy();
-  balanceChart = new Chart(document.getElementById('balanceChart'), {
+  if (balanceChart) { balanceChart.destroy(); balanceChart = null; }
+  const bc = document.getElementById('balanceChart');
+  const bcNew = bc.cloneNode(false);
+  bc.parentNode.replaceChild(bcNew, bc);
+  balanceChart = new Chart(bcNew, {
     type: 'bar',
     data: {
       labels,
@@ -898,14 +904,24 @@ function renderCharts(rows) {
 function chartOpts(label) {
   return {
     responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false }, tooltip: {
-      backgroundColor: '#1e2130', borderColor: '#2a2d3a', borderWidth: 1,
-      titleColor: '#9ca3b0', bodyColor: '#e8eaf0',
-      callbacks: { label: ctx => ` ${ctx.formattedValue} 만원` }
-    }},
+    layout: { padding: { top: 22, bottom: 8 } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1e2130', borderColor: '#2a2d3a', borderWidth: 1,
+        titleColor: '#9ca3b0', bodyColor: '#e8eaf0',
+        callbacks: { label: ctx => ` ${fmtKorean(ctx.raw, true)}` }
+      }
+    },
     scales: {
       x: { grid: { color: '#2a2d3a' }, ticks: { color: '#5a6070', font: { size: 11 } } },
-      y: { grid: { color: '#2a2d3a' }, ticks: { color: '#5a6070', font: { size: 11 }, callback: v => v.toLocaleString() } }
+      y: {
+        grid: { color: '#2a2d3a' },
+        ticks: {
+          color: '#5a6070', font: { size: 10 },
+          callback: v => fmtKorean(v)
+        }
+      }
     }
   };
 }
