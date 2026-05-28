@@ -84,16 +84,20 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 16px 20px;
-      display: flex; align-items: center; justify-content: space-between; gap: 16px;
-      flex-wrap: wrap;
+      padding: 16px 24px;
+      display: flex; align-items: stretch; gap: 0;
     }
-    .breakeven-label { font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
-    .breakeven-value { font-size: 22px; font-weight: 600; font-family: 'DM Mono', monospace; }
+    .be-cell { flex: 1; padding: 4px 20px; }
+    .be-cell:first-child { padding-left: 0; }
+    .be-cell:last-child { padding-right: 0; }
+    .be-divider { width: 1px; background: var(--border); margin: 4px 0; flex-shrink: 0; }
+    .breakeven-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.03em; }
+    .breakeven-value { font-size: 26px; font-weight: 700; font-family: 'DM Mono', monospace; }
     .breakeven-value.green { color: var(--green); }
     .breakeven-value.red { color: var(--red); }
     .breakeven-value.yellow { color: var(--yellow); }
-    .breakeven-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; }
+    .breakeven-value.blue { color: var(--blue); }
+    .breakeven-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
     .breakeven-pills { display: flex; gap: 8px; flex-wrap: wrap; }
     .breakeven-pill {
       padding: 6px 14px; border-radius: 20px;
@@ -120,7 +124,7 @@
     .chart-title { font-size: 13px; font-weight: 500; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
     .chart-legend { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--text-muted); }
     .leg-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; }
-    .chart-wrap { height: 200px; position: relative; }
+    .chart-wrap { height: 240px; position: relative; }
 
     /* SCENARIO */
     .target-section { }
@@ -166,6 +170,11 @@
     .repay-month-chip .rm-amount { font-size: 14px; font-weight: 600; font-family: 'DM Mono', monospace; color: var(--blue); }
     .repay-month-chip.rm-zero .rm-amount { color: var(--text-muted); }
     #repayStatusBar { font-size: 12px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
+    .repay-progress-wrap { margin-bottom: 16px; }
+    .repay-progress-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: var(--text-sub); }
+    .repay-progress-track { height: 10px; background: var(--bg-card2); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .repay-progress-bar { height: 100%; background: linear-gradient(90deg, var(--yellow), #f97316); border-radius: 10px; transition: width 0.6s ease; min-width: 0; }
+    .repay-progress-sub { font-size: 11px; color: var(--text-muted); margin-top: 5px; font-family: 'DM Mono', monospace; }
 
     /* MAIN TABLE */
     .table-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
@@ -282,14 +291,25 @@
         </div>
       </header>
 
-      <!-- 흑자 달성 필요 매출 배너 -->
+      <!-- 이번 달 3-KPI 배너 -->
       <div class="breakeven-banner" id="breakevenBanner">
-        <div>
-          <div class="breakeven-label">이번 달 흑자 달성을 위한 필요 매출</div>
-          <div class="breakeven-value" id="breakevenValue">—</div>
-          <div class="breakeven-meta" id="breakevenMeta">데이터 로딩 중...</div>
+        <div class="be-cell" id="beCurrentCell">
+          <div class="breakeven-label">이번 달 현재 매출</div>
+          <div class="breakeven-value blue" id="beCurrentValue">—</div>
+          <div class="breakeven-meta" id="beCurrentMeta"></div>
         </div>
-        <div class="breakeven-pills" id="breakevenPills"></div>
+        <div class="be-divider"></div>
+        <div class="be-cell" id="beNeededCell">
+          <div class="breakeven-label">흑자 달성 최소 매출</div>
+          <div class="breakeven-value" id="breakevenValue">—</div>
+          <div class="breakeven-meta" id="breakevenMeta"></div>
+        </div>
+        <div class="be-divider"></div>
+        <div class="be-cell" id="beGapCell">
+          <div class="breakeven-label">현재 예상 손익</div>
+          <div class="breakeven-value" id="beGapValue">—</div>
+          <div class="breakeven-meta" id="beGapMeta"></div>
+        </div>
       </div>
 
       <!-- KPI ROW -->
@@ -350,7 +370,17 @@
       <div class="repay-section-wrap">
         <div class="repay-section-header">
           <div class="repay-section-title">상환 계획 <span class="repay-section-sub" id="repayTotal"></span></div>
-          <div id="repayStatusBar"></div>
+        </div>
+        <!-- 진행 바 -->
+        <div class="repay-progress-wrap">
+          <div class="repay-progress-header">
+            <span id="repayProgressLabel">상환 진행률</span>
+            <span id="repayProgressPct" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--yellow)">0%</span>
+          </div>
+          <div class="repay-progress-track">
+            <div class="repay-progress-bar" id="repayProgressBar"></div>
+          </div>
+          <div class="repay-progress-sub" id="repayProgressSub"></div>
         </div>
         <div class="repay-months-row" id="repaySection"></div>
       </div>
@@ -697,51 +727,96 @@ function fmtSign(n) {
   if (n > 0) return '+' + fmt(n);
   return fmt(n);
 }
+// 만원 단위 값을 억/천만 단위로 표기 (예: 1.5억, 5.4천만, 800만)
+function fmtKorean(manwon, showSign) {
+  if (manwon === undefined || manwon === null || isNaN(manwon)) return '—';
+  const abs = Math.abs(manwon);
+  const sign = showSign ? (manwon >= 0 ? '+' : '-') : (manwon < 0 ? '-' : '');
+  let str;
+  if (abs >= 10000) {
+    // 억 단위
+    const uk = abs / 10000;
+    str = (Math.round(uk * 10) / 10) + '억';
+  } else if (abs >= 1000) {
+    // 천만 단위
+    const chun = abs / 1000;
+    str = (Math.round(chun * 10) / 10) + '천만';
+  } else if (abs >= 100) {
+    // 백만 단위
+    str = (Math.round(abs / 100) * 100).toLocaleString('ko-KR') + '만';
+  } else {
+    str = Math.round(abs).toLocaleString('ko-KR') + '만';
+  }
+  return sign + str;
+}
 
 function renderKPI(rows) {
+  const cfg = loadConfig();
+  const TOTAL_REPAY_GOAL = 15000; // 총 상환 목표 1억5천만원 (만원)
   const totalRevenue   = rows.reduce((s,r) => s + r.revenueAdj, 0);
   const totalProfit    = rows.reduce((s,r) => s + r.profit, 0);
   const totalRepay     = rows.reduce((s,r) => s + r.repay, 0);
   const lastBalance    = rows[rows.length - 1]?.balance ?? 0;
+  const initBalance    = cfg.initBalance || 0;
+  const repayRate      = Math.min(100, Math.round(totalRepay / TOTAL_REPAY_GOAL * 100));
 
   const items = [
-    { label: '연간 전체매출', value: fmt(totalRevenue), unit: '만원', cls: 'blue' },
-    { label: '연간 영업이익', value: fmtSign(totalProfit), unit: '만원', cls: totalProfit >= 0 ? 'green' : 'red' },
-    { label: '연간 총 상환', value: fmt(totalRepay), unit: '만원', cls: 'yellow' },
-    { label: '12월 기말잔액', value: fmtSign(lastBalance), unit: '만원', cls: lastBalance >= 0 ? 'green' : 'red' },
+    {
+      label: '연간 전체매출 예상',
+      value: fmtKorean(totalRevenue),
+      sub: `${fmt(Math.round(totalRevenue))}만원`,
+      cls: 'blue'
+    },
+    {
+      label: '연간 영업이익 예상',
+      value: fmtKorean(totalProfit, true),
+      sub: `${fmt(Math.round(Math.abs(totalProfit)))}만원`,
+      cls: totalProfit >= 0 ? 'green' : 'red'
+    },
+    {
+      label: '연간 총 상환',
+      value: fmtKorean(totalRepay),
+      sub: `상환 목표 1.5억 · ${repayRate}% 달성`,
+      cls: 'yellow'
+    },
+    {
+      label: '12월 기말잔액',
+      value: fmtKorean(lastBalance, true),
+      sub: `26년 1월 기말잔액 0원으로 시작`,
+      cls: lastBalance >= 0 ? 'green' : 'red'
+    },
   ];
   document.getElementById('kpiGrid').innerHTML = items.map(it => `
     <div class="kpi-card">
       <div class="kpi-label">${it.label}</div>
       <div class="kpi-value ${it.cls}">${it.value}</div>
-      <div class="kpi-sub">${it.unit}</div>
+      <div class="kpi-sub">${it.sub}</div>
     </div>`).join('');
 }
 
 function renderBreakeven(rows) {
   const { row, needed, gap } = calcBreakeven(rows);
-  const valEl = document.getElementById('breakevenValue');
-  const metaEl = document.getElementById('breakevenMeta');
-  const pillsEl = document.getElementById('breakevenPills');
 
+  // 칸1: 이번 달 현재 매출
+  document.getElementById('beCurrentValue').textContent = fmtKorean(row.revenueAdj);
+  document.getElementById('beCurrentMeta').textContent = `${row.month} 기준 · 총비용 ${fmtKorean(row.totalCost)}`;
+
+  // 칸2: 흑자 달성 최소 매출 (= 총비용)
+  document.getElementById('breakevenValue').textContent = fmtKorean(needed);
+  document.getElementById('breakevenValue').className = 'breakeven-value yellow';
+  document.getElementById('breakevenMeta').textContent = `고정비+발주+광고+변동+상환 합계`;
+
+  // 칸3: 현재 예상 손익
+  const gapEl = document.getElementById('beGapValue');
+  const gapMetaEl = document.getElementById('beGapMeta');
   if (gap <= 0) {
-    // 이미 흑자
-    valEl.textContent = '흑자 달성 ✓';
-    valEl.className = 'breakeven-value green';
-    metaEl.textContent = `${row.month} 기준 · 예상 영업이익 +${fmt(-gap)}만원`;
-    pillsEl.innerHTML = `
-      <div class="breakeven-pill">총 비용 ${fmt(row.totalCost)}만원</div>
-      <div class="breakeven-pill">현재 매출 ${fmt(row.revenueAdj)}만원</div>
-    `;
+    gapEl.textContent = fmtKorean(-gap, true);
+    gapEl.className = 'breakeven-value green';
+    gapMetaEl.textContent = '흑자 예상 ✓';
   } else {
-    valEl.textContent = fmt(needed) + ' 만원';
-    valEl.className = 'breakeven-value yellow';
-    metaEl.textContent = `${row.month} 기준 · 현재 매출 대비 ${fmt(gap)}만원 부족`;
-    pillsEl.innerHTML = `
-      <div class="breakeven-pill highlight">추가 필요 ${fmt(gap)}만원</div>
-      <div class="breakeven-pill">현재 매출 ${fmt(row.revenueAdj)}만원</div>
-      <div class="breakeven-pill">총 비용 ${fmt(row.totalCost)}만원</div>
-    `;
+    gapEl.textContent = fmtKorean(-gap, true);
+    gapEl.className = 'breakeven-value red';
+    gapMetaEl.textContent = `매출 ${fmtKorean(gap)} 추가 필요`;
   }
 }
 
@@ -755,36 +830,68 @@ function renderCharts(rows) {
   );
   const balanceColors = rows.map(r => r.balance >= 0 ? '#3b82f6' : '#ef4444');
 
-  // Profit chart
+  const datalabelPlugin = {
+    id: 'customLabels',
+    afterDatasetsDraw(chart) {
+      const { ctx, data, scales: { x, y } } = chart;
+      ctx.save();
+      data.datasets[0].data.forEach((val, i) => {
+        if (val === null || val === undefined) return;
+        const xPos = x.getPixelForIndex(i);
+        const yPos = y.getPixelForValue(val);
+        const isPos = val >= 0;
+        const text = fmtKorean(val, true);
+        ctx.font = '600 10px DM Mono, monospace';
+        ctx.fillStyle = isPos ? '#22c55e' : '#ef4444';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = isPos ? 'bottom' : 'top';
+        ctx.fillText(text, xPos, yPos + (isPos ? -3 : 3));
+      });
+      ctx.restore();
+    }
+  };
+
+  const balanceLabelPlugin = {
+    id: 'balanceLabels',
+    afterDatasetsDraw(chart) {
+      const { ctx, data, scales: { x, y } } = chart;
+      ctx.save();
+      data.datasets[0].data.forEach((val, i) => {
+        if (val === null || val === undefined) return;
+        const xPos = x.getPixelForIndex(i);
+        const yPos = y.getPixelForValue(val);
+        const isPos = val >= 0;
+        const text = fmtKorean(val, true);
+        ctx.font = '600 10px DM Mono, monospace';
+        ctx.fillStyle = isPos ? '#3b82f6' : '#ef4444';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = isPos ? 'bottom' : 'top';
+        ctx.fillText(text, xPos, yPos + (isPos ? -3 : 3));
+      });
+      ctx.restore();
+    }
+  };
+
   if (profitChart) profitChart.destroy();
   profitChart = new Chart(document.getElementById('profitChart'), {
     type: 'bar',
     data: {
       labels,
-      datasets: [{
-        data: profits,
-        backgroundColor: profitColors,
-        borderRadius: 4,
-        borderSkipped: false,
-      }]
+      datasets: [{ data: profits, backgroundColor: profitColors, borderRadius: 4, borderSkipped: false }]
     },
-    options: chartOpts('영업이익 (만원)')
+    options: chartOpts('영업이익 (만원)'),
+    plugins: [datalabelPlugin]
   });
 
-  // Balance chart
   if (balanceChart) balanceChart.destroy();
   balanceChart = new Chart(document.getElementById('balanceChart'), {
     type: 'bar',
     data: {
       labels,
-      datasets: [{
-        data: balances,
-        backgroundColor: balanceColors,
-        borderRadius: 4,
-        borderSkipped: false,
-      }]
+      datasets: [{ data: balances, backgroundColor: balanceColors, borderRadius: 4, borderSkipped: false }]
     },
-    options: chartOpts('기말잔액 (만원)')
+    options: chartOpts('기말잔액 (만원)'),
+    plugins: [balanceLabelPlugin]
   });
 }
 
@@ -829,22 +936,30 @@ function renderTargetTable(rows) {
 }
 
 function renderRepay(rows) {
+  const TOTAL_GOAL = 15000; // 1억5천만원 (만원)
   const repayRows = rows.filter(r => r.repay > 0);
   const total = repayRows.reduce((s, r) => s + r.repay, 0);
-  document.getElementById('repayTotal').textContent = `총 ${fmt(total)}만원 · ${repayRows.length}개월`;
+  const pct = Math.min(100, Math.round(total / TOTAL_GOAL * 100));
 
-  // 상환 있는 달만 표시
+  document.getElementById('repayTotal').textContent = `총 목표 1.5억 · 현재 ${fmtKorean(total)} 계획`;
+
+  // 진행 바
+  document.getElementById('repayProgressBar').style.width = pct + '%';
+  document.getElementById('repayProgressPct').textContent = pct + '%';
+  document.getElementById('repayProgressSub').textContent =
+    `${fmtKorean(total)} 상환 계획 / 목표 1.5억 · 잔여 ${fmtKorean(TOTAL_GOAL - total)}`;
+
   if (!repayRows.length) {
-    document.getElementById('repaySection').innerHTML = '<span style="color:var(--text-muted);font-size:12px">구글 시트에 상환비 데이터를 입력해주세요</span>';
-    document.getElementById('repayStatusBar').textContent = '';
+    document.getElementById('repaySection').innerHTML =
+      '<span style="color:var(--text-muted);font-size:12px">구글 시트에 상환비 데이터를 입력해주세요</span>';
     return;
   }
+
   document.getElementById('repaySection').innerHTML = repayRows.map(r => `
     <div class="repay-month-chip">
       <div class="rm-month">${r.month}</div>
-      <div class="rm-amount">${fmt(r.repay)}</div>
+      <div class="rm-amount">${fmtKorean(r.repay)}</div>
     </div>`).join('');
-  document.getElementById('repayStatusBar').textContent = `총 ${fmt(total)}만원`;
 }
 
 function renderTable(rows) {
