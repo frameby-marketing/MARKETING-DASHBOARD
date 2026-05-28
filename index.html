@@ -3,235 +3,189 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>매출 & 영업이익 시뮬레이션</title>
+  <title>매출 &amp; 영업이익 시뮬레이션</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f1117;
-      --bg-card: #181b23;
-      --bg-card2: #1e2130;
-      --border: #2a2d3a;
-      --border-light: #363950;
-      --text: #e8eaf0;
-      --text-sub: #9ca3b0;
-      --text-muted: #5a6070;
-      --green: #22c55e;
-      --green-dim: #166534;
-      --red: #ef4444;
-      --red-dim: #7f1d1d;
-      --blue: #3b82f6;
-      --blue-dim: #1e3a5f;
-      --yellow: #f59e0b;
-      --accent: #6366f1;
-      --radius: 10px;
-      --radius-sm: 6px;
+      --bg:#0f1117;--bg-card:#181b23;--bg-card2:#1e2130;
+      --border:#2a2d3a;--border-light:#363950;
+      --text:#e8eaf0;--text-sub:#9ca3b0;--text-muted:#5a6070;
+      --green:#22c55e;--green-dim:#166534;
+      --red:#ef4444;--red-dim:#7f1d1d;
+      --blue:#3b82f6;--blue-dim:#1e3a5f;
+      --yellow:#f59e0b;--accent:#6366f1;
+      --radius:10px;--radius-sm:6px;
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; background: var(--bg); color: var(--text); font-family: 'Pretendard', sans-serif; font-size: 14px; }
-
-    .app { display: flex; height: 100vh; overflow: hidden; }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Pretendard',sans-serif;font-size:14px}
+    .app{display:flex;height:100vh;overflow:hidden}
 
     /* SIDEBAR */
-    .sidebar {
-      width: 200px; flex-shrink: 0;
-      background: var(--bg-card);
-      border-right: 1px solid var(--border);
-      display: flex; flex-direction: column;
-      padding: 20px 12px;
-      gap: 8px;
-    }
-    .logo { display: flex; align-items: center; gap: 8px; padding: 4px 8px 16px; border-bottom: 1px solid var(--border); margin-bottom: 4px; }
-    .logo-mark { color: var(--accent); font-size: 18px; }
-    .logo-text { font-size: 12px; font-weight: 600; line-height: 1.3; color: var(--text); }
-    .nav { display: flex; flex-direction: column; gap: 2px; flex: 1; }
-    .nav-item {
-      display: flex; align-items: center; gap: 8px;
-      padding: 8px 10px; border-radius: var(--radius-sm);
-      background: none; border: none; color: var(--text-sub);
-      cursor: pointer; font-size: 13px; font-family: inherit;
-      transition: all 0.15s;
-    }
-    .nav-item:hover { background: var(--bg-card2); color: var(--text); }
-    .nav-item.active { background: var(--accent); color: #fff; }
-    .sync-status { display: flex; align-items: center; gap: 6px; padding: 8px 10px; font-size: 11px; color: var(--text-muted); }
-    .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted); transition: background 0.3s; }
-    .sync-dot.ok { background: var(--green); box-shadow: 0 0 6px var(--green); }
-    .sync-dot.err { background: var(--red); }
-    .refresh-btn {
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      padding: 8px; border-radius: var(--radius-sm);
-      background: var(--bg-card2); border: 1px solid var(--border);
-      color: var(--text-sub); cursor: pointer; font-size: 12px; font-family: inherit;
-      transition: all 0.15s;
-    }
-    .refresh-btn:hover { border-color: var(--accent); color: var(--text); }
+    .sidebar{width:200px;flex-shrink:0;background:var(--bg-card);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 12px;gap:8px}
+    .logo{display:flex;align-items:center;gap:8px;padding:4px 8px 16px;border-bottom:1px solid var(--border);margin-bottom:4px}
+    .logo-mark{color:var(--accent);font-size:18px}
+    .logo-text{font-size:12px;font-weight:600;line-height:1.3;color:var(--text)}
+    .nav{display:flex;flex-direction:column;gap:2px;flex:1}
+    .nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);background:none;border:none;color:var(--text-sub);cursor:pointer;font-size:13px;font-family:inherit;transition:all 0.15s}
+    .nav-item:hover{background:var(--bg-card2);color:var(--text)}
+    .nav-item.active{background:var(--accent);color:#fff}
+    .sync-status{display:flex;align-items:center;gap:6px;padding:8px 10px;font-size:11px;color:var(--text-muted)}
+    .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);transition:background 0.3s}
+    .sync-dot.ok{background:var(--green);box-shadow:0 0 6px var(--green)}
+    .sync-dot.err{background:var(--red)}
+    .refresh-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:var(--radius-sm);background:var(--bg-card2);border:1px solid var(--border);color:var(--text-sub);cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.15s}
+    .refresh-btn:hover{border-color:var(--accent);color:var(--text)}
 
     /* MAIN */
-    .main { flex: 1; overflow-y: auto; padding: 24px 28px; display: flex; flex-direction: column; gap: 20px; }
-    .tab-content { display: none; flex-direction: column; gap: 20px; }
-    .tab-content.active { display: flex; }
+    .main{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:20px}
+    .tab-content{display:none;flex-direction:column;gap:20px}
+    .tab-content.active{display:flex}
 
-    /* PAGE HEADER */
-    .page-header { display: flex; align-items: flex-start; justify-content: space-between; }
-    .page-title { font-size: 20px; font-weight: 600; }
-    .page-sub { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
-    .period-badge { padding: 4px 12px; border-radius: 20px; background: var(--bg-card2); border: 1px solid var(--border); font-size: 12px; color: var(--text-sub); font-family: 'DM Mono', monospace; }
+    /* HEADER */
+    .page-header{display:flex;align-items:flex-start;justify-content:space-between}
+    .page-title{font-size:20px;font-weight:600}
+    .page-sub{font-size:12px;color:var(--text-muted);margin-top:4px}
+    .period-badge{padding:4px 12px;border-radius:20px;background:var(--bg-card2);border:1px solid var(--border);font-size:12px;color:var(--text-sub);font-family:'DM Mono',monospace}
 
-    /* BREAKEVEN BANNER */
-    .breakeven-banner {
-      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 16px 24px; display: flex; align-items: stretch; gap: 0;
-    }
-    .be-cell { flex: 1; padding: 4px 20px; }
-    .be-cell:first-child { padding-left: 0; }
-    .be-cell:last-child { padding-right: 0; }
-    .be-divider { width: 1px; background: var(--border); margin: 4px 0; flex-shrink: 0; }
-    .breakeven-label { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
-    .breakeven-value { font-size: 26px; font-weight: 700; font-family: 'DM Mono', monospace; }
-    .breakeven-value.green { color: var(--green); }
-    .breakeven-value.red { color: var(--red); }
-    .breakeven-value.yellow { color: var(--yellow); }
-    .breakeven-value.blue { color: var(--blue); }
-    .breakeven-meta { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    /* CHART */
+    .chart-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+    .chart-section-title{font-size:13px;font-weight:600;margin-bottom:4px}
+    .chart-section-sub{font-size:11px;color:var(--text-muted);margin-bottom:16px}
+    .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+    .chart-inner{overflow-x:auto}
+    .chart-label{font-size:12px;font-weight:600;color:var(--text-sub);margin-bottom:10px}
+
+    /* BREAKEVEN */
+    .breakeven-banner{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 24px;display:flex;align-items:stretch;gap:0}
+    .be-cell{flex:1;padding:4px 20px}
+    .be-cell:first-child{padding-left:0}
+    .be-cell:last-child{padding-right:0}
+    .be-divider{width:1px;background:var(--border);margin:4px 0;flex-shrink:0}
+    .breakeven-label{font-size:11px;color:var(--text-muted);margin-bottom:6px}
+    .breakeven-value{font-size:26px;font-weight:700;font-family:'DM Mono',monospace}
+    .breakeven-value.green{color:var(--green)}
+    .breakeven-value.red{color:var(--red)}
+    .breakeven-value.yellow{color:var(--yellow)}
+    .breakeven-value.blue{color:var(--blue)}
+    .breakeven-meta{font-size:11px;color:var(--text-muted);margin-top:4px}
 
     /* KPI */
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-    .kpi-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 18px; }
-    .kpi-label { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; letter-spacing: 0.05em; text-transform: uppercase; }
-    .kpi-value { font-size: 24px; font-weight: 600; font-family: 'DM Mono', monospace; }
-    .kpi-value.green { color: var(--green); }
-    .kpi-value.red { color: var(--red); }
-    .kpi-value.blue { color: var(--blue); }
-    .kpi-value.yellow { color: var(--yellow); }
-    .kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .kpi-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px}
+    .kpi-label{font-size:11px;color:var(--text-muted);margin-bottom:8px;letter-spacing:.05em;text-transform:uppercase}
+    .kpi-value{font-size:24px;font-weight:600;font-family:'DM Mono',monospace}
+    .kpi-value.green{color:var(--green)}.kpi-value.red{color:var(--red)}.kpi-value.blue{color:var(--blue)}.kpi-value.yellow{color:var(--yellow)}
+    .kpi-sub{font-size:11px;color:var(--text-muted);margin-top:4px}
 
     /* SCENARIO */
-    .target-section { }
-    .target-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
-    .target-label { font-size: 12px; font-weight: 600; color: var(--text-sub); margin-bottom: 12px; letter-spacing: 0.04em; }
-    .scenario-group { display: flex; align-items: center; gap: 6px; }
-    .scenario-group-label { font-size: 11px; font-weight: 600; min-width: 30px; }
-    .scenario-group-label.up { color: var(--green); }
-    .scenario-group-label.dn { color: var(--red); }
-    .sc-btn {
-      padding: 5px 12px; border-radius: var(--radius-sm);
-      border: 1px solid var(--border); background: var(--bg-card2);
-      color: var(--text-sub); font-size: 12px; font-family: 'DM Mono', monospace;
-      cursor: pointer; transition: all 0.15s;
-    }
-    .sc-btn:hover { border-color: var(--accent); color: var(--text); }
-    .sc-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-    .sc-btn.sc-up.active { background: var(--green); border-color: var(--green); }
-    .sc-btn.sc-dn.active { background: var(--red); border-color: var(--red); }
-    .scenario-note { font-size: 11px; color: var(--text-muted); margin-left: 8px; font-family: 'DM Mono', monospace; }
-    .tmc-scroll { overflow-x: auto; }
+    .target-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+    .target-label{font-size:12px;font-weight:600;color:var(--text-sub);margin-bottom:12px;letter-spacing:.04em}
+    .month-scenario-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:12px}
+    .month-sc-col{display:flex;flex-direction:column;align-items:center;gap:3px}
+    .month-sc-label{font-size:11px;color:var(--text-muted);margin-bottom:2px;font-family:'DM Mono',monospace}
+    .month-sc-btns{display:flex;flex-direction:column;gap:2px;width:100%}
+    .sc-btn{padding:4px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font-size:10px;font-family:'DM Mono',monospace;cursor:pointer;transition:all 0.15s;text-align:center;width:100%}
+    .sc-btn:hover{border-color:var(--accent);color:var(--text)}
+    .sc-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+    .sc-btn.sc-up.active{background:var(--green);border-color:var(--green);color:#fff}
+    .sc-btn.sc-dn.active{background:var(--red);border-color:var(--red);color:#fff}
+    .sc-btn.sc-base.active{background:var(--bg-card2);border-color:var(--accent);color:var(--accent)}
+    .scenario-summary{font-size:11px;margin-top:6px;padding:8px 12px;background:var(--bg-card2);border-radius:var(--radius-sm);font-family:'DM Mono',monospace;display:flex;gap:14px;flex-wrap:wrap}
+    .sc-sum-item{display:flex;gap:4px}
+    .sc-sum-month{color:var(--text-sub)}
+    .sc-sum-val.up{color:var(--green)}.sc-sum-val.dn{color:var(--red)}.sc-sum-val.base{color:var(--text-muted)}
+    .tmc-scroll{overflow-x:auto}
 
     /* TARGET TABLE */
-    .target-mini-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 10px; }
-    .target-mini-table th { font-size: 10px; color: var(--text-muted); font-weight: 500; padding: 6px 10px; border-bottom: 1px solid var(--border); text-align: right; }
-    .target-mini-table th:first-child { text-align: left; }
-    .target-mini-table td { padding: 6px 10px; border-bottom: 1px solid var(--border); text-align: right; font-family: 'DM Mono', monospace; color: var(--text-sub); }
-    .target-mini-table td:first-child { text-align: left; color: var(--text); font-family: 'Pretendard', sans-serif; }
-    .target-mini-table tr:last-child td { border-bottom: none; }
+    .target-mini-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+    .target-mini-table th{font-size:10px;color:var(--text-muted);font-weight:500;padding:6px 10px;border-bottom:1px solid var(--border);text-align:right}
+    .target-mini-table th:first-child{text-align:left}
+    .target-mini-table td{padding:6px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;color:var(--text-sub)}
+    .target-mini-table td:first-child{text-align:left;color:var(--text);font-family:'Pretendard',sans-serif}
+    .target-mini-table tr:last-child td{border-bottom:none}
 
     /* REPAY */
-    .repay-section-wrap { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
-    .repay-section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .repay-section-title { font-size: 13px; font-weight: 600; }
-    .repay-section-sub { font-size: 11px; font-weight: 400; color: var(--text-muted); margin-left: 6px; }
-    .repay-months-row { display: flex; gap: 8px; flex-wrap: wrap; }
-    .repay-month-chip {
-      background: var(--bg-card2); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 8px 14px;
-      min-width: 80px; text-align: center;
-    }
-    .repay-month-chip .rm-month { font-size: 11px; color: var(--text-muted); margin-bottom: 3px; }
-    .repay-month-chip .rm-amount { font-size: 14px; font-weight: 600; font-family: 'DM Mono', monospace; color: var(--blue); }
-    .repay-month-chip.rm-zero .rm-amount { color: var(--text-muted); }
-    #repayStatusBar { font-size: 12px; color: var(--text-muted); font-family: 'DM Mono', monospace; }
-    .repay-progress-wrap { margin-bottom: 14px; }
-    .repay-progress-header { display: flex; justify-content: space-between; margin-bottom: 6px; }
-    .repay-progress-track { height: 10px; background: var(--bg-card2); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
-    .repay-progress-bar { height: 100%; background: linear-gradient(90deg, var(--yellow), #f97316); border-radius: 10px; transition: width 0.6s ease; }
+    .repay-section-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+    .repay-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+    .repay-section-title{font-size:13px;font-weight:600}
+    .repay-section-sub{font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px}
+    .repay-plan-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:14px}
+    .repay-plan-col{display:flex;flex-direction:column;align-items:center;gap:3px}
+    .repay-plan-label{font-size:11px;color:var(--text-muted);margin-bottom:2px;font-family:'DM Mono',monospace}
+    .repay-plan-note{font-size:10px;color:var(--yellow);margin-bottom:1px}
+    .repay-plan-btns{display:flex;flex-direction:column;gap:2px;width:100%}
+    .repay-btn{padding:4px 6px;border-radius:var(--radius-sm);border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font-size:10px;font-family:'DM Mono',monospace;cursor:pointer;transition:all 0.15s;text-align:center;width:100%}
+    .repay-btn:hover{border-color:var(--yellow);color:var(--text)}
+    .repay-btn.active{background:var(--yellow);border-color:var(--yellow);color:#000;font-weight:600}
+    .repay-btn.confirmed{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);cursor:default;font-weight:600}
+    .repay-months-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .repay-month-chip{background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 14px;min-width:80px;text-align:center}
+    .repay-month-chip .rm-month{font-size:11px;color:var(--text-muted);margin-bottom:3px}
+    .repay-month-chip .rm-amount{font-size:14px;font-weight:600;font-family:'DM Mono',monospace;color:var(--blue)}
+    .repay-progress-wrap{margin-bottom:14px}
+    .repay-progress-header{display:flex;justify-content:space-between;margin-bottom:6px}
+    .repay-progress-track{height:10px;background:var(--bg-card2);border-radius:10px;overflow:hidden;border:1px solid var(--border)}
+    .repay-progress-bar{height:100%;background:linear-gradient(90deg,var(--yellow),#f97316);border-radius:10px;transition:width 0.6s ease}
 
-    /* MAIN TABLE */
-    .table-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
-    .table-section-label { font-size: 13px; font-weight: 600; margin-bottom: 14px; }
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    thead th { font-size: 10px; font-weight: 500; color: var(--text-muted); padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
-    thead th:first-child { text-align: left; }
-    tbody td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: right; font-family: 'DM Mono', monospace; color: var(--text-sub); white-space: nowrap; }
-    tbody td:first-child { text-align: left; color: var(--text); font-family: 'Pretendard', sans-serif; }
-    tbody tr:last-child td { border-bottom: none; }
-    tbody tr:hover td { background: var(--bg-card2); }
-    .profit-pos { color: var(--green) !important; }
-    .profit-neg { color: var(--red) !important; }
-    .balance-pos { color: var(--blue) !important; }
-    .balance-neg { color: var(--red) !important; }
-    .tag-confirmed { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(148,163,184,0.12); color: var(--text-muted); }
-    .tag-forecast { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(99,102,241,0.12); color: var(--accent); }
-    .tag-scenario { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(245,158,11,0.12); color: var(--yellow); }
+    /* TABLE */
+    .table-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
+    .table-section-label{font-size:13px;font-weight:600;margin-bottom:14px}
+    .table-wrap{overflow-x:auto}
+    table{width:100%;border-collapse:collapse;font-size:12px}
+    thead th{font-size:10px;font-weight:500;color:var(--text-muted);padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+    thead th:first-child{text-align:left}
+    tbody td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;color:var(--text-sub);white-space:nowrap}
+    tbody td:first-child{text-align:left;color:var(--text);font-family:'Pretendard',sans-serif}
+    tbody tr:last-child td{border-bottom:none}
+    tbody tr:hover td{background:var(--bg-card2)}
+    .profit-pos{color:var(--green)!important}.profit-neg{color:var(--red)!important}
+    .balance-pos{color:var(--blue)!important}.balance-neg{color:var(--red)!important}
+    .tag-confirmed{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(148,163,184,.12);color:var(--text-muted)}
+    .tag-forecast{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(99,102,241,.12);color:var(--accent)}
+    .tag-scenario{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(245,158,11,.12);color:var(--yellow)}
 
     /* SETTINGS */
-    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .settings-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
-    .settings-card.full-width { grid-column: 1 / -1; }
-    .settings-section-title { font-size: 13px; font-weight: 600; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-    .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 6px; }
-    .form-group input[type="text"],
-    .form-group input[type="number"] {
-      width: 100%; padding: 8px 10px; border-radius: var(--radius-sm);
-      background: var(--bg-card2); border: 1px solid var(--border);
-      color: var(--text); font-size: 13px; font-family: 'DM Mono', monospace;
-      outline: none; transition: border-color 0.15s;
-    }
-    .form-group input:focus { border-color: var(--accent); }
-    .form-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-    .form-hint code { background: var(--bg-card2); padding: 1px 5px; border-radius: 3px; font-family: 'DM Mono', monospace; }
-    .input-row { display: flex; align-items: center; gap: 8px; }
-    .input-unit { font-size: 13px; color: var(--text-muted); }
-    .save-btn {
-      padding: 9px 18px; border-radius: var(--radius-sm);
-      background: var(--accent); border: none; color: #fff;
-      font-size: 13px; font-family: 'Pretendard', sans-serif; font-weight: 500;
-      cursor: pointer; transition: opacity 0.15s; margin-top: 4px;
-    }
-    .save-btn:hover { opacity: 0.85; }
-    .settings-note { font-size: 11px; color: var(--text-muted); margin-top: 12px; padding: 10px; background: var(--bg-card2); border-radius: var(--radius-sm); }
-    .guide-table-wrap { overflow-x: auto; margin-bottom: 16px; }
-    .guide-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .guide-table th { font-size: 10px; color: var(--text-muted); padding: 6px 10px; border-bottom: 1px solid var(--border); text-align: left; }
-    .guide-table td { padding: 7px 10px; border-bottom: 1px solid var(--border); color: var(--text-sub); font-family: 'DM Mono', monospace; }
-    .guide-table tr:last-child td { border-bottom: none; }
-    .guide-steps { display: flex; flex-direction: column; gap: 8px; }
-    .guide-step { display: flex; align-items: flex-start; gap: 10px; font-size: 12px; color: var(--text-sub); }
-    .step-num { width: 20px; height: 20px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; flex-shrink: 0; }
-    .guide-step code { background: var(--bg-card2); padding: 1px 5px; border-radius: 3px; font-family: 'DM Mono', monospace; }
-
-    /* LOADING */
-    .loading-overlay { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 24px; color: var(--text-muted); font-size: 13px; }
-    .spin { animation: spin 1s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    @media (max-width: 900px) {
-      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-      .chart-grid { grid-template-columns: 1fr; }
-      .settings-grid { grid-template-columns: 1fr; }
-      .sidebar { width: 160px; }
+    .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .settings-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+    .settings-card.full-width{grid-column:1/-1}
+    .settings-section-title{font-size:13px;font-weight:600;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+    .form-group{margin-bottom:14px}
+    .form-group label{display:block;font-size:12px;color:var(--text-sub);margin-bottom:6px}
+    .form-group input[type="text"],.form-group input[type="number"]{width:100%;padding:8px 10px;border-radius:var(--radius-sm);background:var(--bg-card2);border:1px solid var(--border);color:var(--text);font-size:13px;font-family:'DM Mono',monospace;outline:none;transition:border-color .15s}
+    .form-group input:focus{border-color:var(--accent)}
+    .form-hint{font-size:11px;color:var(--text-muted);margin-top:4px}
+    .form-hint code{background:var(--bg-card2);padding:1px 5px;border-radius:3px;font-family:'DM Mono',monospace}
+    .input-row{display:flex;align-items:center;gap:8px}
+    .input-unit{font-size:13px;color:var(--text-muted)}
+    .save-btn{padding:9px 18px;border-radius:var(--radius-sm);background:var(--accent);border:none;color:#fff;font-size:13px;font-family:'Pretendard',sans-serif;font-weight:500;cursor:pointer;transition:opacity .15s;margin-top:4px}
+    .save-btn:hover{opacity:.85}
+    .settings-note{font-size:11px;color:var(--text-muted);margin-top:12px;padding:10px;background:var(--bg-card2);border-radius:var(--radius-sm)}
+    .guide-table-wrap{overflow-x:auto;margin-bottom:16px}
+    .guide-table{width:100%;border-collapse:collapse;font-size:12px}
+    .guide-table th{font-size:10px;color:var(--text-muted);padding:6px 10px;border-bottom:1px solid var(--border);text-align:left}
+    .guide-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text-sub);font-family:'DM Mono',monospace}
+    .guide-table tr:last-child td{border-bottom:none}
+    .guide-steps{display:flex;flex-direction:column;gap:8px}
+    .guide-step{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:var(--text-sub)}
+    .step-num{width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;flex-shrink:0}
+    .guide-step code{background:var(--bg-card2);padding:1px 5px;border-radius:3px;font-family:'DM Mono',monospace}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:900px){
+      .kpi-grid{grid-template-columns:repeat(2,1fr)}
+      .chart-grid{grid-template-columns:1fr}
+      .settings-grid{grid-template-columns:1fr}
+      .sidebar{width:160px}
+      .month-scenario-grid{grid-template-columns:repeat(4,1fr)}
+      .repay-plan-grid{grid-template-columns:repeat(4,1fr)}
     }
   </style>
 </head>
 <body>
-
 <div class="app">
-
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <div class="logo">
-      <span class="logo-mark">▸</span>
+      <span class="logo-mark">&#9654;</span>
       <span class="logo-text">Revenue<br>Monitor</span>
     </div>
     <nav class="nav">
@@ -254,10 +208,7 @@
     </button>
   </aside>
 
-  <!-- MAIN -->
   <main class="main">
-
-    <!-- TAB: DASHBOARD -->
     <div class="tab-content active" id="tab-dashboard">
 
       <header class="page-header">
@@ -265,63 +216,64 @@
           <h1 class="page-title">영업이익 · 기말잔액 시뮬레이션</h1>
           <p class="page-sub" id="lastUpdated">Google Sheets 데이터 로딩 중...</p>
         </div>
-        <div class="header-actions">
-          <span class="period-badge">26년 1월 ~ 12월</span>
-        </div>
+        <span class="period-badge">26년 1월 ~ 12월</span>
       </header>
 
-      <!-- 이번 달 3-KPI 배너 -->
-      <div class="breakeven-banner" id="breakevenBanner">
+      <!-- ① 막대 차트 (최상단) -->
+      <div class="chart-section">
+        <div class="chart-section-title">월별 추이 차트</div>
+        <div class="chart-section-sub">
+          흑자 <span style="color:var(--blue)">&#9646; 파란색 &#8593;</span> &nbsp;/&nbsp;
+          적자 <span style="color:var(--red)">&#9646; 빨간색 &#8595;</span> &nbsp;&#183;&nbsp; 단위: 만원
+        </div>
+        <div class="chart-grid">
+          <div>
+            <div class="chart-label">&#128202; 영업이익 추이</div>
+            <div class="chart-inner" id="profitChartWrap"></div>
+          </div>
+          <div>
+            <div class="chart-label">&#128176; 기말잔액 추이</div>
+            <div class="chart-inner" id="balanceChartWrap"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② 이번 달 배너 -->
+      <div class="breakeven-banner">
         <div class="be-cell">
           <div class="breakeven-label" id="beCurrentLabel">26년 05월 현재 매출</div>
-          <div class="breakeven-value blue" id="beCurrentValue">—</div>
+          <div class="breakeven-value blue" id="beCurrentValue">&#8212;</div>
           <div class="breakeven-meta" id="beCurrentMeta"></div>
         </div>
         <div class="be-divider"></div>
         <div class="be-cell">
           <div class="breakeven-label">흑자 달성 최소 매출</div>
-          <div class="breakeven-value yellow" id="breakevenValue">—</div>
+          <div class="breakeven-value yellow" id="breakevenValue">&#8212;</div>
           <div class="breakeven-meta" id="breakevenMeta"></div>
         </div>
         <div class="be-divider"></div>
         <div class="be-cell">
           <div class="breakeven-label">현재 예상 손익</div>
-          <div class="breakeven-value" id="beGapValue">—</div>
+          <div class="breakeven-value" id="beGapValue">&#8212;</div>
           <div class="breakeven-meta" id="beGapMeta"></div>
         </div>
       </div>
 
-      <!-- KPI ROW -->
+      <!-- ③ KPI -->
       <div class="kpi-grid" id="kpiGrid"></div>
 
-
-      <!-- SCENARIO -->
-      <div class="target-section">
-        <div class="target-card">
-          <div class="target-label">6~12월 매출 시나리오 조정</div>
-          <div class="scenario-group">
-            <span class="scenario-group-label up">▲ 상향</span>
-            <button class="sc-btn sc-up" onclick="setScenario(5)">+5%</button>
-            <button class="sc-btn sc-up" onclick="setScenario(10)">+10%</button>
-            <button class="sc-btn sc-up" onclick="setScenario(15)">+15%</button>
-            <button class="sc-btn sc-up" onclick="setScenario(20)">+20%</button>
-          </div>
-          <div class="scenario-group" style="margin:6px 0">
-            <button class="sc-btn sc-base active" onclick="setScenario(0)">기준</button>
-            <span class="scenario-note" id="scenarioNote"></span>
-          </div>
-          <div class="scenario-group">
-            <span class="scenario-group-label dn">▼ 하향</span>
-            <button class="sc-btn sc-dn" onclick="setScenario(-5)">−5%</button>
-            <button class="sc-btn sc-dn" onclick="setScenario(-10)">−10%</button>
-            <button class="sc-btn sc-dn" onclick="setScenario(-15)">−15%</button>
-            <button class="sc-btn sc-dn" onclick="setScenario(-20)">−20%</button>
-          </div>
-          <div class="tmc-scroll" style="margin-top:14px" id="targetTable"></div>
+      <!-- ④ 월별 개별 시나리오 -->
+      <div class="target-card">
+        <div class="target-label">
+          6~12월 월별 매출 시나리오 조정
+          <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:8px">각 월 독립적으로 조정 가능</span>
         </div>
+        <div class="month-scenario-grid" id="monthScenarioGrid"></div>
+        <div class="scenario-summary" id="scenarioSummary"></div>
+        <div class="tmc-scroll" style="margin-top:14px" id="targetTable"></div>
       </div>
 
-      <!-- 상환 계획 -->
+      <!-- ⑤ 상환 계획 -->
       <div class="repay-section-wrap">
         <div class="repay-section-header">
           <div class="repay-section-title">상환 계획 <span class="repay-section-sub" id="repayTotal"></span></div>
@@ -336,35 +288,30 @@
           </div>
           <div id="repayProgressSub" style="font-size:11px;color:var(--text-muted);margin-top:5px;font-family:'DM Mono',monospace;"></div>
         </div>
+        <div style="font-size:12px;font-weight:600;color:var(--text-sub);margin-bottom:8px;">
+          월별 상환금액 설정
+          <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">26-6월 4천만 확정 · 7~12월 월별 선택 (합계 목표 1억 5천)</span>
+        </div>
+        <div class="repay-plan-grid" id="repayPlanGrid"></div>
         <div class="repay-months-row" id="repaySection"></div>
       </div>
 
-      <!-- 월별 상세 테이블 -->
+      <!-- ⑥ 월별 상세 테이블 -->
       <div class="table-card">
         <div class="table-section-label">월별 상세 내역 <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">단위: 만원</span></div>
         <div class="table-wrap">
           <table id="mainTable">
             <thead>
               <tr>
-                <th>월</th>
-                <th>일평균(자사+네이버)</th>
-                <th>전체매출</th>
-                <th>고정비</th>
-                <th>발주비</th>
-                <th>광고비</th>
-                <th>변동비</th>
-                <th>상환비</th>
-                <th>합계비용</th>
-                <th>영업이익</th>
-                <th>기말잔액</th>
-                <th>산정기준</th>
+                <th>월</th><th>일평균(자사+네이버)</th><th>전체매출</th>
+                <th>고정비</th><th>발주비</th><th>광고비</th><th>변동비</th>
+                <th>상환비</th><th>합계비용</th><th>영업이익</th><th>기말잔액</th><th>산정기준</th>
               </tr>
             </thead>
             <tbody id="tableBody"></tbody>
           </table>
         </div>
       </div>
-
     </div>
 
     <!-- TAB: SETTINGS -->
@@ -375,7 +322,6 @@
           <p class="page-sub">Google Sheets 연동 설정</p>
         </div>
       </header>
-
       <div class="settings-grid">
         <div class="settings-card">
           <div class="settings-section-title">Google Sheets 연동</div>
@@ -394,11 +340,8 @@
             <p class="form-hint">A열:월, B:일평균매출, C:전체매출, D:고정비, E:발주비, F:광고비, G:변동비, H:상환비, I:메모, J:산정기준</p>
           </div>
           <button class="save-btn" onclick="saveSettings()">설정 저장 및 연결</button>
-          <div class="settings-note">
-            ※ 스프레드시트는 <strong>링크가 있는 모든 사용자가 볼 수 있음</strong>으로 공유 설정 필요
-          </div>
+          <div class="settings-note">&#x203B; 스프레드시트는 <strong>링크가 있는 모든 사용자가 볼 수 있음</strong>으로 공유 설정 필요</div>
         </div>
-
         <div class="settings-card">
           <div class="settings-section-title">기말잔액 초기값</div>
           <div class="form-group">
@@ -411,14 +354,11 @@
           </div>
           <button class="save-btn" onclick="saveRatios()">저장</button>
         </div>
-
         <div class="settings-card full-width">
           <div class="settings-section-title">Google Sheets 구성 가이드</div>
           <div class="guide-table-wrap">
             <table class="guide-table">
-              <thead>
-                <tr><th>열</th><th>내용</th><th>예시</th><th>비고</th></tr>
-              </thead>
+              <thead><tr><th>열</th><th>내용</th><th>예시</th><th>비고</th></tr></thead>
               <tbody>
                 <tr><td>A열</td><td>월</td><td>26-01, 26-02 …</td><td>행 2부터 입력 (1행 헤더)</td></tr>
                 <tr><td>B열</td><td>일평균매출 — 자사+네이버 (만원)</td><td>120</td><td>직접 입력</td></tr>
@@ -443,404 +383,377 @@
         </div>
       </div>
     </div>
-
   </main>
 </div>
 
 <script>
-// ─── 상태 ───────────────────────────────────────────────────────
-let rawRows = [];         // Google Sheets에서 받아온 원본 행
-let scenarioRate = 0;     // 현재 시나리오 배율 (%)
+var rawRows = [];
+var monthScenarios = [0,0,0,0,0,0,0]; // 6~12월
+var repayPlan = [0,0,0,0,0,0];         // 7~12월 (만원)
 
-// 로컬 설정 기본값
-const CFG_KEYS = { sheetId: '', sheetName: '매출데이터', sheetRange: 'A1:I13', initBalance: 0 };
+var REPAY_JUNE_FIXED = 4000;
+var REPAY_OPTIONS    = [0,1000,2000,3000,4000];
+var SCENARIO_OPTIONS = [-20,-15,-10,-5,0,5,10,15,20];
+var FUTURE_MONTHS    = ['26-06','26-07','26-08','26-09','26-10','26-11','26-12'];
+var REPAY_MONTHS     = ['26-07','26-08','26-09','26-10','26-11','26-12'];
+var TOTAL_REPAY_GOAL = 15000;
+var CFG_KEYS = {sheetId:'',sheetName:'매출데이터',sheetRange:'A1:I13',initBalance:0};
 
-function loadConfig() {
-  const cfg = JSON.parse(localStorage.getItem('rmv2_cfg') || '{}');
-  return { ...CFG_KEYS, ...cfg };
-}
-function saveConfig(cfg) {
-  localStorage.setItem('rmv2_cfg', JSON.stringify(cfg));
-}
+function loadConfig(){return Object.assign({},CFG_KEYS,JSON.parse(localStorage.getItem('rmv2_cfg')||'{}'))}
+function saveConfig(c){localStorage.setItem('rmv2_cfg',JSON.stringify(c))}
 
-// ─── 탭 전환 ─────────────────────────────────────────────────────
-function switchTab(tab) {
-  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-  document.getElementById('tab-' + tab).classList.add('active');
-  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
-}
-
-// ─── 설정 저장 ──────────────────────────────────────────────────
-function saveSettings() {
-  const cfg = loadConfig();
-  cfg.sheetId    = document.getElementById('sheetId').value.trim();
-  cfg.sheetName  = document.getElementById('sheetName').value.trim();
-  cfg.sheetRange = document.getElementById('sheetRange').value.trim();
-  saveConfig(cfg);
-  fetchSheetData();
-}
-function saveRatios() {
-  const cfg = loadConfig();
-  cfg.initBalance = parseFloat(document.getElementById('initBalance').value) || 0;
-  saveConfig(cfg);
-  renderAll();
+function switchTab(tab){
+  document.querySelectorAll('.tab-content').forEach(function(el){el.classList.remove('active')});
+  document.querySelectorAll('.nav-item').forEach(function(el){el.classList.remove('active')});
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelector('[data-tab="'+tab+'"]').classList.add('active');
 }
 
-// ─── 설정 UI 반영 ────────────────────────────────────────────────
-function applyConfigToUI() {
-  const cfg = loadConfig();
-  document.getElementById('sheetId').value     = cfg.sheetId || '';
-  document.getElementById('sheetName').value   = cfg.sheetName || '';
-  document.getElementById('sheetRange').value  = cfg.sheetRange || '';
-  document.getElementById('initBalance').value = cfg.initBalance || 0;
+function saveSettings(){
+  var cfg=loadConfig();
+  cfg.sheetId=document.getElementById('sheetId').value.trim();
+  cfg.sheetName=document.getElementById('sheetName').value.trim();
+  cfg.sheetRange=document.getElementById('sheetRange').value.trim();
+  saveConfig(cfg);fetchSheetData();
+}
+function saveRatios(){
+  var cfg=loadConfig();
+  cfg.initBalance=parseFloat(document.getElementById('initBalance').value)||0;
+  saveConfig(cfg);renderAll();
+}
+function applyConfigToUI(){
+  var cfg=loadConfig();
+  document.getElementById('sheetId').value=cfg.sheetId||'';
+  document.getElementById('sheetName').value=cfg.sheetName||'';
+  document.getElementById('sheetRange').value=cfg.sheetRange||'';
+  document.getElementById('initBalance').value=cfg.initBalance||0;
 }
 
-// ─── Google Sheets 데이터 fetch ──────────────────────────────────
-async function fetchSheetData() {
-  const cfg = loadConfig();
-  if (!cfg.sheetId) {
-    setSyncStatus('no-sheet');
-    useDemoData();
-    return;
-  }
+async function fetchSheetData(){
+  var cfg=loadConfig();
+  if(!cfg.sheetId){setSyncStatus('no-sheet');useDemoData();return}
   setSyncStatus('loading');
-  const range = encodeURIComponent(`${cfg.sheetName}!${cfg.sheetRange}`);
-  const url = `https://docs.google.com/spreadsheets/d/${cfg.sheetId}/gviz/tq?tqx=out:csv&range=${range}`;
-  try {
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('fetch failed');
-    const text = await res.text();
-    parseCSV(text);
+  var range=encodeURIComponent(cfg.sheetName+'!'+cfg.sheetRange);
+  var url='https://docs.google.com/spreadsheets/d/'+cfg.sheetId+'/gviz/tq?tqx=out:csv&range='+range;
+  try{
+    var res=await fetch(url);
+    if(!res.ok)throw new Error();
+    parseCSV(await res.text());
     setSyncStatus('ok');
-    document.getElementById('lastUpdated').textContent = '마지막 업데이트: ' + new Date().toLocaleTimeString('ko-KR');
-  } catch (e) {
+    document.getElementById('lastUpdated').textContent='마지막 업데이트: '+new Date().toLocaleTimeString('ko-KR');
+  }catch(e){
     setSyncStatus('err');
-    document.getElementById('lastUpdated').textContent = '연결 실패 — 데모 데이터 표시 중';
+    document.getElementById('lastUpdated').textContent='연결 실패 — 데모 데이터 표시 중';
     useDemoData();
   }
 }
 
-function parseCSV(text) {
-  const lines = text.trim().split('\n');
-  if (lines.length < 2) { useDemoData(); return; }
-
-  function parseLine(line) {
-    const result = [];
-    let cur = '', inQuote = false;
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i];
-      if (ch === '"') {
-        inQuote = !inQuote;
-      } else if (ch === ',' && !inQuote) {
-        result.push(cur.trim());
-        cur = '';
-      } else {
-        cur += ch;
-      }
+function parseCSV(text){
+  var lines=text.trim().split('\n');
+  if(lines.length<2){useDemoData();return}
+  function pl(line){
+    var r=[],cur='',inQ=false;
+    for(var i=0;i<line.length;i++){
+      var ch=line[i];
+      if(ch==='"')inQ=!inQ;
+      else if(ch===','&&!inQ){r.push(cur.trim());cur='';}
+      else cur+=ch;
     }
-    result.push(cur.trim());
-    return result;
+    r.push(cur.trim());return r;
   }
-
-  rawRows = lines.slice(1).map(line => {
-    const cols = parseLine(line);
-    const month    = cols[0] || '';
-    const dailyAvg = parseNum(cols[1]);
-    const revenue  = parseNum(cols[2]);
-    return {
-      month,
-      dailyAvg,
-      revenue,
-      fixed:    parseNum(cols[3]),
-      order:    parseNum(cols[4]),
-      ad:       parseNum(cols[5]),
-      variable: parseNum(cols[6]),
-      repay:    parseNum(cols[7]),
-      memo:     cols[8] || '',
-      basis:    cols[9] || '',
-    };
-  }).filter(r => r.month);
+  rawRows=lines.slice(1).map(function(line){
+    var c=pl(line);
+    return{month:c[0]||'',dailyAvg:pn(c[1]),revenue:pn(c[2]),
+           fixed:pn(c[3]),order:pn(c[4]),ad:pn(c[5]),
+           variable:pn(c[6]),repay:pn(c[7]),memo:c[8]||'',basis:c[9]||''};
+  }).filter(function(r){return r.month});
   renderAll();
 }
 
-function parseNum(v) {
-  if (v === undefined || v === null || v === '') return 0;
-  const n = parseFloat(String(v).replace(/[₩,\s]/g,'')) || 0;
-  return n / 10000; // 원 → 만원 변환
+function pn(v){
+  if(!v&&v!==0)return 0;
+  return(parseFloat(String(v).replace(/[₩,\s]/g,''))||0)/10000;
 }
 
-// ─── 데모 데이터 ─────────────────────────────────────────────────
-function useDemoData() {
-  // 데모 데이터는 원 단위로 입력 (parseNum이 ÷10000 하므로)
-  const demo = [
-    { month:'26-01', dailyAvg:43600060,  revenue:1859488580, fixed:780000000, order:502672460, ad:680371980, variable:380000000, repay:0,          memo:'', basis:'확정' },
-    { month:'26-02', dailyAvg:40085660,  revenue:1778015020, fixed:660000000, order:1104539470,ad:432697900, variable:0,         repay:0,          memo:'', basis:'확정' },
-    { month:'26-03', dailyAvg:38575820,  revenue:1646331920, fixed:650000000, order:610739790, ad:436202360, variable:180000000, repay:0,          memo:'', basis:'확정' },
-    { month:'26-04', dailyAvg:34968060,  revenue:1555719800, fixed:890000000, order:906135710, ad:277593220, variable:140000000, repay:0,          memo:'', basis:'확정' },
-    { month:'26-05', dailyAvg:25795960,  revenue:1157097250, fixed:770000000, order:471899800, ad:282222710, variable:0,         repay:0,          memo:'', basis:'시뮬레이션' },
-    { month:'26-06', dailyAvg:44000000,  revenue:1885714290, fixed:600000000, order:360000000, ad:471428570, variable:0,         repay:400000000,  memo:'', basis:'시뮬레이션' },
-    { month:'26-07', dailyAvg:44000000,  revenue:1948571430, fixed:600000000, order:350000000, ad:487142860, variable:350000000, repay:0,          memo:'', basis:'시뮬레이션' },
-    { month:'26-08', dailyAvg:44000000,  revenue:1948571430, fixed:600000000, order:350000000, ad:487142860, variable:0,         repay:0,          memo:'', basis:'시뮬레이션' },
-    { month:'26-09', dailyAvg:44000000,  revenue:1885714290, fixed:600000000, order:350000000, ad:471428570, variable:0,         repay:0,          memo:'', basis:'시뮬레이션' },
-    { month:'26-10', dailyAvg:44000000,  revenue:1948571430, fixed:600000000, order:350000000, ad:487142860, variable:350000000, repay:0,          memo:'', basis:'시뮬레이션' },
-    { month:'26-11', dailyAvg:44000000,  revenue:1885714290, fixed:600000000, order:350000000, ad:471428570, variable:0,         repay:0,          memo:'', basis:'시뮬레이션' },
-    { month:'26-12', dailyAvg:44000000,  revenue:1948571430, fixed:600000000, order:350000000, ad:487142860, variable:0,         repay:0,          memo:'', basis:'시뮬레이션' },
+function useDemoData(){
+  var demo=[
+    {month:'26-01',dailyAvg:43600060, revenue:1859488580,fixed:780000000,order:502672460, ad:680371980,variable:380000000,repay:0,        memo:'',basis:'확정'},
+    {month:'26-02',dailyAvg:40085660, revenue:1778015020,fixed:660000000,order:1104539470,ad:432697900,variable:0,        repay:0,        memo:'',basis:'확정'},
+    {month:'26-03',dailyAvg:38575820, revenue:1646331920,fixed:650000000,order:610739790, ad:436202360,variable:180000000,repay:0,        memo:'',basis:'확정'},
+    {month:'26-04',dailyAvg:34968060, revenue:1555719800,fixed:890000000,order:906135710, ad:277593220,variable:140000000,repay:0,        memo:'',basis:'확정'},
+    {month:'26-05',dailyAvg:25795960, revenue:1157097250,fixed:770000000,order:471899800, ad:282222710,variable:0,        repay:0,        memo:'',basis:'시뮬레이션'},
+    {month:'26-06',dailyAvg:44000000, revenue:1885714290,fixed:600000000,order:360000000, ad:471428570,variable:0,        repay:400000000,memo:'',basis:'시뮬레이션'},
+    {month:'26-07',dailyAvg:44000000, revenue:1948571430,fixed:600000000,order:350000000, ad:487142860,variable:350000000,repay:0,        memo:'',basis:'시뮬레이션'},
+    {month:'26-08',dailyAvg:44000000, revenue:1948571430,fixed:600000000,order:350000000, ad:487142860,variable:0,        repay:0,        memo:'',basis:'시뮬레이션'},
+    {month:'26-09',dailyAvg:44000000, revenue:1885714290,fixed:600000000,order:350000000, ad:471428570,variable:0,        repay:0,        memo:'',basis:'시뮬레이션'},
+    {month:'26-10',dailyAvg:44000000, revenue:1948571430,fixed:600000000,order:350000000, ad:487142860,variable:350000000,repay:0,        memo:'',basis:'시뮬레이션'},
+    {month:'26-11',dailyAvg:44000000, revenue:1885714290,fixed:600000000,order:350000000, ad:471428570,variable:0,        repay:0,        memo:'',basis:'시뮬레이션'},
+    {month:'26-12',dailyAvg:44000000, revenue:1948571430,fixed:600000000,order:350000000, ad:487142860,variable:0,        repay:0,        memo:'',basis:'시뮬레이션'},
   ];
-  rawRows = demo.map(r => ({
-    month:    r.month,
-    dailyAvg: r.dailyAvg / 10000,
-    revenue:  r.revenue  / 10000,
-    fixed:    r.fixed    / 10000,
-    order:    r.order    / 10000,
-    ad:       r.ad       / 10000,
-    variable: r.variable / 10000,
-    repay:    r.repay    / 10000,
-    memo:     r.memo,
-    basis:    r.basis,
-  }));
+  rawRows=demo.map(function(r){
+    return{month:r.month,dailyAvg:r.dailyAvg/10000,revenue:r.revenue/10000,
+           fixed:r.fixed/10000,order:r.order/10000,ad:r.ad/10000,
+           variable:r.variable/10000,repay:r.repay/10000,memo:r.memo,basis:r.basis};
+  });
   renderAll();
 }
 
-// ─── 시나리오 ────────────────────────────────────────────────────
-function setScenario(rate) {
-  scenarioRate = rate;
-  document.querySelectorAll('.sc-btn').forEach(btn => btn.classList.remove('active'));
-  // 현재 rate에 맞는 버튼 활성화
-  document.querySelectorAll('.sc-btn').forEach(btn => {
-    const onclick = btn.getAttribute('onclick');
-    if (onclick && onclick.includes(`setScenario(${rate})`)) btn.classList.add('active');
-  });
-  const note = rate === 0 ? '구글 시트 입력값 기준'
-    : rate > 0 ? `6~12월 매출 +${rate}% 상향 시나리오`
-    : `6~12월 매출 ${rate}% 하향 시나리오`;
-  document.getElementById('scenarioNote').textContent = note;
-  renderAll();
-}
-
-// ─── 계산 ────────────────────────────────────────────────────────
-function calcRows() {
-  const cfg = loadConfig();
-  let balance = cfg.initBalance || 0;
-  return rawRows.map((r, i) => {
-    const isSimulated = r.basis !== '확정';
-    const isFuture = i >= 5;
-    const factor = (isSimulated && isFuture) ? (1 + scenarioRate / 100) : 1;
-
-    const revenueAdj   = r.revenue * factor;
-    const dailyAvgAdj  = r.dailyAvg * factor;
-
-    // 시나리오 적용 시 광고비만 23% 재산출 / 발주비·고정비·변동비는 원본값 유지
-    const orderAdj    = r.order;
-    const adAdj       = (isSimulated && isFuture && scenarioRate !== 0) ? revenueAdj * 0.23 : r.ad;
-
-    const totalCost = r.fixed + orderAdj + adAdj + r.variable + r.repay;
-    const profit    = revenueAdj - totalCost;
-    balance += profit;
-
-    return {
-      ...r,
-      revenueAdj,
-      dailyAvg: dailyAvgAdj,
-      order:    orderAdj,
-      ad:       adAdj,
-      totalCost,
-      profit,
-      balance,
-      isSimulated,
-    };
-  });
-}
-
-// ─── 이번 달 흑자 필요 매출 계산 ────────────────────────────────
-function calcBreakeven(rows) {
-  // 현재 날짜 기준으로 이번 달 찾기 (없으면 마지막 시뮬레이션 행)
-  const now = new Date();
-  const curYY = String(now.getFullYear()).slice(2);
-  const curMM = String(now.getMonth() + 1).padStart(2,'0');
-  const curKey = `${curYY}-${curMM}`;
-
-  let targetIdx = rows.findIndex(r => r.month === curKey);
-  if (targetIdx < 0) {
-    // 이번 달 행이 없으면 마지막 시뮬레이션 행 사용
-    targetIdx = rows.length - 1;
+// 월별 시나리오 UI
+function buildMonthScenarioUI(){
+  var labels=['6월','7월','8월','9월','10월','11월','12월'];
+  var html='';
+  for(var i=0;i<labels.length;i++){
+    var cur=monthScenarios[i];
+    var btns='';
+    for(var j=0;j<SCENARIO_OPTIONS.length;j++){
+      var opt=SCENARIO_OPTIONS[j];
+      var act=opt===cur?' active':'';
+      var cls=opt>0?'sc-up':opt<0?'sc-dn':'sc-base';
+      var lbl=opt===0?'기준':(opt>0?'+':'')+opt+'%';
+      btns+='<button class="sc-btn '+cls+act+'" onclick="setMonthScenario('+i+','+opt+')">'+lbl+'</button>';
+    }
+    html+='<div class="month-sc-col"><div class="month-sc-label">'+labels[i]+'</div><div class="month-sc-btns">'+btns+'</div></div>';
   }
-  const row = rows[targetIdx];
-  // 흑자 달성을 위한 필요 매출 = 총비용 + 1 (최소 1만원 흑자)
-  const needed = row.totalCost;
-  const gap = needed - row.revenueAdj;
-  return { row, needed, gap, targetIdx };
+  document.getElementById('monthScenarioGrid').innerHTML=html;
 }
 
-// ─── 렌더링 ──────────────────────────────────────────────────────
-function renderAll() {
-  const rows = calcRows();
+function setMonthScenario(idx,rate){
+  monthScenarios[idx]=rate;
+  buildMonthScenarioUI();
+  updateScenarioSummary();
+  renderAll();
+}
+
+function updateScenarioSummary(){
+  var labels=['6월','7월','8월','9월','10월','11월','12월'];
+  var html='';
+  for(var i=0;i<monthScenarios.length;i++){
+    var r=monthScenarios[i];
+    var cls=r>0?'up':r<0?'dn':'base';
+    var val=r===0?'기준':(r>0?'+':'')+r+'%';
+    html+='<span class="sc-sum-item"><span class="sc-sum-month">'+labels[i]+':</span><span class="sc-sum-val '+cls+'">'+val+'</span></span>';
+  }
+  document.getElementById('scenarioSummary').innerHTML=html;
+}
+
+// 상환 계획 UI
+function buildRepayPlanUI(){
+  var dispLabels=['7월','8월','9월','10월','11월','12월'];
+  var html='<div class="repay-plan-col"><div class="repay-plan-label">6월</div><div class="repay-plan-note">&#10003; 확정</div><div class="repay-plan-btns"><button class="repay-btn confirmed">4,000만</button></div></div>';
+  for(var i=0;i<repayPlan.length;i++){
+    var sel=repayPlan[i];
+    var btns='';
+    for(var j=0;j<REPAY_OPTIONS.length;j++){
+      var opt=REPAY_OPTIONS[j];
+      var act=opt===sel?' active':'';
+      var lbl=opt===0?'미정':fmtKorean(opt)+'만';
+      btns+='<button class="repay-btn'+act+'" onclick="setRepayPlan('+i+','+opt+')">'+lbl+'</button>';
+    }
+    html+='<div class="repay-plan-col"><div class="repay-plan-label">'+dispLabels[i]+'</div><div class="repay-plan-btns">'+btns+'</div></div>';
+  }
+  document.getElementById('repayPlanGrid').innerHTML=html;
+}
+
+function setRepayPlan(idx,amount){
+  repayPlan[idx]=amount;
+  buildRepayPlanUI();
+  renderAll();
+}
+
+// 계산
+function calcRows(){
+  var cfg=loadConfig();
+  var balance=cfg.initBalance||0;
+  return rawRows.map(function(r,i){
+    var isSimulated=r.basis!=='확정';
+    var fi=FUTURE_MONTHS.indexOf(r.month);
+    var isFuture=fi>=0;
+    var sc=isFuture?monthScenarios[fi]:0;
+    var factor=(isSimulated&&isFuture)?(1+sc/100):1;
+    var revenueAdj=r.revenue*factor;
+    var dailyAvgAdj=r.dailyAvg*factor;
+    var adAdj=(isSimulated&&isFuture&&sc!==0)?revenueAdj*0.23:r.ad;
+    var repayAmt=r.repay;
+    if(r.month==='26-06'){
+      repayAmt=REPAY_JUNE_FIXED;
+    }else{
+      var ri=REPAY_MONTHS.indexOf(r.month);
+      if(ri>=0)repayAmt=repayPlan[ri];
+    }
+    var totalCost=r.fixed+r.order+adAdj+r.variable+repayAmt;
+    var profit=revenueAdj-totalCost;
+    balance+=profit;
+    var row=Object.assign({},r,{revenueAdj:revenueAdj,dailyAvg:dailyAvgAdj,ad:adAdj,repay:repayAmt,totalCost:totalCost,profit:profit,balance:balance,isSimulated:isSimulated,scenarioRate:sc});
+    return row;
+  });
+}
+
+// 차트
+function renderCharts(rows){
+  renderBarChart('profitChartWrap',rows,'profit');
+  renderBarChart('balanceChartWrap',rows,'balance');
+}
+
+function renderBarChart(cid,rows,field){
+  var el=document.getElementById(cid);
+  if(!el)return;
+  var values=rows.map(function(r){return r[field]});
+  var months=rows.map(function(r){return r.month.replace('26-','')+'월'});
+  var maxAbs=Math.max.apply(null,values.map(function(v){return Math.abs(v)}).concat([1]));
+  var W=540,H=230,mTop=24,mBot=32,mLeft=8,mRight=8;
+  var chartH=H-mTop-mBot;
+  var zeroY=mTop+chartH/2;
+  var halfH=chartH/2*0.90;
+  var barW=(W-mLeft-mRight)/rows.length;
+  var barPad=5;
+  var svg='';
+  // 가이드
+  var guides=[0.25,0.5,0.75];
+  for(var g=0;g<guides.length;g++){
+    var p=guides[g];
+    var gy=mTop+chartH*p;
+    svg+='<line x1="'+mLeft+'" y1="'+gy.toFixed(1)+'" x2="'+(W-mRight)+'" y2="'+gy.toFixed(1)+'" stroke="#2a2d3a" stroke-width="'+(p===0.5?'1.2':'0.5')+'" '+(p!==0.5?'stroke-dasharray="3,3"':'')+'/>';
+  }
+  for(var i=0;i<rows.length;i++){
+    var val=values[i];
+    var bx=mLeft+i*barW+barPad/2;
+    var bw=barW-barPad;
+    var isPos=val>=0;
+    var color=isPos?'#3b82f6':'#ef4444';
+    var barH=Math.max(2,(Math.abs(val)/maxAbs)*halfH);
+    var by=isPos?zeroY-barH:zeroY;
+    svg+='<rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+barH.toFixed(1)+'" fill="'+color+'" rx="3" opacity="0.88"/>';
+    var lbl=fmtKoreanShort(val);
+    var lblY=isPos?(by-3):(by+barH+11);
+    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+lblY.toFixed(1)+'" text-anchor="middle" fill="'+color+'" font-size="8.5" font-family="DM Mono,monospace" font-weight="600">'+lbl+'</text>';
+    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(H-5).toFixed(1)+'" text-anchor="middle" fill="#5a6070" font-size="9.5" font-family="Pretendard,sans-serif">'+months[i]+'</text>';
+  }
+  el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'">'+svg+'</svg>';
+}
+
+function fmtKoreanShort(v){
+  if(v===undefined||isNaN(v))return'—';
+  var abs=Math.abs(v);
+  var sign=v<0?'-':'+';
+  if(abs>=10000)return sign+(Math.round(abs/1000)/10)+'억';
+  if(abs>=1000)return sign+(Math.round(abs/100)/10)+'천';
+  return sign+Math.round(abs)+'만';
+}
+
+function renderKPI(rows){
+  var totalRevenue=rows.reduce(function(s,r){return s+r.revenueAdj},0);
+  var totalProfit=rows.reduce(function(s,r){return s+r.profit},0);
+  var totalRepay=rows.reduce(function(s,r){return s+r.repay},0);
+  var lastBalance=rows[rows.length-1]?rows[rows.length-1].balance:0;
+  var repayRate=Math.min(100,Math.round(totalRepay/TOTAL_REPAY_GOAL*100));
+  var items=[
+    {label:'연간 전체매출 예상',value:fmtKorean(totalRevenue),sub:fmt(Math.round(totalRevenue))+'만원',cls:'blue'},
+    {label:'연간 영업이익 예상',value:fmtKorean(totalProfit,true),sub:fmt(Math.round(Math.abs(totalProfit)))+'만원',cls:totalProfit>=0?'green':'red'},
+    {label:'연간 총 상환',value:fmtKorean(totalRepay),sub:'목표 1.5억 · '+repayRate+'% 달성',cls:'yellow'},
+    {label:'12월 기말잔액',value:fmtKorean(lastBalance,true),sub:'26년 1월 기말잔액 0원으로 시작',cls:lastBalance>=0?'green':'red'},
+  ];
+  document.getElementById('kpiGrid').innerHTML=items.map(function(it){
+    return'<div class="kpi-card"><div class="kpi-label">'+it.label+'</div><div class="kpi-value '+it.cls+'">'+it.value+'</div><div class="kpi-sub">'+it.sub+'</div></div>';
+  }).join('');
+}
+
+function renderBreakeven(rows){
+  var now=new Date();
+  var curKey=String(now.getFullYear()).slice(2)+'-'+String(now.getMonth()+1).padStart(2,'0');
+  var idx=-1;
+  for(var i=0;i<rows.length;i++){if(rows[i].month===curKey){idx=i;break}}
+  if(idx<0)idx=rows.length-1;
+  var row=rows[idx];
+  var mm=row.month.split('-')[1];
+  var lbl='26년 '+mm+'월';
+  document.getElementById('beCurrentLabel').textContent=lbl+' 현재 매출';
+  document.getElementById('beCurrentValue').textContent=fmtKorean(row.revenueAdj);
+  document.getElementById('beCurrentMeta').textContent=lbl+' 기준';
+  document.getElementById('breakevenValue').textContent=fmtKorean(row.totalCost);
+  document.getElementById('breakevenMeta').textContent='총비용 합계';
+  var gap=row.totalCost-row.revenueAdj;
+  var gapEl=document.getElementById('beGapValue');
+  if(gap<=0){
+    gapEl.textContent=fmtKorean(-gap,true);
+    gapEl.className='breakeven-value green';
+    document.getElementById('beGapMeta').textContent='흑자 예상 ✓';
+  }else{
+    gapEl.textContent=fmtKorean(-gap,true);
+    gapEl.className='breakeven-value red';
+    document.getElementById('beGapMeta').textContent='매출 '+fmtKorean(gap)+' 추가 필요';
+  }
+}
+
+function renderTargetTable(rows){
+  var future=rows.filter(function(r,i){return i>=5});
+  if(!future.length){document.getElementById('targetTable').innerHTML='';return}
+  var tbody=future.map(function(r){
+    return'<tr><td>'+r.month+'</td><td>'+fmt(r.revenueAdj)+'</td><td>'+fmt(r.fixed)+'</td><td>'+fmt(r.order)+'</td><td>'+fmt(r.ad)+'</td><td>'+fmt(r.variable)+'</td><td>'+fmt(r.repay)+'</td><td style="color:'+(r.profit>=0?'var(--green)':'var(--red)')+'">'+fmtSign(r.profit)+'</td></tr>';
+  }).join('');
+  document.getElementById('targetTable').innerHTML='<table class="target-mini-table"><thead><tr><th>월</th><th>매출</th><th>고정비</th><th>발주비</th><th>광고비</th><th>변동비</th><th>상환비</th><th>영업이익</th></tr></thead><tbody>'+tbody+'</tbody></table>';
+}
+
+function renderRepay(rows){
+  var planTotal=REPAY_JUNE_FIXED+repayPlan.reduce(function(s,v){return s+v},0);
+  var pct=Math.min(100,Math.round(planTotal/TOTAL_REPAY_GOAL*100));
+  document.getElementById('repayTotal').textContent='총 목표 1.5억 · 현재 '+fmtKorean(planTotal)+' 계획';
+  document.getElementById('repayProgressBar').style.width=pct+'%';
+  document.getElementById('repayProgressPct').textContent=pct+'%';
+  document.getElementById('repayProgressSub').textContent=fmtKorean(planTotal)+' 상환 계획 / 목표 1.5억 · 잔여 '+fmtKorean(TOTAL_REPAY_GOAL-planTotal);
+  var repayRows=rows.filter(function(r){return r.repay>0});
+  document.getElementById('repaySection').innerHTML=repayRows.map(function(r){
+    return'<div class="repay-month-chip"><div class="rm-month">'+r.month+'</div><div class="rm-amount">'+fmtKorean(r.repay)+'</div></div>';
+  }).join('');
+}
+
+function renderTable(rows){
+  document.getElementById('tableBody').innerHTML=rows.map(function(r){
+    var sc=r.scenarioRate;
+    var tag=r.basis==='확정'?'<span class="tag-confirmed">확정</span>':(sc!==null&&sc!==0)?'<span class="tag-scenario">시나리오</span>':'<span class="tag-forecast">시뮬레이션</span>';
+    return'<tr><td>'+r.month+'</td><td style="color:var(--text-sub)">'+fmt(r.dailyAvg)+'</td><td>'+fmt(r.revenueAdj)+'</td><td>'+fmt(r.fixed)+'</td><td>'+fmt(r.order)+'</td><td>'+fmt(r.ad)+'</td><td>'+fmt(r.variable)+'</td><td>'+fmt(r.repay)+'</td><td>'+fmt(r.totalCost)+'</td><td class="'+(r.profit>=0?'profit-pos':'profit-neg')+'">'+fmtSign(r.profit)+'</td><td class="'+(r.balance>=0?'balance-pos':'balance-neg')+'">'+fmtSign(r.balance)+'</td><td>'+tag+(r.memo?'<span style="font-size:10px;color:var(--text-muted)">'+r.memo+'</span>':'')+'</td></tr>';
+  }).join('');
+}
+
+function setSyncStatus(state){
+  var dot=document.getElementById('syncDot');
+  var txt=document.getElementById('syncText');
+  dot.className='sync-dot';
+  if(state==='ok'){dot.classList.add('ok');txt.textContent='연결됨';}
+  else if(state==='err'){dot.classList.add('err');txt.textContent='연결 실패';}
+  else if(state==='loading'){txt.textContent='연결 중...';}
+  else{txt.textContent='연결 대기';}
+}
+
+function renderAll(){
+  var rows=calcRows();
+  renderCharts(rows);
   renderKPI(rows);
   renderBreakeven(rows);
   renderTargetTable(rows);
   renderRepay(rows);
   renderTable(rows);
+  buildRepayPlanUI();
 }
 
-function fmt(n) {
-  if (n === undefined || n === null || isNaN(n)) return '—';
+function fmt(n){
+  if(n===undefined||n===null||isNaN(n))return'—';
   return Math.round(n).toLocaleString('ko-KR');
 }
-function fmtSign(n) {
-  if (n > 0) return '+' + fmt(n);
-  return fmt(n);
-}
-function fmtKorean(manwon, showSign) {
-  if (manwon === undefined || manwon === null || isNaN(manwon)) return '—';
-  const abs = Math.abs(manwon);
-  const sign = showSign ? (manwon >= 0 ? '+' : '-') : (manwon < 0 ? '-' : '');
-  let str;
-  if (abs >= 10000) {
-    str = (Math.round(abs / 1000) / 10) + '억';
-  } else if (abs >= 1000) {
-    str = (Math.round(abs / 100) / 10) + '천만';
-  } else {
-    str = Math.round(abs).toLocaleString('ko-KR') + '만';
-  }
-  return sign + str;
+function fmtSign(n){return n>0?'+'+fmt(n):fmt(n)}
+function fmtKorean(v,showSign){
+  if(v===undefined||v===null||isNaN(v))return'—';
+  var abs=Math.abs(v);
+  var sign=showSign?(v>=0?'+':'-'):(v<0?'-':'');
+  if(abs>=10000)return sign+(Math.round(abs/1000)/10)+'억';
+  if(abs>=1000)return sign+(Math.round(abs/100)/10)+'천만';
+  return sign+Math.round(abs).toLocaleString('ko-KR')+'만';
 }
 
-function renderKPI(rows) {
-  const TOTAL_REPAY_GOAL = 15000;
-  const totalRevenue = rows.reduce((s,r) => s + r.revenueAdj, 0);
-  const totalProfit  = rows.reduce((s,r) => s + r.profit, 0);
-  const totalRepay   = rows.reduce((s,r) => s + r.repay, 0);
-  const lastBalance  = rows[rows.length - 1]?.balance ?? 0;
-  const repayRate    = Math.min(100, Math.round(totalRepay / TOTAL_REPAY_GOAL * 100));
-
-  const items = [
-    { label: '연간 전체매출 예상', value: fmtKorean(totalRevenue), sub: fmt(Math.round(totalRevenue)) + '만원', cls: 'blue' },
-    { label: '연간 영업이익 예상', value: fmtKorean(totalProfit, true), sub: fmt(Math.round(Math.abs(totalProfit))) + '만원', cls: totalProfit >= 0 ? 'green' : 'red' },
-    { label: '연간 총 상환', value: fmtKorean(totalRepay), sub: '목표 1.5억 · ' + repayRate + '% 달성', cls: 'yellow' },
-    { label: '12월 기말잔액', value: fmtKorean(lastBalance, true), sub: '26년 1월 기말잔액 0원으로 시작', cls: lastBalance >= 0 ? 'green' : 'red' },
-  ];
-  document.getElementById('kpiGrid').innerHTML = items.map(it => `
-    <div class="kpi-card">
-      <div class="kpi-label">${it.label}</div>
-      <div class="kpi-value ${it.cls}">${it.value}</div>
-      <div class="kpi-sub">${it.sub}</div>
-    </div>`).join('');
-}
-
-function renderBreakeven(rows) {
-  const { row, needed, gap } = calcBreakeven(rows);
-
-  // 월 표기: "26-05" → "26년 05월"
-  const [yy, mm] = row.month.split('-');
-  const monthLabel = `26년 ${mm}월`;
-  const labelEl = document.getElementById('beCurrentLabel');
-  if (labelEl) labelEl.textContent = monthLabel + ' 현재 매출';
-
-  document.getElementById('beCurrentValue').textContent = fmtKorean(row.revenueAdj);
-  document.getElementById('beCurrentMeta').textContent = monthLabel + ' 기준';
-  document.getElementById('breakevenValue').textContent = fmtKorean(needed);
-  document.getElementById('breakevenMeta').textContent = '총비용 합계';
-  const gapEl = document.getElementById('beGapValue');
-  if (gap <= 0) {
-    gapEl.textContent = fmtKorean(-gap, true);
-    gapEl.className = 'breakeven-value green';
-    document.getElementById('beGapMeta').textContent = '흑자 예상 ✓';
-  } else {
-    gapEl.textContent = fmtKorean(-gap, true);
-    gapEl.className = 'breakeven-value red';
-    document.getElementById('beGapMeta').textContent = '매출 ' + fmtKorean(gap) + ' 추가 필요';
-  }
-}
-
-
-function renderTargetTable(rows) {
-  const future = rows.filter((r, i) => i >= 5);
-  if (!future.length) { document.getElementById('targetTable').innerHTML = ''; return; }
-  const html = `
-    <table class="target-mini-table">
-      <thead><tr>
-        <th>월</th><th>매출</th><th>고정비</th><th>발주비</th><th>광고비</th><th>변동비</th><th>상환비</th><th>영업이익</th>
-      </tr></thead>
-      <tbody>
-        ${future.map(r => `
-          <tr>
-            <td>${r.month}</td>
-            <td>${fmt(r.revenueAdj)}</td>
-            <td>${fmt(r.fixed)}</td>
-            <td>${fmt(r.order)}</td>
-            <td>${fmt(r.ad)}</td>
-            <td>${fmt(r.variable)}</td>
-            <td>${fmt(r.repay)}</td>
-            <td style="color:${r.profit>=0?'var(--green)':'var(--red)'}">${fmtSign(r.profit)}</td>
-          </tr>`).join('')}
-      </tbody>
-    </table>`;
-  document.getElementById('targetTable').innerHTML = html;
-}
-
-function renderRepay(rows) {
-  const TOTAL_GOAL = 15000;
-  const repayRows = rows.filter(r => r.repay > 0);
-  const total = repayRows.reduce((s, r) => s + r.repay, 0);
-  const pct = Math.min(100, Math.round(total / TOTAL_GOAL * 100));
-
-  document.getElementById('repayTotal').textContent = '총 목표 1.5억 · 현재 ' + fmtKorean(total) + ' 계획';
-  document.getElementById('repayProgressBar').style.width = pct + '%';
-  document.getElementById('repayProgressPct').textContent = pct + '%';
-  document.getElementById('repayProgressSub').textContent =
-    fmtKorean(total) + ' 상환 계획 / 목표 1.5억 · 잔여 ' + fmtKorean(TOTAL_GOAL - total);
-
-  if (!repayRows.length) {
-    document.getElementById('repaySection').innerHTML =
-      '<span style="color:var(--text-muted);font-size:12px">구글 시트에 상환비 데이터를 입력해주세요</span>';
-    return;
-  }
-  document.getElementById('repaySection').innerHTML = repayRows.map(r => `
-    <div class="repay-month-chip">
-      <div class="rm-month">${r.month}</div>
-      <div class="rm-amount">${fmtKorean(r.repay)}</div>
-    </div>`).join('');
-}
-
-function renderTable(rows) {
-  document.getElementById('tableBody').innerHTML = rows.map(r => {
-    const basisTag = r.basis === '확정'
-      ? '<span class="tag-confirmed">확정</span>'
-      : scenarioRate !== 0
-        ? '<span class="tag-scenario">시나리오</span>'
-        : '<span class="tag-forecast">시뮬레이션</span>';
-    return `<tr>
-      <td>${r.month}</td>
-      <td style="color:var(--text-sub)">${fmt(r.dailyAvg)}</td>
-      <td>${fmt(r.revenueAdj)}</td>
-      <td>${fmt(r.fixed)}</td>
-      <td>${fmt(r.order)}</td>
-      <td>${fmt(r.ad)}</td>
-      <td>${fmt(r.variable)}</td>
-      <td>${fmt(r.repay)}</td>
-      <td>${fmt(r.totalCost)}</td>
-      <td class="${r.profit>=0?'profit-pos':'profit-neg'}">${fmtSign(r.profit)}</td>
-      <td class="${r.balance>=0?'balance-pos':'balance-neg'}">${fmtSign(r.balance)}</td>
-      <td>${basisTag}${r.memo ? ` <span style="font-size:10px;color:var(--text-muted)">${r.memo}</span>` : ''}</td>
-    </tr>`;
-  }).join('');
-}
-
-// ─── 동기화 상태 ─────────────────────────────────────────────────
-function setSyncStatus(state) {
-  const dot = document.getElementById('syncDot');
-  const txt = document.getElementById('syncText');
-  dot.className = 'sync-dot';
-  if (state === 'ok')       { dot.classList.add('ok'); txt.textContent = '연결됨'; }
-  else if (state === 'err') { dot.classList.add('err'); txt.textContent = '연결 실패'; }
-  else if (state === 'loading') { txt.textContent = '연결 중...'; }
-  else                       { txt.textContent = '연결 대기'; }
-}
-
-// ─── 초기화 ──────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded',function(){
   applyConfigToUI();
-  setScenario(0);
+  buildMonthScenarioUI();
+  updateScenarioSummary();
+  buildRepayPlanUI();
   fetchSheetData();
 });
 </script>
