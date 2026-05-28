@@ -219,24 +219,24 @@
         <span class="period-badge">26년 1월 ~ 12월</span>
       </header>
 
-      <!-- ① 영업이익 차트 -->
-      <div class="chart-section">
-        <div class="chart-section-title">&#128202; 영업이익 추이</div>
-        <div class="chart-section-sub">
-          흑자 <span style="color:var(--blue)">&#9646; 파란색 &#8593;</span> &nbsp;/&nbsp;
-          적자 <span style="color:var(--red)">&#9646; 빨간색 &#8595;</span> &nbsp;&#183;&nbsp; 단위: 만원
+      <!-- ① 차트 2칸 나란히 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="chart-section">
+          <div class="chart-section-title">&#128202; 영업이익 추이</div>
+          <div class="chart-section-sub">
+            흑자 <span style="color:var(--blue)">&#9646; 파란색 &#8593;</span> &nbsp;/&nbsp;
+            적자 <span style="color:var(--red)">&#9646; 빨간색 &#8595;</span> &nbsp;&#183;&nbsp; 단위: 만원
+          </div>
+          <div class="chart-inner" id="profitChartWrap"></div>
         </div>
-        <div class="chart-inner" id="profitChartWrap"></div>
-      </div>
-
-      <!-- ② 기말잔액 차트 -->
-      <div class="chart-section">
-        <div class="chart-section-title">&#128176; 기말잔액 추이</div>
-        <div class="chart-section-sub">
-          플러스 <span style="color:var(--blue)">&#9646; 파란색 &#8593;</span> &nbsp;/&nbsp;
-          마이너스 <span style="color:var(--red)">&#9646; 빨간색 &#8595;</span> &nbsp;&#183;&nbsp; 단위: 만원
+        <div class="chart-section">
+          <div class="chart-section-title">&#128176; 기말잔액 추이</div>
+          <div class="chart-section-sub">
+            플러스 <span style="color:var(--blue)">&#9646; 파란색 &#8593;</span> &nbsp;/&nbsp;
+            마이너스 <span style="color:var(--red)">&#9646; 빨간색 &#8595;</span> &nbsp;&#183;&nbsp; 단위: 만원
+          </div>
+          <div class="chart-inner" id="balanceChartWrap"></div>
         </div>
-        <div class="chart-inner" id="balanceChartWrap"></div>
       </div>
 
       <!-- ② 이번 달 배너 -->
@@ -601,7 +601,7 @@ function renderBarChart(cid,rows,field){
   var values=rows.map(function(r){return r[field]});
   var months=rows.map(function(r){return r.month.replace('26-','')+'월'});
   var maxAbs=Math.max.apply(null,values.map(function(v){return Math.abs(v)}).concat([1]));
-  var W=900,H=230,mTop=24,mBot=32,mLeft=8,mRight=8;
+  var W=500,H=230,mTop=24,mBot=32,mLeft=8,mRight=8;
   var chartH=H-mTop-mBot;
   var zeroY=mTop+chartH/2;
   var halfH=chartH/2*0.90;
