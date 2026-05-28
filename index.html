@@ -664,8 +664,8 @@ function calcRows() {
     const revenueAdj   = r.revenue * factor;
     const dailyAvgAdj  = r.dailyAvg * factor;
 
-    // 시나리오 적용 시 발주비 28%, 광고비 23% 재산출 / 기준(factor=1)이면 원본값 유지
-    const orderAdj    = (isSimulated && isFuture && scenarioRate !== 0) ? revenueAdj * 0.28 : r.order;
+    // 시나리오 적용 시 광고비만 23% 재산출 / 발주비·고정비·변동비는 원본값 유지
+    const orderAdj    = r.order;
     const adAdj       = (isSimulated && isFuture && scenarioRate !== 0) ? revenueAdj * 0.23 : r.ad;
 
     const totalCost = r.fixed + orderAdj + adAdj + r.variable + r.repay;
@@ -788,75 +788,114 @@ function renderBreakeven(rows) {
 }
 
 function renderCharts(rows) {
-  const labels = rows.map(r => r.month.replace('26-','') + '월');
-  const profits = rows.map(r => r.profit);
-  const balances = rows.map(r => r.balance);
-  const profitColors = rows.map(r => r.profit >= 0 ? '#22c55e' : '#ef4444');
-  const balanceColors = rows.map(r => r.balance >= 0 ? '#3b82f6' : '#ef4444');
+  const labels = rows.map(r => r.month.replace('26-', '') + '월');
+  const profits  = rows.map(r => Math.round(r.profit));
+  const balances = rows.map(r => Math.round(r.balance));
 
-  const makeLabelPlugin = (posColor, negColor) => ({
-    id: 'lbl_' + posColor,
-    afterDatasetsDraw(chart) {
-      const { ctx, data, scales: { x, y } } = chart;
-      ctx.save();
-      ctx.font = 'bold 9px "DM Mono", monospace';
-      data.datasets[0].data.forEach((val, i) => {
-        if (val === null || val === undefined || val === 0) return;
-        const xPos = x.getPixelForIndex(i);
-        const yZero = y.getPixelForValue(0);
-        const yVal  = y.getPixelForValue(val);
-        const isPos = val >= 0;
-        ctx.fillStyle = isPos ? posColor : negColor;
-        ctx.textAlign = 'center';
-        ctx.textBaseline = isPos ? 'bottom' : 'top';
-        ctx.fillText(fmtKorean(val, true), xPos, isPos ? Math.min(yVal, yZero) - 2 : Math.max(yVal, yZero) + 2);
-      });
-      ctx.restore();
-    }
-  });
+  const profitColors  = profits.map(v  => v >= 0 ? '#22c55e' : '#ef4444');
+  const balanceColors = balances.map(v => v >= 0 ? '#3b82f6' : '#ef4444');
 
-  const opts = {
-    responsive: true,
-    maintainAspectRatio: false,
-    layout: { padding: { top: 24, bottom: 4 } },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: '#1e2130', borderColor: '#2a2d3a', borderWidth: 1,
-        titleColor: '#9ca3b0', bodyColor: '#e8eaf0',
-        callbacks: { label: ctx => ' ' + fmtKorean(ctx.raw, true) }
-      }
-    },
-    scales: {
-      x: { grid: { color: '#2a2d3a' }, ticks: { color: '#5a6070', font: { size: 11 } } },
-      y: { grid: { color: '#2a2d3a' }, ticks: { color: '#5a6070', font: { size: 10 }, callback: v => fmtKorean(v) } }
-    }
-  };
-
-  // canvas 교체 방식으로 이전 컨텍스트 충돌 방지
+  // canvas를 새로 교체해서 이전 컨텍스트 충돌 방지
   function freshCanvas(id) {
     const old = document.getElementById(id);
+    if (!old) return null;
     const neo = document.createElement('canvas');
     neo.id = id;
     old.parentNode.replaceChild(neo, old);
     return neo;
   }
 
-  if (profitChart) { profitChart.destroy(); profitChart = null; }
-  profitChart = new Chart(freshCanvas('profitChart'), {
-    type: 'bar',
-    data: { labels, datasets: [{ data: profits, backgroundColor: profitColors, borderRadius: 4, borderSkipped: false }] },
-    options: opts,
-    plugins: [makeLabelPlugin('#22c55e', '#ef4444')]
-  });
+  // 막대 위/아래 숫자 레이블 플러그인
+  function makeLabelPlugin(posColor, negColor) {
+    return {
+      id: 'lbl_' + posColor.replace('#',''),
+      afterDraw(chart) {
+        const { ctx, scales: { x, y }, data } = chart;
+        const vals = data.datasets[0].data;
+        ctx.save();
+        ctx.font = 'bold 9px sans-serif';
+        ctx.textAlign = 'center';
+        vals.forEach((val, i) => {
+          if (!val) return;
+          const isPos = val >= 0;
+          const xp = x.getPixelForIndex(i);
+          const yp = y.getPixelForValue(val);
+          const y0 = y.getPixelForValue(0);
+          ctx.fillStyle = isPos ? posColor : negColor;
+          ctx.textBaseline = isPos ? 'bottom' : 'top';
+          const labelY = isPos ? Math.min(yp, y0) - 2 : Math.max(yp, y0) + 2;
+          ctx.fillText(fmtKorean(val, true), xp, labelY);
+        });
+        ctx.restore();
+      }
+    };
+  }
 
-  if (balanceChart) { balanceChart.destroy(); balanceChart = null; }
-  balanceChart = new Chart(freshCanvas('balanceChart'), {
-    type: 'bar',
-    data: { labels, datasets: [{ data: balances, backgroundColor: balanceColors, borderRadius: 4, borderSkipped: false }] },
-    options: opts,
-    plugins: [makeLabelPlugin('#3b82f6', '#ef4444')]
-  });
+  const commonOpts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: { padding: { top: 20, bottom: 2 } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1e2130', borderColor: '#2a2d3a', borderWidth: 1,
+        titleColor: '#9ca3b0', bodyColor: '#e8eaf0',
+        callbacks: { label: ctx => '  ' + fmtKorean(ctx.raw, true) }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: '#2a2d3a' },
+        ticks: { color: '#5a6070', font: { size: 11 } }
+      },
+      y: {
+        grid: { color: '#2a2d3a' },
+        ticks: { color: '#5a6070', font: { size: 10 }, callback: v => fmtKorean(v) }
+      }
+    }
+  };
+
+  if (profitChart) { try { profitChart.destroy(); } catch(e){} profitChart = null; }
+  const pc = freshCanvas('profitChart');
+  if (pc) {
+    profitChart = new Chart(pc, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: profits,
+          backgroundColor: profitColors,
+          borderRadius: 4,
+          borderSkipped: false,
+          barPercentage: 0.6,
+          categoryPercentage: 0.8
+        }]
+      },
+      options: commonOpts,
+      plugins: [makeLabelPlugin('#22c55e', '#ef4444')]
+    });
+  }
+
+  if (balanceChart) { try { balanceChart.destroy(); } catch(e){} balanceChart = null; }
+  const bc = freshCanvas('balanceChart');
+  if (bc) {
+    balanceChart = new Chart(bc, {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          data: balances,
+          backgroundColor: balanceColors,
+          borderRadius: 4,
+          borderSkipped: false,
+          barPercentage: 0.6,
+          categoryPercentage: 0.8
+        }]
+      },
+      options: commonOpts,
+      plugins: [makeLabelPlugin('#3b82f6', '#ef4444')]
+    });
+  }
 }
 
 function renderTargetTable(rows) {
