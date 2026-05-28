@@ -546,22 +546,27 @@ function applyConfigToUI() {
 // ─── Google Sheets 데이터 fetch ──────────────────────────────────
 async function fetchSheetData() {
   const cfg = loadConfig();
+  console.log('[fetch] sheetId:', cfg.sheetId, '| sheetName:', cfg.sheetName, '| range:', cfg.sheetRange);
   if (!cfg.sheetId) {
     setSyncStatus('no-sheet');
+    console.warn('[fetch] sheetId 없음 → 데모 데이터 사용');
     useDemoData();
     return;
   }
   setSyncStatus('loading');
   const range = encodeURIComponent(`${cfg.sheetName}!${cfg.sheetRange}`);
   const url = `https://docs.google.com/spreadsheets/d/${cfg.sheetId}/gviz/tq?tqx=out:csv&range=${range}`;
+  console.log('[fetch] URL:', url);
   try {
     const res = await fetch(url);
-    if (!res.ok) throw new Error('fetch failed');
+    if (!res.ok) throw new Error('fetch failed: ' + res.status);
     const text = await res.text();
+    console.log('[fetch] 받아온 텍스트 (앞 300자):', text.slice(0, 300));
     parseCSV(text);
     setSyncStatus('ok');
     document.getElementById('lastUpdated').textContent = '마지막 업데이트: ' + new Date().toLocaleTimeString('ko-KR');
   } catch (e) {
+    console.error('[fetch] 오류:', e);
     setSyncStatus('err');
     document.getElementById('lastUpdated').textContent = '연결 실패 — 데모 데이터 표시 중';
     useDemoData();
@@ -570,6 +575,7 @@ async function fetchSheetData() {
 
 function parseCSV(text) {
   const lines = text.trim().split('\n');
+  console.log('[parseCSV] 총 라인수:', lines.length);
   if (lines.length < 2) { useDemoData(); return; }
 
   function parseLine(line) {
@@ -608,6 +614,11 @@ function parseCSV(text) {
       basis:    cols[9] || '',
     };
   }).filter(r => r.month);
+  console.log('[parseCSV] 파싱된 행 수:', rawRows.length);
+  if (rawRows.length > 0) {
+    console.log('[parseCSV] 첫 번째 행:', JSON.stringify(rawRows[0]));
+    console.log('[parseCSV] 마지막 행:', JSON.stringify(rawRows[rawRows.length-1]));
+  }
   renderAll();
 }
 
