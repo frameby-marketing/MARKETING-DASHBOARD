@@ -606,27 +606,33 @@ function parseNum(v) {
 
 // ─── 데모 데이터 ─────────────────────────────────────────────────
 function useDemoData() {
+  // 데모 데이터는 원 단위로 입력 (parseNum이 ÷10000 하므로)
   const demo = [
-    { month:'26-01', dailyAvg:103, fixed:820, order:900, ad:600, variable:180, repay:0,    memo:'', basis:'확정' },
-    { month:'26-02', dailyAvg:100, fixed:820, order:800, ad:520, variable:160, repay:0,    memo:'', basis:'확정' },
-    { month:'26-03', dailyAvg:113, fixed:820, order:980, ad:680, variable:200, repay:0,    memo:'', basis:'확정' },
-    { month:'26-04', dailyAvg:103, fixed:820, order:860, ad:620, variable:170, repay:0,    memo:'', basis:'확정' },
-    { month:'26-05', dailyAvg:106, fixed:820, order:920, ad:650, variable:185, repay:0,    memo:'', basis:'확정' },
-    { month:'26-06', dailyAvg:120, fixed:820, order:980, ad:700, variable:200, repay:1000, memo:'', basis:'시뮬레이션' },
-    { month:'26-07', dailyAvg:123, fixed:820, order:1050,ad:750, variable:215, repay:1500, memo:'', basis:'시뮬레이션' },
-    { month:'26-08', dailyAvg:129, fixed:820, order:1100,ad:800, variable:230, repay:1500, memo:'', basis:'시뮬레이션' },
-    { month:'26-09', dailyAvg:123, fixed:820, order:1020,ad:720, variable:205, repay:2000, memo:'', basis:'시뮬레이션' },
-    { month:'26-10', dailyAvg:126, fixed:820, order:1080,ad:770, variable:220, repay:2000, memo:'', basis:'시뮬레이션' },
-    { month:'26-11', dailyAvg:140, fixed:820, order:1160,ad:840, variable:240, repay:2000, memo:'', basis:'시뮬레이션' },
-    { month:'26-12', dailyAvg:145, fixed:820, order:1250,ad:900, variable:255, repay:2000, memo:'', basis:'시뮬레이션' },
+    { month:'26-01', dailyAvg:43600060,  revenue:1859488580, fixed:780000000, order:502672460, ad:680371980, variable:380000000, repay:0,          memo:'', basis:'확정' },
+    { month:'26-02', dailyAvg:40085660,  revenue:1778015020, fixed:660000000, order:1104539470,ad:432697900, variable:0,         repay:0,          memo:'', basis:'확정' },
+    { month:'26-03', dailyAvg:38575820,  revenue:1646331920, fixed:650000000, order:610739790, ad:436202360, variable:180000000, repay:0,          memo:'', basis:'확정' },
+    { month:'26-04', dailyAvg:34968060,  revenue:1555719800, fixed:890000000, order:906135710, ad:277593220, variable:140000000, repay:0,          memo:'', basis:'확정' },
+    { month:'26-05', dailyAvg:25795960,  revenue:1157097250, fixed:770000000, order:471899800, ad:282222710, variable:0,         repay:0,          memo:'', basis:'시뮬레이션' },
+    { month:'26-06', dailyAvg:44000000,  revenue:1885714290, fixed:600000000, order:360000000, ad:471428570, variable:0,         repay:400000000,  memo:'', basis:'시뮬레이션' },
+    { month:'26-07', dailyAvg:44000000,  revenue:1948571430, fixed:600000000, order:350000000, ad:487142860, variable:350000000, repay:0,          memo:'', basis:'시뮬레이션' },
+    { month:'26-08', dailyAvg:44000000,  revenue:1948571430, fixed:600000000, order:350000000, ad:487142860, variable:0,         repay:0,          memo:'', basis:'시뮬레이션' },
+    { month:'26-09', dailyAvg:44000000,  revenue:1885714290, fixed:600000000, order:350000000, ad:471428570, variable:0,         repay:0,          memo:'', basis:'시뮬레이션' },
+    { month:'26-10', dailyAvg:44000000,  revenue:1948571430, fixed:600000000, order:350000000, ad:487142860, variable:350000000, repay:0,          memo:'', basis:'시뮬레이션' },
+    { month:'26-11', dailyAvg:44000000,  revenue:1885714290, fixed:600000000, order:350000000, ad:471428570, variable:0,         repay:0,          memo:'', basis:'시뮬레이션' },
+    { month:'26-12', dailyAvg:44000000,  revenue:1948571430, fixed:600000000, order:350000000, ad:487142860, variable:0,         repay:0,          memo:'', basis:'시뮬레이션' },
   ];
-  rawRows = demo.map(r => {
-    const parts = r.month.split('-');
-    const year = 2000 + parseInt(parts[0]);
-    const mon  = parseInt(parts[1]);
-    const daysInMonth = new Date(year, mon, 0).getDate();
-    return { ...r, revenue: r.dailyAvg * daysInMonth, daysInMonth };
-  });
+  rawRows = demo.map(r => ({
+    month:    r.month,
+    dailyAvg: r.dailyAvg / 10000,
+    revenue:  r.revenue  / 10000,
+    fixed:    r.fixed    / 10000,
+    order:    r.order    / 10000,
+    ad:       r.ad       / 10000,
+    variable: r.variable / 10000,
+    repay:    r.repay    / 10000,
+    memo:     r.memo,
+    basis:    r.basis,
+  }));
   renderAll();
 }
 
