@@ -113,7 +113,7 @@
     .chart-title { font-size: 13px; font-weight: 500; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
     .chart-legend { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--text-muted); }
     .leg-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; }
-    .chart-wrap { height: 230px; position: relative; }
+    .chart-wrap { height: 260px; position: relative; }
 
     /* SCENARIO */
     .target-section { }
@@ -282,7 +282,7 @@
       <!-- 이번 달 3-KPI 배너 -->
       <div class="breakeven-banner" id="breakevenBanner">
         <div class="be-cell">
-          <div class="breakeven-label">이번 달 현재 매출</div>
+          <div class="breakeven-label" id="beCurrentLabel">26년 05월 현재 매출</div>
           <div class="breakeven-value blue" id="beCurrentValue">—</div>
           <div class="breakeven-meta" id="beCurrentMeta"></div>
         </div>
@@ -661,17 +661,23 @@ function calcRows() {
     const isFuture = i >= 5;
     const factor = (isSimulated && isFuture) ? (1 + scenarioRate / 100) : 1;
 
-    const revenueAdj = r.revenue * factor;
-    const dailyAvgAdj = r.dailyAvg * factor;
+    const revenueAdj   = r.revenue * factor;
+    const dailyAvgAdj  = r.dailyAvg * factor;
 
-    const totalCost = r.fixed + r.order + r.ad + r.variable + r.repay;
-    const profit = revenueAdj - totalCost;
+    // 시나리오 적용 시 발주비 28%, 광고비 23% 재산출 / 기준(factor=1)이면 원본값 유지
+    const orderAdj    = (isSimulated && isFuture && scenarioRate !== 0) ? revenueAdj * 0.28 : r.order;
+    const adAdj       = (isSimulated && isFuture && scenarioRate !== 0) ? revenueAdj * 0.23 : r.ad;
+
+    const totalCost = r.fixed + orderAdj + adAdj + r.variable + r.repay;
+    const profit    = revenueAdj - totalCost;
     balance += profit;
 
     return {
       ...r,
       revenueAdj,
       dailyAvg: dailyAvgAdj,
+      order:    orderAdj,
+      ad:       adAdj,
       totalCost,
       profit,
       balance,
@@ -758,13 +764,17 @@ function renderKPI(rows) {
 
 function renderBreakeven(rows) {
   const { row, needed, gap } = calcBreakeven(rows);
-  // 칸1: 현재 매출
+
+  // 월 표기: "26-05" → "26년 05월"
+  const [yy, mm] = row.month.split('-');
+  const monthLabel = `26년 ${mm}월`;
+  const labelEl = document.getElementById('beCurrentLabel');
+  if (labelEl) labelEl.textContent = monthLabel + ' 현재 매출';
+
   document.getElementById('beCurrentValue').textContent = fmtKorean(row.revenueAdj);
-  document.getElementById('beCurrentMeta').textContent = row.month + ' 기준';
-  // 칸2: 최소 필요 매출
+  document.getElementById('beCurrentMeta').textContent = monthLabel + ' 기준';
   document.getElementById('breakevenValue').textContent = fmtKorean(needed);
   document.getElementById('breakevenMeta').textContent = '총비용 합계';
-  // 칸3: 예상 손익
   const gapEl = document.getElementById('beGapValue');
   if (gap <= 0) {
     gapEl.textContent = fmtKorean(-gap, true);
@@ -781,68 +791,72 @@ function renderCharts(rows) {
   const labels = rows.map(r => r.month.replace('26-','') + '월');
   const profits = rows.map(r => r.profit);
   const balances = rows.map(r => r.balance);
-
-  // 확정 구분 없이 흑자/적자만
   const profitColors = rows.map(r => r.profit >= 0 ? '#22c55e' : '#ef4444');
   const balanceColors = rows.map(r => r.balance >= 0 ? '#3b82f6' : '#ef4444');
 
-  // 막대 위/아래 값 레이블 플러그인
   const makeLabelPlugin = (posColor, negColor) => ({
-    id: 'barLabels_' + Math.random(),
+    id: 'lbl_' + posColor,
     afterDatasetsDraw(chart) {
       const { ctx, data, scales: { x, y } } = chart;
       ctx.save();
+      ctx.font = 'bold 9px "DM Mono", monospace';
       data.datasets[0].data.forEach((val, i) => {
         if (val === null || val === undefined || val === 0) return;
         const xPos = x.getPixelForIndex(i);
-        const yPos = y.getPixelForValue(val);
+        const yZero = y.getPixelForValue(0);
+        const yVal  = y.getPixelForValue(val);
         const isPos = val >= 0;
-        ctx.font = 'bold 9px sans-serif';
         ctx.fillStyle = isPos ? posColor : negColor;
         ctx.textAlign = 'center';
         ctx.textBaseline = isPos ? 'bottom' : 'top';
-        ctx.fillText(fmtKorean(val, true), xPos, yPos + (isPos ? -2 : 2));
+        ctx.fillText(fmtKorean(val, true), xPos, isPos ? Math.min(yVal, yZero) - 2 : Math.max(yVal, yZero) + 2);
       });
       ctx.restore();
     }
   });
 
-  if (profitChart) profitChart.destroy();
-  profitChart = new Chart(document.getElementById('profitChart'), {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{ data: profits, backgroundColor: profitColors, borderRadius: 4, borderSkipped: false }]
+  const opts = {
+    responsive: true,
+    maintainAspectRatio: false,
+    layout: { padding: { top: 24, bottom: 4 } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1e2130', borderColor: '#2a2d3a', borderWidth: 1,
+        titleColor: '#9ca3b0', bodyColor: '#e8eaf0',
+        callbacks: { label: ctx => ' ' + fmtKorean(ctx.raw, true) }
+      }
     },
-    options: chartOpts('영업이익 (만원)'),
+    scales: {
+      x: { grid: { color: '#2a2d3a' }, ticks: { color: '#5a6070', font: { size: 11 } } },
+      y: { grid: { color: '#2a2d3a' }, ticks: { color: '#5a6070', font: { size: 10 }, callback: v => fmtKorean(v) } }
+    }
+  };
+
+  // canvas 교체 방식으로 이전 컨텍스트 충돌 방지
+  function freshCanvas(id) {
+    const old = document.getElementById(id);
+    const neo = document.createElement('canvas');
+    neo.id = id;
+    old.parentNode.replaceChild(neo, old);
+    return neo;
+  }
+
+  if (profitChart) { profitChart.destroy(); profitChart = null; }
+  profitChart = new Chart(freshCanvas('profitChart'), {
+    type: 'bar',
+    data: { labels, datasets: [{ data: profits, backgroundColor: profitColors, borderRadius: 4, borderSkipped: false }] },
+    options: opts,
     plugins: [makeLabelPlugin('#22c55e', '#ef4444')]
   });
 
-  if (balanceChart) balanceChart.destroy();
-  balanceChart = new Chart(document.getElementById('balanceChart'), {
+  if (balanceChart) { balanceChart.destroy(); balanceChart = null; }
+  balanceChart = new Chart(freshCanvas('balanceChart'), {
     type: 'bar',
-    data: {
-      labels,
-      datasets: [{ data: balances, backgroundColor: balanceColors, borderRadius: 4, borderSkipped: false }]
-    },
-    options: chartOpts('기말잔액 (만원)'),
+    data: { labels, datasets: [{ data: balances, backgroundColor: balanceColors, borderRadius: 4, borderSkipped: false }] },
+    options: opts,
     plugins: [makeLabelPlugin('#3b82f6', '#ef4444')]
   });
-}
-
-function chartOpts(label) {
-  return {
-    responsive: true, maintainAspectRatio: false,
-    plugins: { legend: { display: false }, tooltip: {
-      backgroundColor: '#1e2130', borderColor: '#2a2d3a', borderWidth: 1,
-      titleColor: '#9ca3b0', bodyColor: '#e8eaf0',
-      callbacks: { label: ctx => ` ${ctx.formattedValue} 만원` }
-    }},
-    scales: {
-      x: { grid: { color: '#2a2d3a' }, ticks: { color: '#5a6070', font: { size: 11 } } },
-      y: { grid: { color: '#2a2d3a' }, ticks: { color: '#5a6070', font: { size: 11 }, callback: v => v.toLocaleString() } }
-    }
-  };
 }
 
 function renderTargetTable(rows) {
