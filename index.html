@@ -6,7 +6,6 @@
   <title>매출 & 영업이익 시뮬레이션</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <style>
     :root {
       --bg: #0f1117;
@@ -106,14 +105,6 @@
     .kpi-value.blue { color: var(--blue); }
     .kpi-value.yellow { color: var(--yellow); }
     .kpi-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-
-    /* CHARTS */
-    .chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .chart-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
-    .chart-title { font-size: 13px; font-weight: 500; margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; }
-    .chart-legend { display: flex; align-items: center; gap: 10px; font-size: 11px; color: var(--text-muted); }
-    .leg-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 3px; }
-    .chart-wrap { height: 260px; position: relative; }
 
     /* SCENARIO */
     .target-section { }
@@ -303,29 +294,6 @@
       <!-- KPI ROW -->
       <div class="kpi-grid" id="kpiGrid"></div>
 
-      <!-- CHARTS -->
-      <div class="chart-grid">
-        <div class="chart-card">
-          <div class="chart-title">
-            영업이익 추이
-            <span class="chart-legend">
-              <i class="leg-dot" style="background:#22c55e"></i>흑자
-              <i class="leg-dot" style="background:#ef4444"></i>적자
-            </span>
-          </div>
-          <div class="chart-wrap"><canvas id="profitChart"></canvas></div>
-        </div>
-        <div class="chart-card">
-          <div class="chart-title">
-            기말잔액 누적
-            <span class="chart-legend">
-              <i class="leg-dot" style="background:#3b82f6"></i>플러스
-              <i class="leg-dot" style="background:#ef4444"></i>마이너스
-            </span>
-          </div>
-          <div class="chart-wrap"><canvas id="balanceChart"></canvas></div>
-        </div>
-      </div>
 
       <!-- SCENARIO -->
       <div class="target-section">
@@ -483,8 +451,6 @@
 // ─── 상태 ───────────────────────────────────────────────────────
 let rawRows = [];         // Google Sheets에서 받아온 원본 행
 let scenarioRate = 0;     // 현재 시나리오 배율 (%)
-let profitChart = null;
-let balanceChart = null;
 
 // 로컬 설정 기본값
 const CFG_KEYS = { sheetId: '', sheetName: '매출데이터', sheetRange: 'A1:I13', initBalance: 0 };
@@ -711,7 +677,6 @@ function renderAll() {
   const rows = calcRows();
   renderKPI(rows);
   renderBreakeven(rows);
-  renderCharts(rows);
   renderTargetTable(rows);
   renderRepay(rows);
   renderTable(rows);
@@ -787,116 +752,6 @@ function renderBreakeven(rows) {
   }
 }
 
-function renderCharts(rows) {
-  const labels = rows.map(r => r.month.replace('26-', '') + '월');
-  const profits  = rows.map(r => Math.round(r.profit));
-  const balances = rows.map(r => Math.round(r.balance));
-
-  const profitColors  = profits.map(v  => v >= 0 ? '#22c55e' : '#ef4444');
-  const balanceColors = balances.map(v => v >= 0 ? '#3b82f6' : '#ef4444');
-
-  // canvas를 새로 교체해서 이전 컨텍스트 충돌 방지
-  function freshCanvas(id) {
-    const old = document.getElementById(id);
-    if (!old) return null;
-    const neo = document.createElement('canvas');
-    neo.id = id;
-    old.parentNode.replaceChild(neo, old);
-    return neo;
-  }
-
-  // 막대 위/아래 숫자 레이블 플러그인
-  function makeLabelPlugin(posColor, negColor) {
-    return {
-      id: 'lbl_' + posColor.replace('#',''),
-      afterDraw(chart) {
-        const { ctx, scales: { x, y }, data } = chart;
-        const vals = data.datasets[0].data;
-        ctx.save();
-        ctx.font = 'bold 9px sans-serif';
-        ctx.textAlign = 'center';
-        vals.forEach((val, i) => {
-          if (!val) return;
-          const isPos = val >= 0;
-          const xp = x.getPixelForIndex(i);
-          const yp = y.getPixelForValue(val);
-          const y0 = y.getPixelForValue(0);
-          ctx.fillStyle = isPos ? posColor : negColor;
-          ctx.textBaseline = isPos ? 'bottom' : 'top';
-          const labelY = isPos ? Math.min(yp, y0) - 2 : Math.max(yp, y0) + 2;
-          ctx.fillText(fmtKorean(val, true), xp, labelY);
-        });
-        ctx.restore();
-      }
-    };
-  }
-
-  const commonOpts = {
-    responsive: true,
-    maintainAspectRatio: false,
-    layout: { padding: { top: 20, bottom: 2 } },
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: '#1e2130', borderColor: '#2a2d3a', borderWidth: 1,
-        titleColor: '#9ca3b0', bodyColor: '#e8eaf0',
-        callbacks: { label: ctx => '  ' + fmtKorean(ctx.raw, true) }
-      }
-    },
-    scales: {
-      x: {
-        grid: { color: '#2a2d3a' },
-        ticks: { color: '#5a6070', font: { size: 11 } }
-      },
-      y: {
-        grid: { color: '#2a2d3a' },
-        ticks: { color: '#5a6070', font: { size: 10 }, callback: v => fmtKorean(v) }
-      }
-    }
-  };
-
-  if (profitChart) { try { profitChart.destroy(); } catch(e){} profitChart = null; }
-  const pc = freshCanvas('profitChart');
-  if (pc) {
-    profitChart = new Chart(pc, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          data: profits,
-          backgroundColor: profitColors,
-          borderRadius: 4,
-          borderSkipped: false,
-          barPercentage: 0.6,
-          categoryPercentage: 0.8
-        }]
-      },
-      options: commonOpts,
-      plugins: [makeLabelPlugin('#22c55e', '#ef4444')]
-    });
-  }
-
-  if (balanceChart) { try { balanceChart.destroy(); } catch(e){} balanceChart = null; }
-  const bc = freshCanvas('balanceChart');
-  if (bc) {
-    balanceChart = new Chart(bc, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          data: balances,
-          backgroundColor: balanceColors,
-          borderRadius: 4,
-          borderSkipped: false,
-          barPercentage: 0.6,
-          categoryPercentage: 0.8
-        }]
-      },
-      options: commonOpts,
-      plugins: [makeLabelPlugin('#3b82f6', '#ef4444')]
-    });
-  }
-}
 
 function renderTargetTable(rows) {
   const future = rows.filter((r, i) => i >= 5);
