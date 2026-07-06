@@ -96,6 +96,9 @@
     .kpi-value.green{color:var(--green)}.kpi-value.red{color:var(--red)}.kpi-value.blue{color:var(--blue)}.kpi-value.yellow{color:var(--yellow)}
     .kpi-sub{font-size:11px;color:var(--text-muted);margin-top:4px}
 
+    /* RATIO CARDS */
+    .ratio-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+
     /* SCENARIO */
     .target-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
     .target-label{font-size:12px;font-weight:600;color:var(--text-sub);margin-bottom:12px;letter-spacing:.04em}
@@ -162,6 +165,9 @@
     .tag-confirmed{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(148,163,184,.12);color:var(--text-muted)}
     .tag-forecast{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(99,102,241,.12);color:var(--accent)}
     .tag-scenario{font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(245,158,11,.12);color:var(--yellow)}
+    tr.table-total-row td,tr.table-avg-row td{font-weight:700;border-top:2px solid var(--border-light);background:var(--bg-card2)}
+    tr.table-total-row td:first-child,tr.table-avg-row td:first-child{color:var(--accent);font-family:'DM Mono',monospace;letter-spacing:.04em}
+    tr.table-avg-row td{border-top:1px solid var(--border)}
 
     /* SETTINGS */
     .settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
@@ -191,6 +197,7 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     @media(max-width:900px){
       .kpi-grid{grid-template-columns:repeat(2,1fr)}
+      .ratio-grid{grid-template-columns:repeat(2,1fr)}
       .chart-grid{grid-template-columns:1fr}
       .settings-grid{grid-template-columns:1fr}
       .sidebar{width:160px}
@@ -320,9 +327,15 @@
         <div class="repay-months-row" id="repaySection"></div>
       </div>
 
-      <!-- ⑥ 월별 상세 테이블 -->
+      <!-- ⑥ 비용 구성 비율 -->
+      <div class="chart-section">
+        <div class="chart-section-title">&#128200; 비용 구성 비율 <span style="font-weight:400;color:var(--text-muted);font-size:11px">(연간 전체매출 대비, 시나리오 반영)</span></div>
+        <div class="ratio-grid" id="costRatioGrid"></div>
+      </div>
+
+      <!-- ⑦ 월별 상세 테이블 -->
       <div class="table-card">
-        <div class="table-section-label">월별 상세 내역 <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">단위: 만원</span></div>
+        <div class="table-section-label">월별 상세 내역 <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">단위: 만원 · 하단 TOTAL(연간 합계) / AVERAGE(월평균)</span></div>
         <div class="table-wrap">
           <table id="mainTable">
             <thead>
@@ -670,6 +683,23 @@ function fmtKoreanShort(v){
   return sign+Math.round(abs)+'만';
 }
 
+function renderCostRatio(rows){
+  var totalRevenue=rows.reduce(function(s,r){return s+r.revenueAdj},0);
+  var cats=[
+    {key:'fixed',   label:'고정비 비율'},
+    {key:'order',   label:'발주비 비율'},
+    {key:'ad',      label:'광고비 비율'},
+    {key:'variable',label:'변동비 비율'},
+    {key:'repay',   label:'상환비 비율'},
+  ];
+  var html=cats.map(function(c){
+    var total=rows.reduce(function(s,r){return s+r[c.key]},0);
+    var pct=totalRevenue>0?(total/totalRevenue*100):0;
+    return'<div class="kpi-card"><div class="kpi-label">'+c.label+'</div><div class="kpi-value blue">'+fmtPct(pct)+'</div><div class="kpi-sub">'+fmt(total)+'만원 · 매출 '+fmt(totalRevenue)+'만원 대비</div></div>';
+  }).join('');
+  document.getElementById('costRatioGrid').innerHTML=html;
+}
+
 function renderKPI(rows){
   var totalRevenue=rows.reduce(function(s,r){return s+r.revenueAdj},0);
   var totalProfit=rows.reduce(function(s,r){return s+r.profit},0);
@@ -746,11 +776,27 @@ function renderRepay(rows){
 }
 
 function renderTable(rows){
-  document.getElementById('tableBody').innerHTML=rows.map(function(r){
+  var bodyHtml=rows.map(function(r){
     var sc=r.scenarioRate;
     var tag=r.basis==='확정'?'<span class="tag-confirmed">확정</span>':(sc!==null&&sc!==0)?'<span class="tag-scenario">시나리오</span>':'<span class="tag-forecast">시뮬레이션</span>';
     return'<tr><td>'+r.month+'</td><td style="color:var(--text-sub)">'+fmt(r.dailyAvg)+'</td><td>'+fmt(r.revenueAdj)+'</td><td>'+fmt(r.fixed)+'</td><td>'+fmt(r.order)+'</td><td>'+fmt(r.ad)+'</td><td>'+fmt(r.variable)+'</td><td>'+fmt(r.repay)+'</td><td>'+fmt(r.totalCost)+'</td><td class="'+(r.profit>=0?'profit-pos':'profit-neg')+'">'+fmtSign(r.profit)+'</td><td class="'+(r.balance>=0?'balance-pos':'balance-neg')+'">'+fmtSign(r.balance)+'</td><td>'+tag+(r.memo?'<span style="font-size:10px;color:var(--text-muted)">'+r.memo+'</span>':'')+'</td></tr>';
   }).join('');
+
+  var n=rows.length||1;
+  function sumOf(k){return rows.reduce(function(s,r){return s+r[k]},0)}
+  var sumRevenue=sumOf('revenueAdj'),sumFixed=sumOf('fixed'),sumOrder=sumOf('order'),sumAd=sumOf('ad'),
+      sumVariable=sumOf('variable'),sumRepay=sumOf('repay'),sumCost=sumOf('totalCost'),sumProfit=sumOf('profit');
+  var lastBalance=rows.length?rows[rows.length-1].balance:0;
+
+  var totalRow='<tr class="table-total-row"><td>TOTAL</td><td>&#8212;</td><td>'+fmt(sumRevenue)+'</td><td>'+fmt(sumFixed)+'</td><td>'+fmt(sumOrder)+'</td><td>'+fmt(sumAd)+'</td><td>'+fmt(sumVariable)+'</td><td>'+fmt(sumRepay)+'</td><td>'+fmt(sumCost)+'</td><td class="'+(sumProfit>=0?'profit-pos':'profit-neg')+'">'+fmtSign(sumProfit)+'</td><td class="'+(lastBalance>=0?'balance-pos':'balance-neg')+'">'+fmtSign(lastBalance)+'</td><td>&#8212;</td></tr>';
+
+  var avgDaily=sumOf('dailyAvg')/n,avgRevenue=sumRevenue/n,avgFixed=sumFixed/n,avgOrder=sumOrder/n,avgAd=sumAd/n,
+      avgVariable=sumVariable/n,avgRepay=sumRepay/n,avgCost=sumCost/n,avgProfit=sumProfit/n,
+      avgBalance=sumOf('balance')/n;
+
+  var avgRow='<tr class="table-avg-row"><td>AVERAGE</td><td>'+fmt(avgDaily)+'</td><td>'+fmt(avgRevenue)+'</td><td>'+fmt(avgFixed)+'</td><td>'+fmt(avgOrder)+'</td><td>'+fmt(avgAd)+'</td><td>'+fmt(avgVariable)+'</td><td>'+fmt(avgRepay)+'</td><td>'+fmt(avgCost)+'</td><td class="'+(avgProfit>=0?'profit-pos':'profit-neg')+'">'+fmtSign(avgProfit)+'</td><td class="'+(avgBalance>=0?'balance-pos':'balance-neg')+'">'+fmtSign(avgBalance)+'</td><td>&#8212;</td></tr>';
+
+  document.getElementById('tableBody').innerHTML=bodyHtml+totalRow+avgRow;
 }
 
 function setSyncStatus(state){
@@ -767,6 +813,7 @@ function renderAll(){
   var rows=calcRows();
   renderCharts(rows);
   renderKPI(rows);
+  renderCostRatio(rows);
   renderBreakeven(rows);
   renderTargetTable(rows);
   renderRepay(rows);
@@ -778,6 +825,10 @@ function fmt(n){
   return Math.round(n).toLocaleString('ko-KR');
 }
 function fmtSign(n){return n>0?'+'+fmt(n):fmt(n)}
+function fmtPct(v){
+  if(v===undefined||v===null||isNaN(v))return'—';
+  return v.toFixed(2)+'%';
+}
 function fmtKorean(v,showSign){
   if(v===undefined||v===null||isNaN(v))return'—';
   var abs=Math.abs(v);
