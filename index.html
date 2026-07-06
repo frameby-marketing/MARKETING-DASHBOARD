@@ -305,7 +305,7 @@
         </div>
         <div class="repay-progress-wrap">
           <div class="repay-progress-header">
-            <span style="font-size:12px;color:var(--text-sub)">상환 진행률 (목표 1.5억)</span>
+            <span style="font-size:12px;color:var(--text-sub)">상환 진행률 (목표 1.5억 · 이번 달까지 누적 기준)</span>
             <span id="repayProgressPct" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--yellow)">0%</span>
           </div>
           <div class="repay-progress-track">
@@ -314,10 +314,9 @@
           <div id="repayProgressSub" style="font-size:11px;color:var(--text-muted);margin-top:5px;font-family:'DM Mono',monospace;"></div>
         </div>
         <div style="font-size:12px;font-weight:600;color:var(--text-sub);margin-bottom:8px;">
-          월별 상환금액 설정
-          <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">26-6월 4천만 확정 · 7~12월 월별 선택 (합계 목표 1억 5천)</span>
+          월별 상환 내역
+          <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">구글 스프레드시트 H열(상환비) 값을 그대로 표시 · 목표 합계 1억 5천</span>
         </div>
-        <div class="repay-plan-grid" id="repayPlanGrid"></div>
         <div class="repay-months-row" id="repaySection"></div>
       </div>
 
@@ -414,15 +413,13 @@
 <script>
 var rawRows = [];
 var monthScenarios = [0,0,0,0,0,0,0]; // 6~12월
-var repayPlan = [0,0,0,0,0,0];         // 7~12월 (만원)
 
-var REPAY_JUNE_FIXED = 4000;
-var REPAY_OPTIONS    = [0,1000,2000,3000,4000];
 var SCENARIO_OPTIONS = [-20,-15,-10,-5,0,5,10,15,20];
 var FUTURE_MONTHS    = ['26-06','26-07','26-08','26-09','26-10','26-11','26-12'];
-var REPAY_MONTHS     = ['26-07','26-08','26-09','26-10','26-11','26-12'];
 var TOTAL_REPAY_GOAL = 15000;
-var CFG_KEYS = {sheetId:'',sheetName:'매출데이터',sheetRange:'A1:I13',initBalance:0};
+var CFG_KEYS = {sheetId:'',sheetName:'매출데이터',sheetRange:'A1:J13',initBalance:0};
+var AUTO_REFRESH_MS = 20000; // 실시간 반영을 위한 자동 새로고침 주기(ms)
+var pollTimerId = null;
 
 
 function setTheme(mode){
@@ -471,21 +468,38 @@ function applyConfigToUI(){
 
 async function fetchSheetData(){
   var cfg=loadConfig();
-  if(!cfg.sheetId){setSyncStatus('no-sheet');useDemoData();return}
+  if(!cfg.sheetId){setSyncStatus('no-sheet');useDemoData();stopAutoRefresh();return}
   setSyncStatus('loading');
   var range=encodeURIComponent(cfg.sheetName+'!'+cfg.sheetRange);
-  var url='https://docs.google.com/spreadsheets/d/'+cfg.sheetId+'/gviz/tq?tqx=out:csv&range='+range;
+  // 캐시 방지용 타임스탬프를 붙여 시트를 수정할 때마다 최신 데이터를 가져오도록 함
+  var url='https://docs.google.com/spreadsheets/d/'+cfg.sheetId+'/gviz/tq?tqx=out:csv&range='+range+'&_ts='+Date.now();
   try{
-    var res=await fetch(url);
+    var res=await fetch(url,{cache:'no-store'});
     if(!res.ok)throw new Error();
     parseCSV(await res.text());
     setSyncStatus('ok');
-    document.getElementById('lastUpdated').textContent='마지막 업데이트: '+new Date().toLocaleTimeString('ko-KR');
+    document.getElementById('lastUpdated').textContent='마지막 업데이트: '+new Date().toLocaleTimeString('ko-KR')+' (자동 갱신 '+(AUTO_REFRESH_MS/1000)+'초마다)';
   }catch(e){
     setSyncStatus('err');
     document.getElementById('lastUpdated').textContent='연결 실패 — 데모 데이터 표시 중';
     useDemoData();
   }
+  startAutoRefresh();
+}
+
+function startAutoRefresh(){
+  var cfg=loadConfig();
+  stopAutoRefresh();
+  if(!cfg.sheetId)return;
+  pollTimerId=setInterval(function(){
+    // 탭이 보이지 않을 때는 불필요한 호출을 건너뜀
+    if(document.visibilityState==='hidden')return;
+    fetchSheetData();
+  },AUTO_REFRESH_MS);
+}
+
+function stopAutoRefresh(){
+  if(pollTimerId){clearInterval(pollTimerId);pollTimerId=null;}
 }
 
 function parseCSV(text){
@@ -517,18 +531,18 @@ function pn(v){
 
 function useDemoData(){
   var demo=[
-    {month:'26-01',dailyAvg:43600060, revenue:1859488580,fixed:780000000,order:502672460, ad:680371980,variable:380000000,repay:0,        memo:'',basis:'확정'},
-    {month:'26-02',dailyAvg:40085660, revenue:1778015020,fixed:660000000,order:1104539470,ad:432697900,variable:0,        repay:0,        memo:'',basis:'확정'},
-    {month:'26-03',dailyAvg:38575820, revenue:1646331920,fixed:650000000,order:610739790, ad:436202360,variable:180000000,repay:0,        memo:'',basis:'확정'},
-    {month:'26-04',dailyAvg:34968060, revenue:1555719800,fixed:890000000,order:906135710, ad:277593220,variable:140000000,repay:0,        memo:'',basis:'확정'},
-    {month:'26-05',dailyAvg:25795960, revenue:1157097250,fixed:770000000,order:471899800, ad:282222710,variable:0,        repay:0,        memo:'',basis:'시뮬레이션'},
-    {month:'26-06',dailyAvg:44000000, revenue:1885714290,fixed:600000000,order:360000000, ad:471428570,variable:0,        repay:400000000,memo:'',basis:'시뮬레이션'},
-    {month:'26-07',dailyAvg:44000000, revenue:1948571430,fixed:600000000,order:350000000, ad:487142860,variable:350000000,repay:0,        memo:'',basis:'시뮬레이션'},
-    {month:'26-08',dailyAvg:44000000, revenue:1948571430,fixed:600000000,order:350000000, ad:487142860,variable:0,        repay:0,        memo:'',basis:'시뮬레이션'},
-    {month:'26-09',dailyAvg:44000000, revenue:1885714290,fixed:600000000,order:350000000, ad:471428570,variable:0,        repay:0,        memo:'',basis:'시뮬레이션'},
-    {month:'26-10',dailyAvg:44000000, revenue:1948571430,fixed:600000000,order:350000000, ad:487142860,variable:350000000,repay:0,        memo:'',basis:'시뮬레이션'},
-    {month:'26-11',dailyAvg:44000000, revenue:1885714290,fixed:600000000,order:350000000, ad:471428570,variable:0,        repay:0,        memo:'',basis:'시뮬레이션'},
-    {month:'26-12',dailyAvg:44000000, revenue:1948571430,fixed:600000000,order:350000000, ad:487142860,variable:0,        repay:0,        memo:'',basis:'시뮬레이션'},
+    {month:'26-01',dailyAvg:0, revenue:185000000,fixed:78000000,order:50000000, ad:68000000,variable:38000000,repay:0,       memo:'',basis:'확정'},
+    {month:'26-02',dailyAvg:0, revenue:177000000,fixed:67000000,order:109000000,ad:43000000,variable:0,        repay:0,       memo:'',basis:'확정'},
+    {month:'26-03',dailyAvg:0, revenue:164000000,fixed:60000000,order:61000000, ad:43000000,variable:23000000,repay:0,       memo:'',basis:'확정'},
+    {month:'26-04',dailyAvg:0, revenue:155000000,fixed:89000000,order:90000000, ad:27000000,variable:14000000,repay:0,       memo:'',basis:'확정'},
+    {month:'26-05',dailyAvg:0, revenue:116000000,fixed:77000000,order:41000000, ad:28000000,variable:0,        repay:0,       memo:'',basis:'확정'},
+    {month:'26-06',dailyAvg:0, revenue:146000000,fixed:58000000,order:48000000, ad:34000000,variable:5000000,  repay:40000000,memo:'',basis:'확정'},
+    {month:'26-07',dailyAvg:0, revenue:140000000,fixed:46000000,order:35000000, ad:38000000,variable:23000000,repay:20000000,memo:'',basis:'시뮬레이션'},
+    {month:'26-08',dailyAvg:0, revenue:140000000,fixed:46000000,order:35000000, ad:40000000,variable:0,        repay:20000000,memo:'',basis:'시뮬레이션'},
+    {month:'26-09',dailyAvg:0, revenue:140000000,fixed:46000000,order:35000000, ad:40000000,variable:0,        repay:20000000,memo:'',basis:'시뮬레이션'},
+    {month:'26-10',dailyAvg:0, revenue:140000000,fixed:46000000,order:35000000, ad:40000000,variable:25000000,repay:20000000,memo:'',basis:'시뮬레이션'},
+    {month:'26-11',dailyAvg:0, revenue:140000000,fixed:46000000,order:35000000, ad:40000000,variable:0,        repay:20000000,memo:'',basis:'시뮬레이션'},
+    {month:'26-12',dailyAvg:0, revenue:140000000,fixed:46000000,order:35000000, ad:40000000,variable:0,        repay:15000000,memo:'',basis:'시뮬레이션'},
   ];
   rawRows=demo.map(function(r){
     return{month:r.month,dailyAvg:r.dailyAvg/10000,revenue:r.revenue/10000,
@@ -576,29 +590,8 @@ function updateScenarioSummary(){
   document.getElementById('scenarioSummary').innerHTML=html;
 }
 
-// 상환 계획 UI
-function buildRepayPlanUI(){
-  var dispLabels=['7월','8월','9월','10월','11월','12월'];
-  var html='<div class="repay-plan-col"><div class="repay-plan-label">6월</div><div class="repay-plan-note">&#10003; 확정</div><div class="repay-plan-btns"><button class="repay-btn confirmed">4,000만</button></div></div>';
-  for(var i=0;i<repayPlan.length;i++){
-    var sel=repayPlan[i];
-    var btns='';
-    for(var j=0;j<REPAY_OPTIONS.length;j++){
-      var opt=REPAY_OPTIONS[j];
-      var act=opt===sel?' active':'';
-      var lbl=opt===0?'미정':fmtKorean(opt)+'만';
-      btns+='<button class="repay-btn'+act+'" onclick="setRepayPlan('+i+','+opt+')">'+lbl+'</button>';
-    }
-    html+='<div class="repay-plan-col"><div class="repay-plan-label">'+dispLabels[i]+'</div><div class="repay-plan-btns">'+btns+'</div></div>';
-  }
-  document.getElementById('repayPlanGrid').innerHTML=html;
-}
+// 상환 관련 UI는 스프레드시트 값을 그대로 표시하므로 별도 버튼 UI 없음
 
-function setRepayPlan(idx,amount){
-  repayPlan[idx]=amount;
-  buildRepayPlanUI();
-  renderAll();
-}
 
 // 계산
 function calcRows(){
@@ -614,12 +607,6 @@ function calcRows(){
     var dailyAvgAdj=r.dailyAvg*factor;
     var adAdj=(isSimulated&&isFuture&&sc!==0)?revenueAdj*0.23:r.ad;
     var repayAmt=r.repay;
-    if(r.month==='26-06'){
-      repayAmt=REPAY_JUNE_FIXED;
-    }else{
-      var ri=REPAY_MONTHS.indexOf(r.month);
-      if(ri>=0)repayAmt=repayPlan[ri];
-    }
     var totalCost=r.fixed+r.order+adAdj+r.variable+repayAmt;
     var profit=revenueAdj-totalCost;
     balance+=profit;
@@ -700,12 +687,17 @@ function renderKPI(rows){
   }).join('');
 }
 
-function renderBreakeven(rows){
+function getCurrentRowIndex(rows){
   var now=new Date();
   var curKey=String(now.getFullYear()).slice(2)+'-'+String(now.getMonth()+1).padStart(2,'0');
   var idx=-1;
   for(var i=0;i<rows.length;i++){if(rows[i].month===curKey){idx=i;break}}
   if(idx<0)idx=rows.length-1;
+  return idx;
+}
+
+function renderBreakeven(rows){
+  var idx=getCurrentRowIndex(rows);
   var row=rows[idx];
   var mm=row.month.split('-')[1];
   var lbl='26년 '+mm+'월';
@@ -737,15 +729,19 @@ function renderTargetTable(rows){
 }
 
 function renderRepay(rows){
-  var planTotal=REPAY_JUNE_FIXED+repayPlan.reduce(function(s,v){return s+v},0);
-  var pct=Math.min(100,Math.round(planTotal/TOTAL_REPAY_GOAL*100));
-  document.getElementById('repayTotal').textContent='총 목표 1.5억 · 현재 '+fmtKorean(planTotal)+' 계획';
+  var curIdx=getCurrentRowIndex(rows);
+  var curMonthLabel=rows[curIdx]?rows[curIdx].month.split('-')[1]+'월':'';
+  var cumulative=rows.slice(0,curIdx+1).reduce(function(s,r){return s+r.repay},0);
+  var annualTotal=rows.reduce(function(s,r){return s+r.repay},0);
+  var pct=Math.min(100,Math.round(cumulative/TOTAL_REPAY_GOAL*100));
+  document.getElementById('repayTotal').textContent='연간 계획 총액 '+fmtKorean(annualTotal)+' · 26년 '+curMonthLabel+'까지 누적 '+fmtKorean(cumulative);
   document.getElementById('repayProgressBar').style.width=pct+'%';
   document.getElementById('repayProgressPct').textContent=pct+'%';
-  document.getElementById('repayProgressSub').textContent=fmtKorean(planTotal)+' 상환 계획 / 목표 1.5억 · 잔여 '+fmtKorean(TOTAL_REPAY_GOAL-planTotal);
+  document.getElementById('repayProgressSub').textContent='26년 '+curMonthLabel+'까지 누적 '+fmtKorean(cumulative)+' 상환 / 목표 1.5억 · 잔여 '+fmtKorean(Math.max(0,TOTAL_REPAY_GOAL-cumulative));
   var repayRows=rows.filter(function(r){return r.repay>0});
   document.getElementById('repaySection').innerHTML=repayRows.map(function(r){
-    return'<div class="repay-month-chip"><div class="rm-month">'+r.month+'</div><div class="rm-amount">'+fmtKorean(r.repay)+'</div></div>';
+    var isPast=rows.indexOf(r)<=curIdx;
+    return'<div class="repay-month-chip" style="'+(isPast?'':'opacity:.55')+'"><div class="rm-month">'+r.month+(isPast?'':' (예정)')+'</div><div class="rm-amount">'+fmtKorean(r.repay)+'</div></div>';
   }).join('');
 }
 
@@ -761,7 +757,7 @@ function setSyncStatus(state){
   var dot=document.getElementById('syncDot');
   var txt=document.getElementById('syncText');
   dot.className='sync-dot';
-  if(state==='ok'){dot.classList.add('ok');txt.textContent='연결됨';}
+  if(state==='ok'){dot.classList.add('ok');txt.textContent='연결됨 · 자동갱신';}
   else if(state==='err'){dot.classList.add('err');txt.textContent='연결 실패';}
   else if(state==='loading'){txt.textContent='연결 중...';}
   else{txt.textContent='연결 대기';}
@@ -775,7 +771,6 @@ function renderAll(){
   renderTargetTable(rows);
   renderRepay(rows);
   renderTable(rows);
-  buildRepayPlanUI();
 }
 
 function fmt(n){
@@ -798,7 +793,6 @@ window.addEventListener('DOMContentLoaded',function(){
   applyConfigToUI();
   buildMonthScenarioUI();
   updateScenarioSummary();
-  buildRepayPlanUI();
   fetchSheetData();
 });
 </script>
