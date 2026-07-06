@@ -329,8 +329,10 @@
 
       <!-- ⑥ 비용 구성 비율 -->
       <div class="chart-section">
-        <div class="chart-section-title">&#128200; 비용 구성 비율 <span style="font-weight:400;color:var(--text-muted);font-size:11px">(연간 전체매출 대비, 시나리오 반영)</span></div>
-        <div class="ratio-grid" id="costRatioGrid"></div>
+        <div class="chart-section-title">&#128200; 비용 구성 비율 — 확정 기준 <span style="font-weight:400;color:var(--text-muted);font-size:11px">(산정기준 '확정'인 달만 합산)</span></div>
+        <div class="ratio-grid" id="costRatioGridConfirmed"></div>
+        <div class="chart-section-title" style="margin-top:20px">&#128302; 비용 구성 예측 비율 — 연간 전체(시뮬레이션 포함) <span style="font-weight:400;color:var(--text-muted);font-size:11px">(확정 + 시뮬레이션, 시나리오 반영)</span></div>
+        <div class="ratio-grid" id="costRatioGridProjected"></div>
       </div>
 
       <!-- ⑦ 월별 상세 테이블 -->
@@ -683,7 +685,7 @@ function fmtKoreanShort(v){
   return sign+Math.round(abs)+'만';
 }
 
-function renderCostRatio(rows){
+function buildRatioCards(rows,gridId,valueClass){
   var totalRevenue=rows.reduce(function(s,r){return s+r.revenueAdj},0);
   var cats=[
     {key:'fixed',   label:'고정비 비율'},
@@ -695,9 +697,15 @@ function renderCostRatio(rows){
   var html=cats.map(function(c){
     var total=rows.reduce(function(s,r){return s+r[c.key]},0);
     var pct=totalRevenue>0?(total/totalRevenue*100):0;
-    return'<div class="kpi-card"><div class="kpi-label">'+c.label+'</div><div class="kpi-value blue">'+fmtPct(pct)+'</div><div class="kpi-sub">'+fmt(total)+'만원 · 매출 '+fmt(totalRevenue)+'만원 대비</div></div>';
+    return'<div class="kpi-card"><div class="kpi-label">'+c.label+'</div><div class="kpi-value '+valueClass+'">'+fmtPct(pct)+'</div><div class="kpi-sub">'+fmt(total)+'만원 · 매출 '+fmt(totalRevenue)+'만원 대비</div></div>';
   }).join('');
-  document.getElementById('costRatioGrid').innerHTML=html;
+  document.getElementById(gridId).innerHTML=html||'<div class="kpi-sub" style="padding:8px 0">해당 기준의 데이터가 없습니다.</div>';
+}
+
+function renderCostRatio(rows){
+  var confirmedRows=rows.filter(function(r){return r.basis==='확정'});
+  buildRatioCards(confirmedRows,'costRatioGridConfirmed','green');
+  buildRatioCards(rows,'costRatioGridProjected','blue');
 }
 
 function renderKPI(rows){
