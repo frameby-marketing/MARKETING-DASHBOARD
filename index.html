@@ -259,7 +259,7 @@
             <button class="theme-btn active" id="btnDark" onclick="setTheme('dark')">&#127769; 다크모드</button>
           </div>
           <span class="period-badge">26년 1월 ~ 12월</span>
-          <a class="header-action-btn" id="sheetLinkBtn" href="#" target="_blank" rel="noopener" onclick="return handleSheetLinkClick(event)">
+          <a class="header-action-btn" id="sheetLinkBtn" href="#" target="_blank" rel="noopener">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
             스프레드시트
           </a>
@@ -325,7 +325,15 @@
         <div class="tmc-scroll" style="margin-top:14px" id="targetTable"></div>
       </div>
 
-      <!-- ⑤ 상환 계획 -->
+      <!-- ⑤ 비용 구성 비율 -->
+      <div class="chart-section">
+        <div class="chart-section-title">&#128200; 비용 구성 비율 — 확정 기준 <span style="font-weight:400;color:var(--text-muted);font-size:11px">(산정기준 '확정'인 달만 합산)</span></div>
+        <div class="ratio-grid" id="costRatioGridConfirmed"></div>
+        <div class="chart-section-title" style="margin-top:20px">&#128302; 비용 구성 예측 비율 — 연간 전체(시뮬레이션 포함) <span style="font-weight:400;color:var(--text-muted);font-size:11px">(확정 + 시뮬레이션, 시나리오 반영)</span></div>
+        <div class="ratio-grid" id="costRatioGridProjected"></div>
+      </div>
+
+      <!-- ⑥ 상환 계획 -->
       <div class="repay-section-wrap">
         <div class="repay-section-header">
           <div class="repay-section-title">상환 계획 <span class="repay-section-sub" id="repayTotal"></span></div>
@@ -345,14 +353,6 @@
           <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">구글 스프레드시트 H열(상환비) 값을 그대로 표시 · 목표 합계 1억 5천</span>
         </div>
         <div class="repay-months-row" id="repaySection"></div>
-      </div>
-
-      <!-- ⑥ 비용 구성 비율 -->
-      <div class="chart-section">
-        <div class="chart-section-title">&#128200; 비용 구성 비율 — 확정 기준 <span style="font-weight:400;color:var(--text-muted);font-size:11px">(산정기준 '확정'인 달만 합산)</span></div>
-        <div class="ratio-grid" id="costRatioGridConfirmed"></div>
-        <div class="chart-section-title" style="margin-top:20px">&#128302; 비용 구성 예측 비율 — 연간 전체(시뮬레이션 포함) <span style="font-weight:400;color:var(--text-muted);font-size:11px">(확정 + 시뮬레이션, 시나리오 반영)</span></div>
-        <div class="ratio-grid" id="costRatioGridProjected"></div>
       </div>
 
       <!-- ⑦ 월별 상세 테이블 -->
@@ -378,58 +378,15 @@
       <header class="page-header">
         <div>
           <h1 class="page-title">설정</h1>
-          <p class="page-sub">Google Sheets 연동 설정</p>
+          <p class="page-sub">시트 구성 참고 가이드 &#183; 이 대시보드는 스프레드시트에 고정 연동되어 있습니다</p>
         </div>
       </header>
       <div class="settings-grid">
-        <div class="settings-card">
-          <div class="settings-section-title">Google Sheets 연동</div>
-          <div class="form-group">
-            <label>스프레드시트 ID</label>
-            <input type="text" id="sheetId" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
-            <p class="form-hint">URL에서 /d/ 와 /edit 사이의 값</p>
-          </div>
-          <div class="form-group">
-            <label>시트 이름</label>
-            <input type="text" id="sheetName" placeholder="매출데이터" />
-          </div>
-          <div class="form-group">
-            <label>데이터 범위</label>
-            <input type="text" id="sheetRange" placeholder="A1:J13" />
-            <p class="form-hint">A열:월, B:일평균매출, C:전체매출, D:고정비, E:발주비, F:광고비, G:변동비, H:상환비, I:메모, J:산정기준</p>
-          </div>
-          <button class="save-btn" onclick="saveSettings()">설정 저장 및 연결</button>
-          <div class="settings-note">&#x203B; 스프레드시트는 <strong>링크가 있는 모든 사용자가 볼 수 있음</strong>으로 공유 설정 필요</div>
-        </div>
-        <div class="settings-card">
-          <div class="settings-section-title">주간 실적 시트 연동 <span style="font-size:10px;font-weight:400;color:var(--text-muted)">(주차별 점검용 · 같은 스프레드시트 안 별도 시트)</span></div>
-          <div class="form-group">
-            <label>주간 실적 시트 이름</label>
-            <input type="text" id="weeklySheetName" placeholder="주간실적" />
-            <p class="form-hint">위 스프레드시트 ID 안에 새로 만들 시트 이름</p>
-          </div>
-          <div class="form-group">
-            <label>주간 실적 데이터 범위</label>
-            <input type="text" id="weeklySheetRange" placeholder="A1:F60" />
-            <p class="form-hint">A:주차시작일(월요일), B:주차종료일(일요일), C:매출실적, D:발주비실적, E:광고비실적, F:메모</p>
-          </div>
-          <button class="save-btn" onclick="saveSettings()">설정 저장 및 연결</button>
-          <div class="settings-note">&#x203B; 아래 &#39;주간실적 시트 구성 가이드&#39; 참고 &#183; 아직 시트를 안 만들었어도 대시보드는 정상 동작합니다 (해당 주차는 &#39;실적 미입력&#39;으로 표시)</div>
-        </div>
-        <div class="settings-card">
-          <div class="settings-section-title">누적 자금수지 초기값</div>
-          <div class="form-group">
-            <label>1월 시작 누적 자금수지 (만원)</label>
-            <div class="input-row">
-              <input type="number" id="initBalance" value="0" step="100" />
-              <span class="input-unit">만원</span>
-            </div>
-            <p class="form-hint">연초 보유 현금 또는 기초 누적 자금수지</p>
-          </div>
-          <button class="save-btn" onclick="saveRatios()">저장</button>
+        <div class="settings-card full-width">
+          <div class="settings-note" style="margin-top:0">&#x203B; 이 대시보드는 스프레드시트 ID <code>1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI</code>에 고정 연동되어 있으며, <code>매출데이터</code>(A1:J13) · <code>주간실적</code>(A1:F60) 두 시트를 자동으로 읽어옵니다. 우측 상단 &#39;스프레드시트&#39; 버튼으로 바로 열 수 있어요.</div>
         </div>
         <div class="settings-card full-width">
-          <div class="settings-section-title">Google Sheets 구성 가이드</div>
+          <div class="settings-section-title">매출데이터 시트 구성 가이드</div>
           <div class="guide-table-wrap">
             <table class="guide-table">
               <thead><tr><th>열</th><th>내용</th><th>예시</th><th>비고</th></tr></thead>
@@ -448,11 +405,9 @@
             </table>
           </div>
           <div class="guide-steps">
-            <div class="guide-step"><span class="step-num">1</span><span>Google Sheets 새 시트 생성 → 시트 이름 설정</span></div>
-            <div class="guide-step"><span class="step-num">2</span><span>1행에 헤더: <code>월 | 일평균매출 | 전체매출 | 고정비 | 발주비 | 광고비 | 변동비 | 상환비 | 메모 | 산정기준</code></span></div>
-            <div class="guide-step"><span class="step-num">3</span><span>2행부터 월별 데이터 입력 — 확정된 달은 실적, 미래 달은 예측값 입력</span></div>
-            <div class="guide-step"><span class="step-num">4</span><span>공유 설정 → <strong>링크가 있는 모든 사용자 → 뷰어</strong>로 변경</span></div>
-            <div class="guide-step"><span class="step-num">5</span><span>URL에서 스프레드시트 ID 복사 → 위 설정에 붙여넣기 후 저장</span></div>
+            <div class="guide-step"><span class="step-num">1</span><span>&#39;매출데이터&#39; 시트의 1행 헤더: <code>월 | 일평균매출 | 전체매출 | 고정비 | 발주비 | 광고비 | 변동비 | 상환비 | 메모 | 산정기준</code></span></div>
+            <div class="guide-step"><span class="step-num">2</span><span>2행부터 월별 데이터 입력 — 확정된 달은 실적, 미래 달은 예측값 입력</span></div>
+            <div class="guide-step"><span class="step-num">3</span><span>공유 설정 → <strong>링크가 있는 모든 사용자 → 뷰어</strong>로 유지</span></div>
           </div>
         </div>
         <div class="settings-card full-width">
@@ -471,7 +426,7 @@
             </table>
           </div>
           <div class="guide-steps">
-            <div class="guide-step"><span class="step-num">1</span><span>같은 스프레드시트에 시트 하나 추가 → 이름을 <code>주간실적</code>로 지정 (또는 원하는 이름으로 짓고 설정에 입력)</span></div>
+            <div class="guide-step"><span class="step-num">1</span><span>같은 스프레드시트에 시트 하나 추가 → 이름을 <code>주간실적</code>로 지정</span></div>
             <div class="guide-step"><span class="step-num">2</span><span>1행에 헤더: <code>주차시작일 | 주차종료일 | 매출실적 | 발주비실적 | 광고비실적 | 메모</code></span></div>
             <div class="guide-step"><span class="step-num">3</span><span>매주 월요일, 지난주(월~일) 실적 3가지(매출·발주비·광고비)만 입력 — 나머지 항목은 자동 계산됩니다</span></div>
           </div>
@@ -540,7 +495,15 @@ var DASHBOARD_YEAR = 2026;
 var SCENARIO_OPTIONS = [-20,-15,-10,-5,0,5,10,15,20];
 var FUTURE_MONTHS    = ['26-06','26-07','26-08','26-09','26-10','26-11','26-12'];
 var TOTAL_REPAY_GOAL = 15000;
-var CFG_KEYS = {sheetId:'',sheetName:'매출데이터',sheetRange:'A1:J13',weeklySheetName:'주간실적',weeklySheetRange:'A1:F60',initBalance:0};
+
+// 이 대시보드는 아래 스프레드시트에 고정 연동됩니다 (설정 UI 없음)
+var SHEET_ID            = '1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI';
+var SHEET_NAME          = '매출데이터';
+var SHEET_RANGE         = 'A1:J13';
+var WEEKLY_SHEET_NAME   = '주간실적';
+var WEEKLY_SHEET_RANGE  = 'A1:F60';
+var INIT_BALANCE        = 0;
+
 var AUTO_REFRESH_MS = 20000; // 실시간 반영을 위한 자동 새로고침 주기(ms)
 var pollTimerId = null;
 
@@ -559,9 +522,6 @@ function setTheme(mode){
   renderAll();
 }
 
-function loadConfig(){return Object.assign({},CFG_KEYS,JSON.parse(localStorage.getItem('rmv2_cfg')||'{}'))}
-function saveConfig(c){localStorage.setItem('rmv2_cfg',JSON.stringify(c))}
-
 function switchTab(tab){
   document.querySelectorAll('.tab-content').forEach(function(el){el.classList.remove('active')});
   document.querySelectorAll('.nav-item').forEach(function(el){el.classList.remove('active')});
@@ -570,62 +530,22 @@ function switchTab(tab){
   if(tab==='weekly')renderWeeklyTab();
 }
 
-function saveSettings(){
-  var cfg=loadConfig();
-  cfg.sheetId=document.getElementById('sheetId').value.trim();
-  cfg.sheetName=document.getElementById('sheetName').value.trim();
-  cfg.sheetRange=document.getElementById('sheetRange').value.trim();
-  cfg.weeklySheetName=document.getElementById('weeklySheetName').value.trim()||'주간실적';
-  cfg.weeklySheetRange=document.getElementById('weeklySheetRange').value.trim()||'A1:F60';
-  saveConfig(cfg);updateSheetLinkBtn();fetchSheetData();
-}
-function saveRatios(){
-  var cfg=loadConfig();
-  cfg.initBalance=parseFloat(document.getElementById('initBalance').value)||0;
-  saveConfig(cfg);renderAll();
-}
-function applyConfigToUI(){
-  var cfg=loadConfig();
-  document.getElementById('sheetId').value=cfg.sheetId||'';
-  document.getElementById('sheetName').value=cfg.sheetName||'';
-  document.getElementById('sheetRange').value=cfg.sheetRange||'';
-  document.getElementById('weeklySheetName').value=cfg.weeklySheetName||'';
-  document.getElementById('weeklySheetRange').value=cfg.weeklySheetRange||'';
-  document.getElementById('initBalance').value=cfg.initBalance||0;
-  updateSheetLinkBtn();
-}
-
-function updateSheetLinkBtn(){
-  var cfg=loadConfig();
+function initSheetLinkBtn(){
   var btn=document.getElementById('sheetLinkBtn');
   if(!btn)return;
-  if(cfg.sheetId){
-    btn.href='https://docs.google.com/spreadsheets/d/'+cfg.sheetId+'/edit';
-    btn.title='연동된 스프레드시트 열기 (새 탭)';
-  }else{
-    btn.href='#';
-    btn.title='설정 탭에서 스프레드시트를 먼저 연결하세요';
-  }
+  btn.href='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/edit';
+  btn.title='연동된 스프레드시트 열기 (새 탭)';
 }
 
-function handleSheetLinkClick(e){
-  var cfg=loadConfig();
-  if(!cfg.sheetId){
-    e.preventDefault();
-    alert('설정 탭에서 스프레드시트 ID를 먼저 연결해주세요.');
-    switchTab('settings');
-    return false;
-  }
-  return true;
-}
-
+var lastFetchAt = 0;
 async function fetchSheetData(){
-  var cfg=loadConfig();
-  if(!cfg.sheetId){setSyncStatus('no-sheet');useDemoData();stopAutoRefresh();return}
+  var now=Date.now();
+  if(now-lastFetchAt<1000)return; // 여러 이벤트가 거의 동시에 겹쳐 들어오는 것 방지
+  lastFetchAt=now;
   setSyncStatus('loading');
-  var range=encodeURIComponent(cfg.sheetName+'!'+cfg.sheetRange);
+  var range=encodeURIComponent(SHEET_NAME+'!'+SHEET_RANGE);
   // 캐시 방지용 타임스탬프를 붙여 시트를 수정할 때마다 최신 데이터를 가져오도록 함
-  var url='https://docs.google.com/spreadsheets/d/'+cfg.sheetId+'/gviz/tq?tqx=out:csv&range='+range+'&_ts='+Date.now();
+  var url='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&range='+range+'&_ts='+Date.now();
   try{
     var res=await fetch(url,{cache:'no-store'});
     if(!res.ok)throw new Error();
@@ -642,10 +562,8 @@ async function fetchSheetData(){
 }
 
 async function fetchWeeklySheetData(){
-  var cfg=loadConfig();
-  if(!cfg.sheetId||!cfg.weeklySheetName){weeklyRows=[];weeklyRowsMap={};renderWeeklyTab();return}
-  var range=encodeURIComponent(cfg.weeklySheetName+'!'+cfg.weeklySheetRange);
-  var url='https://docs.google.com/spreadsheets/d/'+cfg.sheetId+'/gviz/tq?tqx=out:csv&range='+range+'&_ts='+Date.now();
+  var range=encodeURIComponent(WEEKLY_SHEET_NAME+'!'+WEEKLY_SHEET_RANGE);
+  var url='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&range='+range+'&_ts='+Date.now();
   try{
     var res=await fetch(url,{cache:'no-store'});
     if(!res.ok)throw new Error();
@@ -681,9 +599,7 @@ function normalizeDate(v){
 function pad2(n){return String(n).padStart(2,'0')}
 
 function startAutoRefresh(){
-  var cfg=loadConfig();
   stopAutoRefresh();
-  if(!cfg.sheetId)return;
   pollTimerId=setInterval(function(){
     // 탭이 보이지 않을 때는 불필요한 호출을 건너뜀
     if(document.visibilityState==='hidden')return;
@@ -789,8 +705,7 @@ function updateScenarioSummary(){
 
 // 계산
 function calcRows(){
-  var cfg=loadConfig();
-  var balance=cfg.initBalance||0;
+  var balance=INIT_BALANCE;
   return rawRows.map(function(r,i){
     var isSimulated=r.basis!=='확정';
     var fi=FUTURE_MONTHS.indexOf(r.month);
@@ -1014,7 +929,6 @@ function renderWeeklyCheckCards(rows,weekIndex){
 }
 
 function renderWeeklyCumulative(rows,weekIndex){
-  var cfg=loadConfig();
   var cumSimProfit=0,cumActProfit=0,filledWeeks=0;
   for(var w=1;w<=weekIndex;w++){
     var range=getWeekRange(w,DASHBOARD_YEAR);
@@ -1029,8 +943,8 @@ function renderWeeklyCumulative(rows,weekIndex){
       cumActProfit+=exp.profit; // 실적 미입력 주는 계획치로 대체
     }
   }
-  var simBalance=(cfg.initBalance||0)+cumSimProfit;
-  var actBalance=(cfg.initBalance||0)+cumActProfit;
+  var simBalance=INIT_BALANCE+cumSimProfit;
+  var actBalance=INIT_BALANCE+cumActProfit;
   var fillNote=filledWeeks<weekIndex?' · 실적 입력 '+filledWeeks+'/'+weekIndex+'주':'';
   var items=[
     {label:weekIndex+'주차까지 누적 영업이익 (실적 반영 추정)',
@@ -1222,11 +1136,23 @@ function fmtKorean(v,showSign){
 window.addEventListener('DOMContentLoaded',function(){
   var savedTheme=localStorage.getItem('rmv2_theme')||'dark';
   setTheme(savedTheme);
-  applyConfigToUI();
+  initSheetLinkBtn();
   buildMonthScenarioUI();
   updateScenarioSummary();
   fetchSheetData();
 });
+
+// 'pageshow'는 최초 접속뿐 아니라 브라우저 뒤로가기/앞으로가기로 캐시(bfcache)에서
+// 페이지가 복원될 때도 실행되어, 접속할 때마다 항상 최신 데이터를 불러온다
+window.addEventListener('pageshow',function(){
+  fetchSheetData();
+});
+
+// 다른 탭에 있다가 이 탭으로 돌아왔을 때도 즉시 최신 데이터로 갱신
+document.addEventListener('visibilitychange',function(){
+  if(document.visibilityState==='visible')fetchSheetData();
+});
+
 </script>
 </body>
 </html>
