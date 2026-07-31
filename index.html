@@ -100,6 +100,11 @@
     .ratio-grid .kpi-label{font-size:13px}
     .ratio-grid .kpi-value{font-size:28px}
     .ratio-grid .kpi-sub{font-size:13px}
+    .ratio-tab-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
+    .ratio-tab{padding:8px 18px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font-size:13px;font-family:inherit;cursor:pointer;transition:all .15s}
+    .ratio-tab:hover{border-color:var(--accent);color:var(--text)}
+    .ratio-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+    .ratio-compare-avg{font-size:15px;margin-bottom:12px;font-family:'DM Mono',monospace}
 
     /* WEEKLY CHECK */
     .week-pill-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}
@@ -109,6 +114,7 @@
     .week-pill.no-data{opacity:.55}
     .header-action-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px 14px;border-radius:20px;background:var(--bg-card2);border:1px solid var(--border);color:var(--text-sub);cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.15s;text-decoration:none;white-space:nowrap}
     .header-action-btn:hover{border-color:var(--accent);color:var(--text)}
+    .header-action-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
 
     /* SCENARIO */
     .target-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
@@ -256,10 +262,14 @@
       <!-- ① 차트 2칸 나란히 -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div class="chart-section">
-          <div class="chart-section-title chart-section-title-big">&#128202; 영업이익 추이</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+            <div class="chart-section-title chart-section-title-big" style="margin-bottom:0">&#128202; 영업이익 추이</div>
+            <button class="header-action-btn" id="bpExcludeBtn" onclick="toggleBPExclude()" title="26년 2~4월 발주비에서 BP사 지연지급분(25년 9~12월 발생, 7,100/3,700/3,700만) 제외">BP 제외</button>
+          </div>
           <div class="chart-section-sub">
             흑자 <span style="color:var(--blue)">&#9646; 파란색 &#8593;</span> &nbsp;/&nbsp;
             적자 <span style="color:var(--red)">&#9646; 빨간색 &#8595;</span> &nbsp;&#183;&nbsp; 단위: 만원
+            <span id="bpExcludeNote" style="color:var(--accent);font-weight:600"></span>
           </div>
           <div class="chart-inner" id="profitChartWrap"></div>
         </div>
@@ -314,6 +324,14 @@
         <div class="ratio-grid" id="costRatioGridConfirmed"></div>
         <div class="chart-section-title chart-section-title-big" style="margin-top:20px">&#128302; 비용 구성 예측 비율 — 연간 전체(시뮬레이션 포함) <span style="font-weight:400;color:var(--text-muted);font-size:11px">(확정 + 시뮬레이션, 시나리오 반영)</span></div>
         <div class="ratio-grid" id="costRatioGridProjected"></div>
+      </div>
+
+      <!-- ⑤-2 비용 구성 비율 비교 (25년 vs 26년) -->
+      <div class="chart-section">
+        <div class="chart-section-title chart-section-title-big">&#128201; 비용 구성 비율 비교 <span style="font-weight:400;color:var(--text-muted);font-size:11px">25년(빨강) vs 26년(파랑, 굵은선) · 항목별 매출 대비 비율(%) 추이</span></div>
+        <div class="ratio-tab-row" id="ratioTabRow"></div>
+        <div class="ratio-compare-avg" id="ratioCompareAvg"></div>
+        <div class="chart-inner" id="ratioCompareChartWrap"></div>
       </div>
 
       <!-- ⑥ 상환 계획 -->
@@ -423,6 +441,27 @@
 var rawRows = [];
 var monthScenarios = [0,0,0,0,0,0,0]; // 6~12월
 var monthOverrides = {}; // { '26-06': {revenue:.., fixed:.., order:.., ad:.., variable:.., repay:..} } — 직접 입력한 값(시나리오%보다 우선 적용)
+
+// BP사에 25년 9~12월 발생분(1억 4,500만)을 25년에 지급하지 않고 26년 2/3/4월에 나눠 지급 —
+// '연간 총 발주비 대비' 왜곡을 보고 싶을 때 이 지연 지급분을 제외해 볼 수 있는 토글
+var BP_EXCLUDE_ACTIVE = false;
+var BP_EXCLUDE_AMOUNTS = {'26-02':7100,'26-03':3700,'26-04':3700}; // 만원
+
+// 25년 확정 데이터 (비용 구성 비율 비교용) — 단위: 만원 (사용자 제공, 전부 확정치)
+var HIST_2025 = [
+  {month:1, revenue:26900, fixed:10200, order:6600,  ad:9800,  variable:2000, repay:0},
+  {month:2, revenue:28700, fixed:9900,  order:7800,  ad:10000, variable:1600, repay:0},
+  {month:3, revenue:29800, fixed:8700,  order:10000, ad:8800,  variable:0,    repay:0},
+  {month:4, revenue:36100, fixed:10000, order:22600, ad:7500,  variable:5600, repay:0},
+  {month:5, revenue:38000, fixed:9400,  order:8900,  ad:8500,  variable:1700, repay:0},
+  {month:6, revenue:23900, fixed:9700,  order:10300, ad:6200,  variable:0,    repay:0},
+  {month:7, revenue:23100, fixed:10000, order:6000,  ad:9700,  variable:2900, repay:0},
+  {month:8, revenue:20500, fixed:9100,  order:3700,  ad:4700,  variable:0,    repay:0},
+  {month:9, revenue:29200, fixed:9300,  order:15100, ad:10600, variable:0,    repay:0},
+  {month:10,revenue:24500, fixed:9700,  order:6800,  ad:3200,  variable:3100, repay:0},
+  {month:11,revenue:27600, fixed:8900,  order:10200, ad:9100,  variable:0,    repay:0},
+  {month:12,revenue:31200, fixed:8300,  order:8200,  ad:10600, variable:5300, repay:0},
+];
 var weeklyRows = [];
 var weeklyRowsMap = {};
 var selectedWeekIndex = null;
@@ -639,6 +678,9 @@ function calcRows(){
     var dailyAvgAdj=r.dailyAvg*factor;
     var fixedVal=(ov.fixed!==undefined)?ov.fixed:r.fixed;
     var orderVal=(ov.order!==undefined)?ov.order:r.order;
+    if(BP_EXCLUDE_ACTIVE&&BP_EXCLUDE_AMOUNTS[r.month]!==undefined){
+      orderVal-=BP_EXCLUDE_AMOUNTS[r.month];
+    }
     var adAdjBase=(isSimulated&&isFuture&&sc!==0)?revenueAdj*0.23:r.ad;
     var adVal=(ov.ad!==undefined)?ov.ad:adAdjBase;
     var variableVal=(ov.variable!==undefined)?ov.variable:r.variable;
@@ -727,6 +769,101 @@ function renderCostRatio(rows){
   buildRatioCards(rows,'costRatioGridProjected','blue');
 }
 
+// ===== 비용 구성 비율 비교 (25년 vs 26년) =====
+var RATIO_CATS=[
+  {key:'fixed',   label:'고정비'},
+  {key:'order',   label:'발주비'},
+  {key:'ad',      label:'광고비'},
+  {key:'variable',label:'변동비'},
+  {key:'repay',   label:'상환비'},
+];
+var selectedRatioCategory='fixed';
+
+function buildRatioTabs(){
+  var el=document.getElementById('ratioTabRow');
+  if(!el)return;
+  el.innerHTML=RATIO_CATS.map(function(c){
+    var active=(c.key===selectedRatioCategory)?' active':'';
+    return'<button class="ratio-tab'+active+'" onclick="switchRatioCategory(\''+c.key+'\')">'+c.label+'</button>';
+  }).join('');
+}
+
+function switchRatioCategory(key){
+  selectedRatioCategory=key;
+  buildRatioTabs();
+  renderRatioCompare(calcRows());
+}
+
+function avgOf(arr){
+  var vals=arr.filter(function(v){return v!==null&&v!==undefined&&!isNaN(v)});
+  if(!vals.length)return null;
+  return vals.reduce(function(s,v){return s+v},0)/vals.length;
+}
+
+function renderRatioCompare(rows){
+  var el=document.getElementById('ratioCompareAvg');
+  if(!el)return;
+  var cat=selectedRatioCategory;
+  var catLabel=(RATIO_CATS.filter(function(c){return c.key===cat})[0]||{}).label||cat;
+  var pct2025=[],pct2026=[];
+  for(var m=1;m<=12;m++){
+    var h=HIST_2025[m-1];
+    pct2025.push((h&&h.revenue>0)?(h[cat]/h.revenue*100):null);
+    var mk='26-'+pad2(m);
+    var r2=null;
+    for(var i=0;i<rows.length;i++){if(rows[i].month===mk){r2=rows[i];break;}}
+    var val2026=r2?(cat==='fixed'?r2.fixed:cat==='order'?r2.order:cat==='ad'?r2.ad:cat==='variable'?r2.variable:r2.repay):null;
+    pct2026.push((r2&&r2.revenueAdj>0)?(val2026/r2.revenueAdj*100):null);
+  }
+  var avg25=avgOf(pct2025),avg26=avgOf(pct2026);
+  el.innerHTML='<span style="color:#f4506b;font-weight:700">25년 평균 '+(avg25!==null?avg25.toFixed(1)+'%':'—')+'</span>'+
+    ' &nbsp;&#183;&nbsp; '+
+    '<span style="color:#3b82f6;font-weight:700">26년 평균 '+(avg26!==null?avg26.toFixed(1)+'%':'—')+'</span>'+
+    ' &nbsp;<span style="color:var(--text-muted);font-weight:400;font-family:\'Pretendard\',sans-serif;font-size:12px">('+catLabel+' / 매출 비중)</span>';
+  renderRatioLineChart('ratioCompareChartWrap',pct2025,pct2026);
+}
+
+function renderRatioLineChart(elId,pct2025,pct2026){
+  var el=document.getElementById(elId);
+  if(!el)return;
+  var allVals=pct2025.concat(pct2026).filter(function(v){return v!==null&&v!==undefined&&!isNaN(v)});
+  var maxV=Math.max.apply(null,allVals.concat([1]));
+  var minV=Math.min.apply(null,allVals.concat([0]));
+  var padV=(maxV-minV)*0.18||5;
+  var yMax=maxV+padV,yMin=Math.max(0,minV-padV);
+  var W=1000,H=280,mTop=24,mBot=34,mLeft=38,mRight=16;
+  var chartW=W-mLeft-mRight,chartH=H-mTop-mBot;
+  function xPos(i){return mLeft+chartW*(i/11);}
+  function yPos(v){return mTop+chartH*(1-(v-yMin)/(yMax-yMin||1));}
+  var isLight=document.documentElement.classList.contains('light');
+  var gridColor=isLight?'#d4d8e8':'#2a2d3a';
+  var textColor=isLight?'#4b5270':'#5a6070';
+  var svg='';
+  var steps=4;
+  for(var s=0;s<=steps;s++){
+    var v=yMin+(yMax-yMin)*s/steps;
+    var y=yPos(v);
+    svg+='<line x1="'+mLeft+'" y1="'+y.toFixed(1)+'" x2="'+(W-mRight)+'" y2="'+y.toFixed(1)+'" stroke="'+gridColor+'" stroke-width="0.6" stroke-dasharray="3,3"/>';
+    svg+='<text x="'+(mLeft-6)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" fill="'+textColor+'" font-size="10" font-family="DM Mono,monospace">'+v.toFixed(0)+'%</text>';
+  }
+  for(var i=0;i<12;i++){
+    svg+='<text x="'+xPos(i).toFixed(1)+'" y="'+(H-8).toFixed(1)+'" text-anchor="middle" fill="'+textColor+'" font-size="10.5" font-family="Pretendard,sans-serif">'+(i+1)+'월</text>';
+  }
+  function buildPoints(vals){
+    var pts=[];
+    for(var i=0;i<vals.length;i++){
+      if(vals[i]===null||vals[i]===undefined||isNaN(vals[i]))continue;
+      pts.push(xPos(i).toFixed(1)+','+yPos(vals[i]).toFixed(1));
+    }
+    return pts.join(' ');
+  }
+  svg+='<polyline points="'+buildPoints(pct2025)+'" fill="none" stroke="#f4506b" stroke-width="2"/>';
+  pct2025.forEach(function(v,i){if(v===null||v===undefined||isNaN(v))return;svg+='<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(v).toFixed(1)+'" r="3" fill="#f4506b"/>';});
+  svg+='<polyline points="'+buildPoints(pct2026)+'" fill="none" stroke="#3b82f6" stroke-width="4.5"/>';
+  pct2026.forEach(function(v,i){if(v===null||v===undefined||isNaN(v))return;svg+='<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(v).toFixed(1)+'" r="4.5" fill="#3b82f6"/>';});
+  el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">'+svg+'</svg>';
+}
+
 function getWeek1Monday(year){
   var jan1=new Date(year,0,1);
   var day=jan1.getDay();
@@ -778,6 +915,15 @@ function getExpectedForWeek(rows,range){
   return{revenue:row.revenueAdj*factor,order:row.order*factor,ad:row.ad*factor,
          fixed:row.fixed*factor,variable:row.variable*factor,repay:row.repay*factor,
          profit:row.profit*factor,monthKey:key};
+}
+
+function toggleBPExclude(){
+  BP_EXCLUDE_ACTIVE=!BP_EXCLUDE_ACTIVE;
+  var btn=document.getElementById('bpExcludeBtn');
+  if(btn)btn.classList.toggle('active',BP_EXCLUDE_ACTIVE);
+  var note=document.getElementById('bpExcludeNote');
+  if(note)note.textContent=BP_EXCLUDE_ACTIVE?' · BP 지연지급분(2~4월 -7,100/-3,700/-3,700만) 제외 중':'';
+  renderAll();
 }
 
 function selectWeek(w){
@@ -1068,6 +1214,7 @@ function renderAll(){
   renderCharts(rows);
   renderKPI(rows);
   renderCostRatio(rows);
+  renderRatioCompare(rows);
   renderBreakeven(rows);
   renderTargetTable(rows);
   renderRepay(rows);
@@ -1096,6 +1243,7 @@ function fmtKorean(v,showSign){
 window.addEventListener('DOMContentLoaded',function(){
   var savedTheme=localStorage.getItem('rmv2_theme')||'dark';
   setTheme(savedTheme);
+  buildRatioTabs();
   fetchSheetData();
 });
 
