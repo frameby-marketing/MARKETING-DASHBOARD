@@ -132,6 +132,12 @@
     .target-mini-table td{padding:6px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;color:var(--text-sub)}
     .target-mini-table td:first-child{text-align:left;color:var(--text);font-family:'Pretendard',sans-serif}
     .target-mini-table tr:last-child td{border-bottom:none}
+    .tmc-editable .tmc-input{width:100%;min-width:70px;text-align:right;background:var(--bg-card2);border:1px solid var(--border);
+      border-radius:var(--radius-sm);padding:5px 7px;color:var(--text);font-family:'DM Mono',monospace;font-size:12px;outline:none;transition:border-color .15s}
+    .tmc-editable .tmc-input:focus{border-color:var(--accent)}
+    .tmc-editable .tmc-input:hover{border-color:var(--border-light)}
+    .tmc-row-edited td:first-child{color:var(--accent);font-weight:700}
+    .tmc-row-edited td:first-child::after{content:' ✎';font-size:10px}
 
     /* REPAY */
     .repay-section-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
@@ -289,12 +295,18 @@
       <!-- ④ 월별 개별 시나리오 -->
       <div class="target-card">
         <div class="target-label">
-          6~12월 월별 매출 시나리오 조정
-          <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:8px">각 월 독립적으로 조정 가능</span>
+          6~12월 매출 빠른 시나리오 조정 (%)
+          <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:8px">각 월 독립적으로 조정 가능 · 아래 표에서 직접 입력하면 그 항목은 이 %보다 우선 적용됩니다</span>
         </div>
         <div class="month-scenario-grid" id="monthScenarioGrid"></div>
         <div class="scenario-summary" id="scenarioSummary"></div>
-        <div class="tmc-scroll" style="margin-top:14px" id="targetTable"></div>
+        <div class="target-label" style="margin-top:20px;display:flex;align-items:center;justify-content:space-between">
+          <span>6~12월 월별 항목 직접 수정
+            <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:8px">매출·고정비·발주비·광고비·변동비·상환비를 직접 입력 — 우측 영업이익과 상단 그래프·전체 대시보드에 바로 반영됩니다</span>
+          </span>
+          <button class="header-action-btn" style="padding:6px 12px;font-size:11px" onclick="resetMonthOverrides()">직접 수정 초기화</button>
+        </div>
+        <div class="tmc-scroll" style="margin-top:10px" id="targetTable"></div>
       </div>
 
       <!-- ⑤ 비용 구성 비율 -->
@@ -411,6 +423,7 @@
 <script>
 var rawRows = [];
 var monthScenarios = [0,0,0,0,0,0,0]; // 6~12월
+var monthOverrides = {}; // { '26-06': {revenue:.., fixed:.., order:.., ad:.., variable:.., repay:..} } — 직접 입력한 값(시나리오%보다 우선 적용)
 var weeklyRows = [];
 var weeklyRowsMap = {};
 var selectedWeekIndex = null;
@@ -622,14 +635,19 @@ function calcRows(){
     var isFuture=fi>=0;
     var sc=isFuture?monthScenarios[fi]:0;
     var factor=(isSimulated&&isFuture)?(1+sc/100):1;
-    var revenueAdj=r.revenue*factor;
+    var ov=monthOverrides[r.month]||{};
+    var revenueAdj=(ov.revenue!==undefined)?ov.revenue:r.revenue*factor;
     var dailyAvgAdj=r.dailyAvg*factor;
-    var adAdj=(isSimulated&&isFuture&&sc!==0)?revenueAdj*0.23:r.ad;
-    var repayAmt=r.repay;
-    var totalCost=r.fixed+r.order+adAdj+r.variable+repayAmt;
+    var fixedVal=(ov.fixed!==undefined)?ov.fixed:r.fixed;
+    var orderVal=(ov.order!==undefined)?ov.order:r.order;
+    var adAdjBase=(isSimulated&&isFuture&&sc!==0)?revenueAdj*0.23:r.ad;
+    var adVal=(ov.ad!==undefined)?ov.ad:adAdjBase;
+    var variableVal=(ov.variable!==undefined)?ov.variable:r.variable;
+    var repayVal=(ov.repay!==undefined)?ov.repay:r.repay;
+    var totalCost=fixedVal+orderVal+adVal+variableVal+repayVal;
     var profit=revenueAdj-totalCost;
     balance+=profit;
-    var row=Object.assign({},r,{revenueAdj:revenueAdj,dailyAvg:dailyAvgAdj,ad:adAdj,repay:repayAmt,totalCost:totalCost,profit:profit,balance:balance,isSimulated:isSimulated,scenarioRate:sc});
+    var row=Object.assign({},r,{revenueAdj:revenueAdj,dailyAvg:dailyAvgAdj,fixed:fixedVal,order:orderVal,ad:adVal,variable:variableVal,repay:repayVal,totalCost:totalCost,profit:profit,balance:balance,isSimulated:isSimulated,scenarioRate:sc,hasOverride:Object.keys(ov).length>0});
     return row;
   });
 }
@@ -645,7 +663,7 @@ function renderBarChart(cid,rows,field){
   var values=rows.map(function(r){return r[field]});
   var months=rows.map(function(r){return r.month.replace('26-','')+'월'});
   var maxAbs=Math.max.apply(null,values.map(function(v){return Math.abs(v)}).concat([1]));
-  var W=500,H=230,mTop=24,mBot=32,mLeft=8,mRight=8;
+  var W=500,H=240,mTop=28,mBot=36,mLeft=8,mRight=8;
   var chartH=H-mTop-mBot;
   var zeroY=mTop+chartH/2;
   var halfH=chartH/2*0.90;
@@ -672,8 +690,8 @@ function renderBarChart(cid,rows,field){
     svg+='<rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+barH.toFixed(1)+'" fill="'+color+'" rx="3" opacity="0.88"/>';
     var lbl=fmtKoreanShort(val);
     var lblY=isPos?(by-3):(by+barH+11);
-    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+lblY.toFixed(1)+'" text-anchor="middle" fill="'+color+'" font-size="8.5" font-family="DM Mono,monospace" font-weight="600">'+lbl+'</text>';
-    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(H-5).toFixed(1)+'" text-anchor="middle" fill="'+monthLabelColor+'" font-size="9.5" font-family="Pretendard,sans-serif">'+months[i]+'</text>';
+    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+lblY.toFixed(1)+'" text-anchor="middle" fill="'+color+'" font-size="11.5" font-family="DM Mono,monospace" font-weight="700">'+lbl+'</text>';
+    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(H-5).toFixed(1)+'" text-anchor="middle" fill="'+monthLabelColor+'" font-size="12" font-family="Pretendard,sans-serif" font-weight="500">'+months[i]+'</text>';
   }
   el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">'+svg+'</svg>';
 }
@@ -905,13 +923,15 @@ function renderKPI(rows){
   var totalRevenue=rows.reduce(function(s,r){return s+r.revenueAdj},0);
   var totalProfit=rows.reduce(function(s,r){return s+r.profit},0);
   var totalRepay=rows.reduce(function(s,r){return s+r.repay},0);
-  var lastBalance=rows[rows.length-1]?rows[rows.length-1].balance:0;
-  var repayRate=Math.min(100,Math.round(totalRepay/TOTAL_REPAY_GOAL*100));
+  var curIdx=getCurrentRowIndex(rows);
+  var cumulativeRepay=rows.slice(0,curIdx+1).reduce(function(s,r){return s+r.repay},0);
+  var repayProgressPct=Math.min(100,Math.round(cumulativeRepay/TOTAL_REPAY_GOAL*100));
+  var repayRemain=Math.max(0,TOTAL_REPAY_GOAL-cumulativeRepay);
   var items=[
     {label:'연간 전체매출 예상',value:fmtKorean(totalRevenue),sub:fmt(Math.round(totalRevenue))+'만원',cls:'blue'},
     {label:'연간 영업이익 예상',value:fmtKorean(totalProfit,true),sub:fmt(Math.round(Math.abs(totalProfit)))+'만원',cls:totalProfit>=0?'green':'red'},
-    {label:'연간 총 상환',value:fmtKorean(totalRepay),sub:'목표 1.5억 · '+repayRate+'% 달성',cls:'yellow'},
-    {label:'12월 누적 자금수지',value:fmtKorean(lastBalance,true),sub:'26년 1월 누적 자금수지 0원으로 시작',cls:lastBalance>=0?'green':'red'},
+    {label:'연간 총 상환',value:fmtKorean(totalRepay),sub:'목표 1.5억',cls:'yellow'},
+    {label:'연간 총 상환 진행률',value:repayProgressPct+'%',sub:'잔여 '+fmtKorean(repayRemain)+' · 이번 달까지 누적 기준',cls:'yellow'},
   ];
   document.getElementById('kpiGrid').innerHTML=items.map(function(it){
     return'<div class="kpi-card"><div class="kpi-label">'+it.label+'</div><div class="kpi-value '+it.cls+'">'+it.value+'</div><div class="kpi-sub">'+it.sub+'</div></div>';
@@ -950,13 +970,45 @@ function renderBreakeven(rows){
   }
 }
 
+var TARGET_TABLE_FIELDS = [
+  {key:'revenueAdj',ovKey:'revenue',label:'매출'},
+  {key:'fixed',ovKey:'fixed',label:'고정비'},
+  {key:'order',ovKey:'order',label:'발주비'},
+  {key:'ad',ovKey:'ad',label:'광고비'},
+  {key:'variable',ovKey:'variable',label:'변동비'},
+  {key:'repay',ovKey:'repay',label:'상환비'},
+];
+
 function renderTargetTable(rows){
   var future=rows.filter(function(r,i){return i>=5});
   if(!future.length){document.getElementById('targetTable').innerHTML='';return}
-  var tbody=future.map(function(r){
-    return'<tr><td>'+r.month+'</td><td>'+fmt(r.revenueAdj)+'</td><td>'+fmt(r.fixed)+'</td><td>'+fmt(r.order)+'</td><td>'+fmt(r.ad)+'</td><td>'+fmt(r.variable)+'</td><td>'+fmt(r.repay)+'</td><td style="color:'+(r.profit>=0?'var(--green)':'var(--red)')+'">'+fmtSign(r.profit)+'</td></tr>';
+  var head='<tr><th>월</th>'+TARGET_TABLE_FIELDS.map(function(f){return'<th>'+f.label+'</th>'}).join('')+'<th>영업이익</th></tr>';
+  var body=future.map(function(r){
+    var cells=TARGET_TABLE_FIELDS.map(function(f){
+      var val=Math.round(r[f.key]);
+      return'<td><input type="number" class="tmc-input" data-month="'+r.month+'" data-field="'+f.ovKey+'" value="'+val+'" onchange="setMonthOverride(this)"></td>';
+    }).join('');
+    return'<tr'+(r.hasOverride?' class="tmc-row-edited"':'')+'><td>'+r.month+'</td>'+cells+'<td style="color:'+(r.profit>=0?'var(--green)':'var(--red)')+';font-weight:700">'+fmtSign(r.profit)+'</td></tr>';
   }).join('');
-  document.getElementById('targetTable').innerHTML='<table class="target-mini-table"><thead><tr><th>월</th><th>매출</th><th>고정비</th><th>발주비</th><th>광고비</th><th>변동비</th><th>상환비</th><th>영업이익</th></tr></thead><tbody>'+tbody+'</tbody></table>';
+  document.getElementById('targetTable').innerHTML='<table class="target-mini-table tmc-editable"><thead>'+head+'</thead><tbody>'+body+'</tbody></table>';
+}
+
+function setMonthOverride(el){
+  var month=el.getAttribute('data-month');
+  var field=el.getAttribute('data-field');
+  var val=parseFloat(el.value);
+  if(!monthOverrides[month])monthOverrides[month]={};
+  if(isNaN(val)){
+    delete monthOverrides[month][field];
+  }else{
+    monthOverrides[month][field]=val;
+  }
+  renderAll();
+}
+
+function resetMonthOverrides(){
+  monthOverrides={};
+  renderAll();
 }
 
 function renderRepay(rows){
