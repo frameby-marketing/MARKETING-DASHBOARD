@@ -1,7 +1,6 @@
 <script src="https://frameby-marketing.github.io/Dashboard_Hub/nav.js"></script>
 
 
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -100,11 +99,11 @@
     .ratio-grid .kpi-label{font-size:13px}
     .ratio-grid .kpi-value{font-size:28px}
     .ratio-grid .kpi-sub{font-size:13px}
-    .ratio-tab-row{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap}
-    .ratio-tab{padding:8px 18px;border-radius:20px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font-size:13px;font-family:inherit;cursor:pointer;transition:all .15s}
+    .ratio-tab-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+    .ratio-tab{padding:10px 22px;border-radius:22px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .15s}
     .ratio-tab:hover{border-color:var(--accent);color:var(--text)}
-    .ratio-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
-    .ratio-compare-avg{font-size:15px;margin-bottom:12px;font-family:'DM Mono',monospace}
+    .ratio-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;box-shadow:0 2px 8px var(--accent-glow, rgba(99,102,241,.35))}
+    .ratio-compare-avg{font-size:15px;margin-bottom:10px;font-family:'DM Mono',monospace}
 
     /* WEEKLY CHECK */
     .week-pill-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}
@@ -328,11 +327,9 @@
 
       <!-- ⑤-2 비용 구성 비율 비교 (25년 vs 26년) -->
       <div class="chart-section">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
-          <div class="chart-section-title chart-section-title-big" style="margin-bottom:0">&#128201; 비용 구성 비율 비교 <span style="font-weight:400;color:var(--text-muted);font-size:11px">25년(빨강) vs 26년(파랑, 굵은선) · 항목별 매출 대비 비율(%) 추이</span></div>
-          <div class="ratio-tab-row" id="ratioTabRow" style="margin-bottom:0"></div>
-        </div>
-        <div class="ratio-compare-avg" id="ratioCompareAvg" style="margin-top:14px"></div>
+        <div class="chart-section-title chart-section-title-big">&#128201; 비용 구성 비율 비교 <span style="font-weight:400;color:var(--text-muted);font-size:11px">25년(빨강) vs 26년(파랑, 굵은선) · 항목별 매출 대비 비율(%) 추이</span></div>
+        <div class="ratio-compare-avg" id="ratioCompareAvg"></div>
+        <div class="ratio-tab-row" id="ratioTabRow"></div>
         <div class="chart-inner" id="ratioCompareChartWrap"></div>
       </div>
 
