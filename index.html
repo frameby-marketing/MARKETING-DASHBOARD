@@ -34,7 +34,7 @@
     .theme-btn:hover{color:var(--text)}
     .theme-btn.active{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
     @media print{
-      .sidebar,.theme-toggle,.refresh-btn,.header-action-btn{display:none!important}
+      .theme-toggle,.refresh-btn,.header-action-btn,.settings-fab,.sync-status{display:none!important}
       .app{height:auto}
       .main{overflow:visible;padding:16px}
     }
@@ -42,21 +42,15 @@
     html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Pretendard',sans-serif;font-size:14px}
     .app{display:flex;height:100vh;overflow:hidden}
 
-    /* SIDEBAR */
-    .sidebar{width:200px;flex-shrink:0;background:var(--bg-card);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:20px 12px;gap:8px}
-    .logo{display:flex;align-items:center;gap:8px;padding:4px 8px 16px;border-bottom:1px solid var(--border);margin-bottom:4px}
-    .logo-mark{color:var(--accent);font-size:18px}
-    .logo-text{font-size:12px;font-weight:600;line-height:1.3;color:var(--text)}
-    .nav{display:flex;flex-direction:column;gap:2px;flex:1}
-    .nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius-sm);background:none;border:none;color:var(--text-sub);cursor:pointer;font-size:13px;font-family:inherit;transition:all 0.15s}
-    .nav-item:hover{background:var(--bg-card2);color:var(--text)}
-    .nav-item.active{background:var(--accent);color:#fff}
-    .sync-status{display:flex;align-items:center;gap:6px;padding:8px 10px;font-size:11px;color:var(--text-muted)}
+    .sync-status{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:11px;color:var(--text-muted);background:var(--bg-card2);border:1px solid var(--border);border-radius:20px}
     .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);transition:background 0.3s}
     .sync-dot.ok{background:var(--green);box-shadow:0 0 6px var(--green)}
     .sync-dot.err{background:var(--red)}
-    .refresh-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:var(--radius-sm);background:var(--bg-card2);border:1px solid var(--border);color:var(--text-sub);cursor:pointer;font-size:12px;font-family:inherit;transition:all 0.15s}
-    .refresh-btn:hover{border-color:var(--accent);color:var(--text)}
+    .settings-fab{position:fixed;bottom:22px;right:22px;z-index:200;width:46px;height:46px;border-radius:50%;
+      background:var(--accent);color:#fff;border:none;display:flex;align-items:center;justify-content:center;
+      cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.35);transition:transform .15s ease, opacity .15s ease}
+    .settings-fab:hover{transform:scale(1.07)}
+    .settings-fab:active{transform:scale(.96)}
 
     /* MAIN */
     .main{flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:20px}
@@ -212,7 +206,6 @@
       .ratio-grid{grid-template-columns:repeat(2,1fr)}
       .chart-grid{grid-template-columns:1fr}
       .settings-grid{grid-template-columns:1fr}
-      .sidebar{width:160px}
       .month-scenario-grid{grid-template-columns:repeat(4,1fr)}
       .repay-plan-grid{grid-template-columns:repeat(4,1fr)}
     }
@@ -220,31 +213,6 @@
 </head>
 <body>
 <div class="app">
-  <aside class="sidebar">
-    <div class="logo">
-      <span class="logo-mark">&#9654;</span>
-      <span class="logo-text">Revenue<br>Monitor</span>
-    </div>
-    <nav class="nav">
-      <button class="nav-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-        대시보드
-      </button>
-      <button class="nav-item" data-tab="settings" onclick="switchTab('settings')">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M18.66 5.34l1.41-1.41"/></svg>
-        설정
-      </button>
-      <button class="nav-item" data-tab="weekly" onclick="switchTab('weekly')">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/><path d="m8.5 14 2 2 4-4"/></svg>
-        주차별 점검
-      </button>
-    </nav>
-    <div class="sync-status" id="syncStatus">
-      <div class="sync-dot" id="syncDot"></div>
-      <span id="syncText">연결 대기</span>
-    </div>
-  </aside>
-
   <main class="main">
     <div class="tab-content active" id="tab-dashboard">
 
@@ -258,7 +226,10 @@
             <button class="theme-btn" id="btnLight" onclick="setTheme('light')">&#9728;&#65039; 일반모드</button>
             <button class="theme-btn active" id="btnDark" onclick="setTheme('dark')">&#127769; 다크모드</button>
           </div>
-          <span class="period-badge">26년 1월 ~ 12월</span>
+          <div class="sync-status" id="syncStatus">
+            <div class="sync-dot" id="syncDot"></div>
+            <span id="syncText">연결 대기</span>
+          </div>
           <a class="header-action-btn" id="sheetLinkBtn" href="#" target="_blank" rel="noopener">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
             스프레드시트
@@ -380,6 +351,7 @@
           <h1 class="page-title">설정</h1>
           <p class="page-sub">시트 구성 참고 가이드 &#183; 이 대시보드는 스프레드시트에 고정 연동되어 있습니다</p>
         </div>
+        <button class="header-action-btn" onclick="switchTab('dashboard')">&#8592; 대시보드로</button>
       </header>
       <div class="settings-grid">
         <div class="settings-card full-width">
@@ -411,7 +383,7 @@
           </div>
         </div>
         <div class="settings-card full-width">
-          <div class="settings-section-title">주간실적 시트 구성 가이드 <span style="font-size:10px;font-weight:400;color:var(--text-muted)">(주차별 점검 탭용 · 같은 스프레드시트에 새 시트로 추가)</span></div>
+          <div class="settings-section-title">주간실적 시트 구성 가이드 <span style="font-size:10px;font-weight:400;color:var(--text-muted)">(주차별 점검 기능은 현재 화면에서 빠져 있지만, 시트 구조는 참고용으로 남겨둡니다)</span></div>
           <div class="guide-table-wrap">
             <table class="guide-table">
               <thead><tr><th>열</th><th>내용</th><th>예시</th><th>비고</th></tr></thead>
@@ -425,63 +397,14 @@
               </tbody>
             </table>
           </div>
-          <div class="guide-steps">
-            <div class="guide-step"><span class="step-num">1</span><span>같은 스프레드시트에 시트 하나 추가 → 이름을 <code>주간실적</code>로 지정</span></div>
-            <div class="guide-step"><span class="step-num">2</span><span>1행에 헤더: <code>주차시작일 | 주차종료일 | 매출실적 | 발주비실적 | 광고비실적 | 메모</code></span></div>
-            <div class="guide-step"><span class="step-num">3</span><span>매주 월요일, 지난주(월~일) 실적 3가지(매출·발주비·광고비)만 입력 — 나머지 항목은 자동 계산됩니다</span></div>
-          </div>
-          <div class="settings-note">&#x203B; &#39;점검 계획값(기대치)&#39;은 이 시트에 입력할 필요가 없습니다. 대시보드가 대시보드 상단의 월별 매출·발주비·광고비 설정값을 그 주가 속한 달의 일수 비율(7일/해당월 일수)로 나눠 자동으로 주간 평균을 계산해 비교합니다.</div>
         </div>
       </div>
     </div>
 
-    <!-- TAB: WEEKLY CHECK -->
-    <div class="tab-content" id="tab-weekly">
-      <header class="page-header">
-        <div>
-          <h1 class="page-title">주차별 점검</h1>
-          <p class="page-sub">매주 월요일 · 지난주 실적을 시뮬레이션 계획과 비교합니다</p>
-        </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span class="period-badge" id="weeklyRangeBadge">&#8212;</span>
-        </div>
-      </header>
-
-      <div class="chart-section">
-        <div class="chart-section-title">&#128197; 주차 선택</div>
-        <div class="chart-section-sub">1월 1주차(월요일 시작)부터 오늘 기준 지난주(전주)까지 자동 생성됩니다. &#9675; 표시는 아직 실적이 입력되지 않은 주차예요.</div>
-        <div class="week-pill-row" id="weekPillRow"></div>
-      </div>
-
-      <div>
-        <div class="target-label" style="margin-bottom:8px">선택한 주차 점검 <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">매출은 계획 이상, 비용은 계획 이하일 때 정상 진행으로 표시</span></div>
-        <div class="ratio-grid" id="weeklyCheckGrid" style="grid-template-columns:repeat(3,1fr)"></div>
-      </div>
-
-      <div>
-        <div class="target-label" style="margin-bottom:8px">누적 진행 현황 <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">선택한 주차까지 누적 기준 · 실적 미입력 주는 계획치로 대체 계산</span></div>
-        <div class="kpi-grid" id="weeklyCumGrid" style="grid-template-columns:repeat(2,1fr)"></div>
-      </div>
-
-      <div class="table-card">
-        <div class="table-section-label">전체 주차 요약 <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">단위: 만원 · 회의 때 이 표만 보면 됩니다</span></div>
-        <div class="table-wrap">
-          <table id="weeklyTable">
-            <thead>
-              <tr>
-                <th>주차</th><th>기간</th>
-                <th>매출실적</th><th>매출계획</th><th>달성률</th>
-                <th>발주비실적</th><th>발주비계획</th><th>집행률</th>
-                <th>광고비실적</th><th>광고비계획</th><th>집행률</th>
-                <th>비고</th>
-              </tr>
-            </thead>
-            <tbody id="weeklyTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
   </main>
+  <button class="settings-fab" id="settingsFab" onclick="switchTab('settings')" title="설정">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M18.66 5.34l1.41-1.41"/></svg>
+  </button>
 </div>
 
 <script>
@@ -524,9 +447,9 @@ function setTheme(mode){
 
 function switchTab(tab){
   document.querySelectorAll('.tab-content').forEach(function(el){el.classList.remove('active')});
-  document.querySelectorAll('.nav-item').forEach(function(el){el.classList.remove('active')});
   document.getElementById('tab-'+tab).classList.add('active');
-  document.querySelector('[data-tab="'+tab+'"]').classList.add('active');
+  var navBtn=document.querySelector('[data-tab="'+tab+'"]');
+  if(navBtn)navBtn.classList.add('active');
   if(tab==='weekly')renderWeeklyTab();
 }
 
@@ -569,7 +492,6 @@ async function fetchWeeklySheetData(){
     if(!res.ok)throw new Error();
     parseWeeklyCSV(await res.text());
   }catch(e){
-    // 주간실적 시트가 아직 없거나 준비되지 않았을 수 있음 — 조용히 빈 상태로 둠
     weeklyRows=[];weeklyRowsMap={};
   }
   renderWeeklyTab();
@@ -601,7 +523,6 @@ function pad2(n){return String(n).padStart(2,'0')}
 function startAutoRefresh(){
   stopAutoRefresh();
   pollTimerId=setInterval(function(){
-    // 탭이 보이지 않을 때는 불필요한 호출을 건너뜀
     if(document.visibilityState==='hidden')return;
     fetchSheetData();
   },AUTO_REFRESH_MS);
@@ -662,7 +583,6 @@ function useDemoData(){
   renderAll();
 }
 
-// 월별 시나리오 UI
 function buildMonthScenarioUI(){
   var labels=['6월','7월','8월','9월','10월','11월','12월'];
   var html='';
@@ -700,10 +620,6 @@ function updateScenarioSummary(){
   document.getElementById('scenarioSummary').innerHTML=html;
 }
 
-// 상환 관련 UI는 스프레드시트 값을 그대로 표시하므로 별도 버튼 UI 없음
-
-
-// 계산
 function calcRows(){
   var balance=INIT_BALANCE;
   return rawRows.map(function(r,i){
@@ -724,7 +640,6 @@ function calcRows(){
   });
 }
 
-// 차트
 function renderCharts(rows){
   renderBarChart('profitChartWrap',rows,'profit');
   renderBarChart('balanceChartWrap',rows,'balance');
@@ -746,7 +661,6 @@ function renderBarChart(cid,rows,field){
   var guideColor=isLight?'#d4d8e8':'#2a2d3a';
   var monthLabelColor=isLight?'#4b5270':'#5a6070';
   var svg='';
-  // 가이드
   var guides=[0.25,0.5,0.75];
   for(var g=0;g<guides.length;g++){
     var p=guides[g];
@@ -802,10 +716,9 @@ function renderCostRatio(rows){
   buildRatioCards(rows,'costRatioGridProjected','blue');
 }
 
-// ===== 주차별 점검 =====
 function getWeek1Monday(year){
   var jan1=new Date(year,0,1);
-  var day=jan1.getDay(); // 0=Sun..6=Sat
+  var day=jan1.getDay();
   var offset=(day===0)?-6:(1-day);
   return new Date(year,0,1+offset);
 }
@@ -863,7 +776,7 @@ function selectWeek(w){
 
 function renderWeeklyTab(){
   var elCheck=document.getElementById('weeklyCheckGrid');
-  if(!elCheck)return; // 아직 DOM에 해당 탭이 없으면(초기 로드 순서 등) 건너뜀
+  if(!elCheck)return;
   var totalWeeks=getReviewableWeekCount();
   var rows=calcRows();
 
@@ -940,7 +853,7 @@ function renderWeeklyCumulative(rows,weekIndex){
       filledWeeks++;
       cumActProfit+=(act.revenue||0)-(act.order||0)-(act.ad||0)-exp.fixed-exp.variable-exp.repay;
     }else{
-      cumActProfit+=exp.profit; // 실적 미입력 주는 계획치로 대체
+      cumActProfit+=exp.profit;
     }
   }
   var simBalance=INIT_BALANCE+cumSimProfit;
@@ -1142,17 +1055,13 @@ window.addEventListener('DOMContentLoaded',function(){
   fetchSheetData();
 });
 
-// 'pageshow'는 최초 접속뿐 아니라 브라우저 뒤로가기/앞으로가기로 캐시(bfcache)에서
-// 페이지가 복원될 때도 실행되어, 접속할 때마다 항상 최신 데이터를 불러온다
 window.addEventListener('pageshow',function(){
   fetchSheetData();
 });
 
-// 다른 탭에 있다가 이 탭으로 돌아왔을 때도 즉시 최신 데이터로 갱신
 document.addEventListener('visibilitychange',function(){
   if(document.visibilityState==='visible')fetchSheetData();
 });
-
 </script>
 </body>
 </html>
