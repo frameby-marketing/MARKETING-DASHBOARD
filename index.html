@@ -332,8 +332,11 @@
 
       <!-- ⑤-2 비용 구성 비율 비교 (25년 vs 26년) -->
       <div class="chart-section">
-        <div class="chart-section-title chart-section-title-big">&#128201; 비용 구성 비율 비교 <span style="font-weight:400;color:var(--text-muted);font-size:11px">25년(빨강) vs 26년(파랑, 굵은선) · 항목별 매출 대비 비율(%) 추이</span></div>
-        <div class="ratio-compare-avg" id="ratioCompareAvg"></div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <div class="chart-section-title chart-section-title-big" style="margin-bottom:0">&#128201; 비용 구성 비율 비교 <span style="font-weight:400;color:var(--text-muted);font-size:11px">25년(빨강) vs 26년(파랑, 굵은선) · 항목별 매출 대비 비율(%) 추이</span></div>
+          <button class="header-action-btn" id="bpExcludeBtn2" onclick="toggleBPExclude()" title="26년 2~4월 발주비에서 BP사 지연지급분(25년 9~12월 발생, 7,100/3,700/3,700만) 제외">BP 제외</button>
+        </div>
+        <div class="ratio-compare-avg" id="ratioCompareAvg" style="margin-top:10px"></div>
         <div class="ratio-tab-row" id="ratioTabRow"></div>
         <div class="chart-inner" id="ratioCompareChartWrap"></div>
       </div>
@@ -1005,8 +1008,10 @@ function getExpectedForWeek(rows,range){
 
 function toggleBPExclude(){
   BP_EXCLUDE_ACTIVE=!BP_EXCLUDE_ACTIVE;
-  var btn=document.getElementById('bpExcludeBtn');
-  if(btn)btn.classList.toggle('active',BP_EXCLUDE_ACTIVE);
+  ['bpExcludeBtn','bpExcludeBtn2'].forEach(function(id){
+    var btn=document.getElementById(id);
+    if(btn)btn.classList.toggle('active',BP_EXCLUDE_ACTIVE);
+  });
   var note=document.getElementById('bpExcludeNote');
   if(note)note.textContent=BP_EXCLUDE_ACTIVE?' · BP 지연지급분(2~4월 -7,100/-3,700/-3,700만) 제외 중':'';
   renderAll();
