@@ -278,13 +278,13 @@
         </div>
         <div class="be-divider"></div>
         <div class="be-cell">
-          <div class="breakeven-label">흑자 달성 최소 매출</div>
+          <div class="breakeven-label" id="breakevenLabel">흑자 달성 최소 매출</div>
           <div class="breakeven-value yellow" id="breakevenValue">&#8212;</div>
           <div class="breakeven-meta" id="breakevenMeta"></div>
         </div>
         <div class="be-divider"></div>
         <div class="be-cell">
-          <div class="breakeven-label">현재 예상 손익</div>
+          <div class="breakeven-label" id="beGapLabel">현재 예상 손익</div>
           <div class="breakeven-value" id="beGapValue">&#8212;</div>
           <div class="breakeven-meta" id="beGapMeta"></div>
         </div>
@@ -436,7 +436,7 @@ var WEEKLY_SHEET_NAME   = '주간실적';
 var WEEKLY_SHEET_RANGE  = 'A1:F60';
 var INIT_BALANCE        = 0;
 
-var AUTO_REFRESH_MS = 20000; // 실시간 반영을 위한 자동 새로고침 주기(ms)
+var AUTO_REFRESH_MS = 300000; // 실시간 반영을 위한 자동 새로고침 주기(ms) — 5분
 var pollTimerId = null;
 
 
@@ -476,7 +476,7 @@ async function fetchSheetData(){
     if(!res.ok)throw new Error();
     parseCSV(await res.text());
     setSyncStatus('ok');
-    document.getElementById('lastUpdated').textContent='마지막 업데이트: '+new Date().toLocaleTimeString('ko-KR')+' (자동 갱신 '+(AUTO_REFRESH_MS/1000)+'초마다)';
+    document.getElementById('lastUpdated').textContent='마지막 업데이트: '+new Date().toLocaleTimeString('ko-KR')+' (자동 갱신 '+(AUTO_REFRESH_MS/60000)+'분마다)';
   }catch(e){
     setSyncStatus('err');
     document.getElementById('lastUpdated').textContent='연결 실패 — 데모 데이터 표시 중';
@@ -685,8 +685,8 @@ function renderBarChart(cid,rows,field){
     svg+='<rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+barH.toFixed(1)+'" fill="'+color+'" rx="3" opacity="0.88"/>';
     var lbl=fmtKoreanShort(val);
     var lblY=isPos?(by-3):(by+barH+11);
-    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+lblY.toFixed(1)+'" text-anchor="middle" fill="'+color+'" font-size="9" font-family="DM Mono,monospace" font-weight="700">'+lbl+'</text>';
-    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(H-5).toFixed(1)+'" text-anchor="middle" fill="'+monthLabelColor+'" font-size="12" font-family="Pretendard,sans-serif" font-weight="500">'+months[i]+'</text>';
+    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+lblY.toFixed(1)+'" text-anchor="middle" fill="'+color+'" font-size="7" font-family="DM Mono,monospace" font-weight="700">'+lbl+'</text>';
+    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(H-5).toFixed(1)+'" text-anchor="middle" fill="'+monthLabelColor+'" font-size="8.5" font-family="Pretendard,sans-serif" font-weight="500">'+months[i]+'</text>';
   }
   el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">'+svg+'</svg>';
 }
@@ -925,7 +925,7 @@ function renderKPI(rows){
   var items=[
     {label:'연간 전체매출 예상',value:fmtKorean(totalRevenue),sub:fmt(Math.round(totalRevenue))+'만원',cls:'blue'},
     {label:'연간 영업이익 예상',value:fmtKorean(totalProfit,true),sub:fmt(Math.round(Math.abs(totalProfit)))+'만원',cls:totalProfit>=0?'green':'red'},
-    {label:'연간 총 상환',value:fmtKorean(totalRepay),sub:'목표 1.5억',cls:'yellow'},
+    {label:'연간 누적 상환액',value:fmtKorean(totalRepay),sub:'목표 1.5억',cls:'yellow'},
     {label:'연간 총 상환 진행률',value:repayProgressPct+'%',sub:'잔여 '+fmtKorean(repayRemain)+' · 이번 달까지 누적 기준',cls:'yellow'},
   ];
   document.getElementById('kpiGrid').innerHTML=items.map(function(it){
@@ -950,8 +950,10 @@ function renderBreakeven(rows){
   document.getElementById('beCurrentLabel').textContent=lbl+' 현재 매출';
   document.getElementById('beCurrentValue').textContent=fmtKorean(row.revenueAdj);
   document.getElementById('beCurrentMeta').textContent=lbl+' 기준';
+  document.getElementById('breakevenLabel').textContent=lbl+' 흑자 달성 최소 매출';
   document.getElementById('breakevenValue').textContent=fmtKorean(row.totalCost);
   document.getElementById('breakevenMeta').textContent='총비용 합계';
+  document.getElementById('beGapLabel').textContent=lbl+' 예상 손익';
   var gap=row.totalCost-row.revenueAdj;
   var gapEl=document.getElementById('beGapValue');
   if(gap<=0){
