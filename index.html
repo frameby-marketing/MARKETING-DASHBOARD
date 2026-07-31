@@ -1,6 +1,3 @@
-<script src="https://frameby-marketing.github.io/Dashboard_Hub/nav.js"></script>
-
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -66,7 +63,7 @@
     /* CHART */
     .chart-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
     .chart-section-title{font-size:13px;font-weight:600;margin-bottom:4px}
-    .chart-section-title-big{font-size:20px;font-weight:700;margin-bottom:8px;letter-spacing:-.5px}
+    .chart-section-title-big{font-size:20px!important;font-weight:700!important;margin-bottom:8px;letter-spacing:-.5px}
     .chart-section-sub{font-size:11px;color:var(--text-muted);margin-bottom:16px}
     .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
     .chart-inner{overflow-x:auto}
@@ -96,6 +93,9 @@
 
     /* RATIO CARDS */
     .ratio-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+    .ratio-grid .kpi-label{font-size:13px}
+    .ratio-grid .kpi-value{font-size:28px}
+    .ratio-grid .kpi-sub{font-size:13px}
 
     /* WEEKLY CHECK */
     .week-pill-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}
@@ -143,7 +143,7 @@
     .repay-section-wrap{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
     .repay-section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
     .repay-section-title{font-size:13px;font-weight:600}
-    .repay-section-sub{font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px}
+    .repay-section-sub{font-size:13px;font-weight:400;color:var(--text-muted);margin-left:6px}
     .repay-plan-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:14px}
     .repay-plan-col{display:flex;flex-direction:column;align-items:center;gap:3px}
     .repay-plan-label{font-size:11px;color:var(--text-muted);margin-bottom:2px;font-family:'DM Mono',monospace}
@@ -155,8 +155,8 @@
     .repay-btn.confirmed{background:var(--blue-dim);border-color:var(--blue);color:var(--blue);cursor:default;font-weight:600}
     .repay-months-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
     .repay-month-chip{background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 14px;min-width:80px;text-align:center}
-    .repay-month-chip .rm-month{font-size:11px;color:var(--text-muted);margin-bottom:3px}
-    .repay-month-chip .rm-amount{font-size:14px;font-weight:600;font-family:'DM Mono',monospace;color:var(--blue)}
+    .repay-month-chip .rm-month{font-size:13px;color:var(--text-muted);margin-bottom:3px}
+    .repay-month-chip .rm-amount{font-size:17px;font-weight:600;font-family:'DM Mono',monospace;color:var(--blue)}
     .repay-progress-wrap{margin-bottom:14px}
     .repay-progress-header{display:flex;justify-content:space-between;margin-bottom:6px}
     .repay-progress-track{height:10px;background:var(--bg-card2);border-radius:10px;overflow:hidden;border:1px solid var(--border)}
@@ -166,8 +166,8 @@
     .table-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
     .table-section-label{font-size:13px;font-weight:600;margin-bottom:14px}
     .table-wrap{overflow-x:auto}
-    table{width:100%;border-collapse:collapse;font-size:12px}
-    thead th{font-size:10px;font-weight:500;color:var(--text-muted);padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    thead th{font-size:12px;font-weight:500;color:var(--text-muted);padding:9px 10px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
     thead th:first-child{text-align:left}
     tbody td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:right;font-family:'DM Mono',monospace;color:var(--text-sub);white-space:nowrap}
     tbody td:first-child{text-align:left;color:var(--text);font-family:'Pretendard',sans-serif}
@@ -215,7 +215,7 @@
       .settings-grid{grid-template-columns:1fr}
       .month-scenario-grid{grid-template-columns:repeat(4,1fr)}
       .repay-plan-grid{grid-template-columns:repeat(4,1fr)}
-      .chart-section-title-big{font-size:16px}
+      .chart-section-title-big{font-size:16px!important}
     }
   </style>
 </head>
@@ -306,37 +306,37 @@
 
       <!-- ⑤ 비용 구성 비율 -->
       <div class="chart-section">
-        <div class="chart-section-title">&#128200; 비용 구성 비율 — 확정 기준 <span style="font-weight:400;color:var(--text-muted);font-size:11px">(산정기준 '확정'인 달만 합산)</span></div>
+        <div class="chart-section-title chart-section-title-big">&#128200; 비용 구성 비율 — 확정 기준 <span style="font-weight:400;color:var(--text-muted);font-size:11px">(산정기준 '확정'인 달만 합산)</span></div>
         <div class="ratio-grid" id="costRatioGridConfirmed"></div>
-        <div class="chart-section-title" style="margin-top:20px">&#128302; 비용 구성 예측 비율 — 연간 전체(시뮬레이션 포함) <span style="font-weight:400;color:var(--text-muted);font-size:11px">(확정 + 시뮬레이션, 시나리오 반영)</span></div>
+        <div class="chart-section-title chart-section-title-big" style="margin-top:20px">&#128302; 비용 구성 예측 비율 — 연간 전체(시뮬레이션 포함) <span style="font-weight:400;color:var(--text-muted);font-size:11px">(확정 + 시뮬레이션, 시나리오 반영)</span></div>
         <div class="ratio-grid" id="costRatioGridProjected"></div>
       </div>
 
       <!-- ⑥ 상환 계획 -->
       <div class="repay-section-wrap">
         <div class="repay-section-header">
-          <div class="repay-section-title">상환 계획 <span class="repay-section-sub" id="repayTotal"></span></div>
+          <div class="repay-section-title chart-section-title-big">상환 계획 <span class="repay-section-sub" id="repayTotal"></span></div>
         </div>
         <div class="repay-progress-wrap">
           <div class="repay-progress-header">
-            <span style="font-size:12px;color:var(--text-sub)">상환 진행률 (목표 1.5억 · 이번 달까지 누적 기준)</span>
-            <span id="repayProgressPct" style="font-family:'DM Mono',monospace;font-size:12px;color:var(--yellow)">0%</span>
+            <span style="font-size:14px;color:var(--text-sub)">상환 진행률 (목표 1.5억 · 이번 달까지 누적 기준)</span>
+            <span id="repayProgressPct" style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--yellow)">0%</span>
           </div>
           <div class="repay-progress-track">
             <div class="repay-progress-bar" id="repayProgressBar" style="width:0%"></div>
           </div>
-          <div id="repayProgressSub" style="font-size:11px;color:var(--text-muted);margin-top:5px;font-family:'DM Mono',monospace;"></div>
+          <div id="repayProgressSub" style="font-size:13px;color:var(--text-muted);margin-top:5px;font-family:'DM Mono',monospace;"></div>
         </div>
-        <div style="font-size:12px;font-weight:600;color:var(--text-sub);margin-bottom:8px;">
+        <div style="font-size:14px;font-weight:600;color:var(--text-sub);margin-bottom:8px;">
           월별 상환 내역
-          <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">구글 스프레드시트 H열(상환비) 값을 그대로 표시 · 목표 합계 1억 5천</span>
+          <span style="font-size:12px;font-weight:400;color:var(--text-muted);margin-left:6px">구글 스프레드시트 H열(상환비) 값을 그대로 표시 · 목표 합계 1억 5천</span>
         </div>
         <div class="repay-months-row" id="repaySection"></div>
       </div>
 
       <!-- ⑦ 월별 상세 테이블 -->
       <div class="table-card">
-        <div class="table-section-label">월별 상세 내역 <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">단위: 만원 · 하단 TOTAL(연간 합계) / AVERAGE(월평균)</span></div>
+        <div class="table-section-label chart-section-title-big">월별 상세 내역 <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">단위: 만원 · 하단 TOTAL(연간 합계) / AVERAGE(월평균)</span></div>
         <div class="table-wrap">
           <table id="mainTable">
             <thead>
