@@ -67,6 +67,7 @@
     /* CHART */
     .chart-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
     .chart-section-title{font-size:13px;font-weight:600;margin-bottom:4px}
+    .chart-section-title-big{font-size:38px;font-weight:700;margin-bottom:8px;letter-spacing:-.5px}
     .chart-section-sub{font-size:11px;color:var(--text-muted);margin-bottom:16px}
     .chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
     .chart-inner{overflow-x:auto}
@@ -215,6 +216,7 @@
       .settings-grid{grid-template-columns:1fr}
       .month-scenario-grid{grid-template-columns:repeat(4,1fr)}
       .repay-plan-grid{grid-template-columns:repeat(4,1fr)}
+      .chart-section-title-big{font-size:24px}
     }
   </style>
 </head>
@@ -251,7 +253,7 @@
       <!-- ① 차트 2칸 나란히 -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div class="chart-section">
-          <div class="chart-section-title">&#128202; 영업이익 추이</div>
+          <div class="chart-section-title chart-section-title-big">&#128202; 영업이익 추이</div>
           <div class="chart-section-sub">
             흑자 <span style="color:var(--blue)">&#9646; 파란색 &#8593;</span> &nbsp;/&nbsp;
             적자 <span style="color:var(--red)">&#9646; 빨간색 &#8595;</span> &nbsp;&#183;&nbsp; 단위: 만원
@@ -259,7 +261,7 @@
           <div class="chart-inner" id="profitChartWrap"></div>
         </div>
         <div class="chart-section">
-          <div class="chart-section-title">&#128176; 누적 자금수지 추이</div>
+          <div class="chart-section-title chart-section-title-big">&#128176; 누적 자금수지 추이</div>
           <div class="chart-section-sub">
             플러스 <span style="color:var(--blue)">&#9646; 파란색 &#8593;</span> &nbsp;/&nbsp;
             마이너스 <span style="color:var(--red)">&#9646; 빨간색 &#8595;</span> &nbsp;&#183;&nbsp; 단위: 만원
@@ -294,13 +296,7 @@
 
       <!-- ④ 월별 개별 시나리오 -->
       <div class="target-card">
-        <div class="target-label">
-          6~12월 매출 빠른 시나리오 조정 (%)
-          <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:8px">각 월 독립적으로 조정 가능 · 아래 표에서 직접 입력하면 그 항목은 이 %보다 우선 적용됩니다</span>
-        </div>
-        <div class="month-scenario-grid" id="monthScenarioGrid"></div>
-        <div class="scenario-summary" id="scenarioSummary"></div>
-        <div class="target-label" style="margin-top:20px;display:flex;align-items:center;justify-content:space-between">
+        <div class="target-label" style="display:flex;align-items:center;justify-content:space-between">
           <span>6~12월 월별 항목 직접 수정
             <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:8px">매출·고정비·발주비·광고비·변동비·상환비를 직접 입력 — 우측 영업이익과 상단 그래프·전체 대시보드에 바로 반영됩니다</span>
           </span>
@@ -690,7 +686,7 @@ function renderBarChart(cid,rows,field){
     svg+='<rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+barH.toFixed(1)+'" fill="'+color+'" rx="3" opacity="0.88"/>';
     var lbl=fmtKoreanShort(val);
     var lblY=isPos?(by-3):(by+barH+11);
-    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+lblY.toFixed(1)+'" text-anchor="middle" fill="'+color+'" font-size="11.5" font-family="DM Mono,monospace" font-weight="700">'+lbl+'</text>';
+    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+lblY.toFixed(1)+'" text-anchor="middle" fill="'+color+'" font-size="9" font-family="DM Mono,monospace" font-weight="700">'+lbl+'</text>';
     svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(H-5).toFixed(1)+'" text-anchor="middle" fill="'+monthLabelColor+'" font-size="12" font-family="Pretendard,sans-serif" font-weight="500">'+months[i]+'</text>';
   }
   el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">'+svg+'</svg>';
@@ -1095,8 +1091,6 @@ function fmtKorean(v,showSign){
 window.addEventListener('DOMContentLoaded',function(){
   var savedTheme=localStorage.getItem('rmv2_theme')||'dark';
   setTheme(savedTheme);
-  buildMonthScenarioUI();
-  updateScenarioSummary();
   fetchSheetData();
 });
 
