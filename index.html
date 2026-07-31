@@ -319,7 +319,7 @@
         </div>
         <div class="repay-progress-wrap">
           <div class="repay-progress-header">
-            <span style="font-size:14px;color:var(--text-sub)">상환 진행률 (목표 1.5억 · 이번 달까지 누적 기준)</span>
+            <span style="font-size:14px;color:var(--text-sub)">상환 진행률 (목표 3.27억 · 이번 달까지 누적 기준)</span>
             <span id="repayProgressPct" style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--yellow)">0%</span>
           </div>
           <div class="repay-progress-track">
@@ -329,7 +329,7 @@
         </div>
         <div style="font-size:14px;font-weight:600;color:var(--text-sub);margin-bottom:8px;">
           월별 상환 내역
-          <span style="font-size:12px;font-weight:400;color:var(--text-muted);margin-left:6px">구글 스프레드시트 H열(상환비) 값을 그대로 표시 · 목표 합계 1억 5천</span>
+          <span style="font-size:12px;font-weight:400;color:var(--text-muted);margin-left:6px">구글 스프레드시트 H열(상환비) 값을 그대로 표시 · 목표 합계 3억 2,700만</span>
         </div>
         <div class="repay-months-row" id="repaySection"></div>
       </div>
@@ -426,7 +426,7 @@ var DASHBOARD_YEAR = 2026;
 
 var SCENARIO_OPTIONS = [-20,-15,-10,-5,0,5,10,15,20];
 var FUTURE_MONTHS    = ['26-06','26-07','26-08','26-09','26-10','26-11','26-12'];
-var TOTAL_REPAY_GOAL = 15000;
+var TOTAL_REPAY_GOAL = 32700; // 목표 상환금액: 3억 2천 7백만원
 
 // 이 대시보드는 아래 스프레드시트에 고정 연동됩니다 (설정 UI 없음)
 var SHEET_ID            = '1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI';
@@ -925,7 +925,7 @@ function renderKPI(rows){
   var items=[
     {label:'연간 전체매출 예상',value:fmtKorean(totalRevenue),sub:fmt(Math.round(totalRevenue))+'만원',cls:'blue'},
     {label:'연간 영업이익 예상',value:fmtKorean(totalProfit,true),sub:fmt(Math.round(Math.abs(totalProfit)))+'만원',cls:totalProfit>=0?'green':'red'},
-    {label:'연간 누적 상환액',value:fmtKorean(totalRepay),sub:'목표 1.5억',cls:'yellow'},
+    {label:'연간 누적 상환액',value:fmtKorean(totalRepay),sub:'목표 3.27억',cls:'yellow'},
     {label:'연간 총 상환 진행률',value:repayProgressPct+'%',sub:'잔여 '+fmtKorean(repayRemain)+' · 이번 달까지 누적 기준',cls:'yellow'},
   ];
   document.getElementById('kpiGrid').innerHTML=items.map(function(it){
@@ -1017,7 +1017,7 @@ function renderRepay(rows){
   document.getElementById('repayTotal').textContent='연간 계획 총액 '+fmtKorean(annualTotal)+' · 26년 '+curMonthLabel+'까지 누적 '+fmtKorean(cumulative);
   document.getElementById('repayProgressBar').style.width=pct+'%';
   document.getElementById('repayProgressPct').textContent=pct+'%';
-  document.getElementById('repayProgressSub').textContent='26년 '+curMonthLabel+'까지 누적 '+fmtKorean(cumulative)+' 상환 / 목표 1.5억 · 잔여 '+fmtKorean(Math.max(0,TOTAL_REPAY_GOAL-cumulative));
+  document.getElementById('repayProgressSub').textContent='26년 '+curMonthLabel+'까지 누적 '+fmtKorean(cumulative)+' 상환 / 목표 3.27억 · 잔여 '+fmtKorean(Math.max(0,TOTAL_REPAY_GOAL-cumulative));
   var repayRows=rows.filter(function(r){return r.repay>0});
   document.getElementById('repaySection').innerHTML=repayRows.map(function(r){
     var isPast=rows.indexOf(r)<=curIdx;
