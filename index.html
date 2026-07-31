@@ -328,9 +328,11 @@
 
       <!-- ⑤-2 비용 구성 비율 비교 (25년 vs 26년) -->
       <div class="chart-section">
-        <div class="chart-section-title chart-section-title-big">&#128201; 비용 구성 비율 비교 <span style="font-weight:400;color:var(--text-muted);font-size:11px">25년(빨강) vs 26년(파랑, 굵은선) · 항목별 매출 대비 비율(%) 추이</span></div>
-        <div class="ratio-tab-row" id="ratioTabRow"></div>
-        <div class="ratio-compare-avg" id="ratioCompareAvg"></div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div class="chart-section-title chart-section-title-big" style="margin-bottom:0">&#128201; 비용 구성 비율 비교 <span style="font-weight:400;color:var(--text-muted);font-size:11px">25년(빨강) vs 26년(파랑, 굵은선) · 항목별 매출 대비 비율(%) 추이</span></div>
+          <div class="ratio-tab-row" id="ratioTabRow" style="margin-bottom:0"></div>
+        </div>
+        <div class="ratio-compare-avg" id="ratioCompareAvg" style="margin-top:14px"></div>
         <div class="chart-inner" id="ratioCompareChartWrap"></div>
       </div>
 
@@ -445,7 +447,8 @@ var monthOverrides = {}; // { '26-06': {revenue:.., fixed:.., order:.., ad:.., v
 // BP사에 25년 9~12월 발생분(1억 4,500만)을 25년에 지급하지 않고 26년 2/3/4월에 나눠 지급 —
 // '연간 총 발주비 대비' 왜곡을 보고 싶을 때 이 지연 지급분을 제외해 볼 수 있는 토글
 var BP_EXCLUDE_ACTIVE = false;
-var BP_EXCLUDE_AMOUNTS = {'26-02':7100,'26-03':3700,'26-04':3700}; // 만원
+var BP_EXCLUDE_AMOUNTS = {'26-02':7100,'26-03':3700,'26-04':3700}; // 만원 — 26년에서 뺄 금액
+var BP_ACCRUAL_2025 = {9:6700, 10:7500, 11:300, 12:100}; // 만원 — 'BP 제외'(발생주의 보정) 시 25년에 더할 금액 (월 번호 기준)
 
 // 25년 확정 데이터 (비용 구성 비율 비교용) — 단위: 만원 (사용자 제공, 전부 확정치)
 var HIST_2025 = [
@@ -808,7 +811,11 @@ function renderRatioCompare(rows){
   var pct2025=[],pct2026=[];
   for(var m=1;m<=12;m++){
     var h=HIST_2025[m-1];
-    pct2025.push((h&&h.revenue>0)?(h[cat]/h.revenue*100):null);
+    var val2025=h?h[cat]:null;
+    if(cat==='order'&&BP_EXCLUDE_ACTIVE&&h&&BP_ACCRUAL_2025[m]!==undefined){
+      val2025=val2025+BP_ACCRUAL_2025[m];
+    }
+    pct2025.push((h&&h.revenue>0)?(val2025/h.revenue*100):null);
     var mk='26-'+pad2(m);
     var r2=null;
     for(var i=0;i<rows.length;i++){if(rows[i].month===mk){r2=rows[i];break;}}
@@ -819,7 +826,7 @@ function renderRatioCompare(rows){
   el.innerHTML='<span style="color:#f4506b;font-weight:700">25년 평균 '+(avg25!==null?avg25.toFixed(1)+'%':'—')+'</span>'+
     ' &nbsp;&#183;&nbsp; '+
     '<span style="color:#3b82f6;font-weight:700">26년 평균 '+(avg26!==null?avg26.toFixed(1)+'%':'—')+'</span>'+
-    ' &nbsp;<span style="color:var(--text-muted);font-weight:400;font-family:\'Pretendard\',sans-serif;font-size:12px">('+catLabel+' / 매출 비중)</span>';
+    ' &nbsp;<span style="color:var(--text-muted);font-weight:400;font-family:\'Pretendard\',sans-serif;font-size:12px">('+catLabel+' / 매출 비중)'+(cat==='order'&&BP_EXCLUDE_ACTIVE?' · BP 발생주의 보정 반영':'')+'</span>';
   renderRatioLineChart('ratioCompareChartWrap',pct2025,pct2026);
 }
 
@@ -829,9 +836,9 @@ function renderRatioLineChart(elId,pct2025,pct2026){
   var allVals=pct2025.concat(pct2026).filter(function(v){return v!==null&&v!==undefined&&!isNaN(v)});
   var maxV=Math.max.apply(null,allVals.concat([1]));
   var minV=Math.min.apply(null,allVals.concat([0]));
-  var padV=(maxV-minV)*0.18||5;
+  var padV=(maxV-minV)*0.28||6;
   var yMax=maxV+padV,yMin=Math.max(0,minV-padV);
-  var W=1000,H=280,mTop=24,mBot=34,mLeft=38,mRight=16;
+  var W=1000,H=280,mTop=40,mBot=34,mLeft=38,mRight=16;
   var chartW=W-mLeft-mRight,chartH=H-mTop-mBot;
   function xPos(i){return mLeft+chartW*(i/11);}
   function yPos(v){return mTop+chartH*(1-(v-yMin)/(yMax-yMin||1));}
@@ -861,6 +868,8 @@ function renderRatioLineChart(elId,pct2025,pct2026){
   pct2025.forEach(function(v,i){if(v===null||v===undefined||isNaN(v))return;svg+='<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(v).toFixed(1)+'" r="3" fill="#f4506b"/>';});
   svg+='<polyline points="'+buildPoints(pct2026)+'" fill="none" stroke="#3b82f6" stroke-width="4.5"/>';
   pct2026.forEach(function(v,i){if(v===null||v===undefined||isNaN(v))return;svg+='<circle cx="'+xPos(i).toFixed(1)+'" cy="'+yPos(v).toFixed(1)+'" r="4.5" fill="#3b82f6"/>';});
+  pct2025.forEach(function(v,i){if(v===null||v===undefined||isNaN(v))return;svg+='<text x="'+xPos(i).toFixed(1)+'" y="'+(yPos(v)-9).toFixed(1)+'" text-anchor="middle" fill="#f4506b" font-size="10" font-family="DM Mono,monospace" font-weight="700">'+v.toFixed(1)+'%</text>';});
+  pct2026.forEach(function(v,i){if(v===null||v===undefined||isNaN(v))return;svg+='<text x="'+xPos(i).toFixed(1)+'" y="'+(yPos(v)-17).toFixed(1)+'" text-anchor="middle" fill="#3b82f6" font-size="10" font-family="DM Mono,monospace" font-weight="700">'+v.toFixed(1)+'%</text>';});
   el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">'+svg+'</svg>';
 }
 
