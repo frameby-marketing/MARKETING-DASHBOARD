@@ -1099,8 +1099,10 @@ function getCurrentRowIndex(rows){
 }
 
 function renderBreakeven(rows){
+  if(!rows.length)return; // 데이터 로딩 전(초기 렌더)에는 아직 표시할 게 없으므로 건너뜀
   var idx=getCurrentRowIndex(rows);
   var row=rows[idx];
+  if(!row)return;
   var mm=row.month.split('-')[1];
   var lbl='26년 '+mm+'월';
   document.getElementById('beCurrentLabel').textContent=lbl+' 현재 매출';
@@ -1248,8 +1250,8 @@ function fmtKorean(v,showSign){
 
 window.addEventListener('DOMContentLoaded',function(){
   var savedTheme=localStorage.getItem('rmv2_theme')||'dark';
-  setTheme(savedTheme);
-  buildRatioTabs();
+  try{ setTheme(savedTheme); }catch(e){ console.error('setTheme 초기화 실패:', e); }
+  try{ buildRatioTabs(); }catch(e){ console.error('buildRatioTabs 초기화 실패:', e); }
   fetchSheetData();
 });
 
