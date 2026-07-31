@@ -1,6 +1,3 @@
-<script src="https://frameby-marketing.github.io/Dashboard_Hub/nav.js"></script>
-
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -230,7 +227,7 @@
             <div class="sync-dot" id="syncDot"></div>
             <span id="syncText">연결 대기</span>
           </div>
-          <a class="header-action-btn" id="sheetLinkBtn" href="#" target="_blank" rel="noopener">
+          <a class="header-action-btn" id="sheetLinkBtn" href="https://docs.google.com/spreadsheets/d/1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI/edit?gid=0#gid=0" target="_blank" rel="noopener">
             <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><path d="M15 3h6v6"/><path d="M10 14 21 3"/></svg>
             스프레드시트
           </a>
@@ -451,13 +448,6 @@ function switchTab(tab){
   var navBtn=document.querySelector('[data-tab="'+tab+'"]');
   if(navBtn)navBtn.classList.add('active');
   if(tab==='weekly')renderWeeklyTab();
-}
-
-function initSheetLinkBtn(){
-  var btn=document.getElementById('sheetLinkBtn');
-  if(!btn)return;
-  btn.href='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/edit';
-  btn.title='연동된 스프레드시트 열기 (새 탭)';
 }
 
 var lastFetchAt = 0;
@@ -681,7 +671,7 @@ function renderBarChart(cid,rows,field){
     svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+lblY.toFixed(1)+'" text-anchor="middle" fill="'+color+'" font-size="8.5" font-family="DM Mono,monospace" font-weight="600">'+lbl+'</text>';
     svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(H-5).toFixed(1)+'" text-anchor="middle" fill="'+monthLabelColor+'" font-size="9.5" font-family="Pretendard,sans-serif">'+months[i]+'</text>';
   }
-  el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'">'+svg+'</svg>';
+  el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">'+svg+'</svg>';
 }
 
 function fmtKoreanShort(v){
@@ -1049,7 +1039,6 @@ function fmtKorean(v,showSign){
 window.addEventListener('DOMContentLoaded',function(){
   var savedTheme=localStorage.getItem('rmv2_theme')||'dark';
   setTheme(savedTheme);
-  initSheetLinkBtn();
   buildMonthScenarioUI();
   updateScenarioSummary();
   fetchSheetData();
