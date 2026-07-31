@@ -104,6 +104,10 @@
     .ratio-tab:hover{border-color:var(--accent);color:var(--text)}
     .ratio-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;box-shadow:0 2px 8px var(--accent-glow, rgba(99,102,241,.35))}
     .ratio-compare-avg{font-size:15px;margin-bottom:10px;font-family:'DM Mono',monospace}
+    .avg-compare-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+    .avg-compare-card{background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 8px 10px;text-align:center}
+    .avg-compare-label{font-size:13px;font-weight:600;color:var(--text-sub);margin-bottom:4px}
+    .avg-compare-diff{font-size:12px;color:var(--text-muted);margin-top:4px;font-family:'DM Mono',monospace}
 
     /* WEEKLY CHECK */
     .week-pill-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px}
@@ -220,6 +224,7 @@
     @media(max-width:900px){
       .kpi-grid{grid-template-columns:repeat(2,1fr)}
       .ratio-grid{grid-template-columns:repeat(2,1fr)}
+      .avg-compare-grid{grid-template-columns:repeat(3,1fr)}
       .chart-grid{grid-template-columns:1fr}
       .settings-grid{grid-template-columns:1fr}
       .month-scenario-grid{grid-template-columns:repeat(4,1fr)}
@@ -331,6 +336,12 @@
         <div class="ratio-compare-avg" id="ratioCompareAvg"></div>
         <div class="ratio-tab-row" id="ratioTabRow"></div>
         <div class="chart-inner" id="ratioCompareChartWrap"></div>
+      </div>
+
+      <!-- ⑤-3 월평균 비용 비교 (25년 vs 26년, 금액) -->
+      <div class="chart-section">
+        <div class="chart-section-title chart-section-title-big">&#128176; 월평균 비용 비교 <span style="font-weight:400;color:var(--text-muted);font-size:11px">25년(빨강) vs 26년(파랑) · 항목별 월평균 금액(만원) · 발주비는 상단 'BP 제외' 설정에 연동</span></div>
+        <div class="avg-compare-grid" id="avgCompareGrid"></div>
       </div>
 
       <!-- ⑥ 상환 계획 -->
@@ -870,6 +881,75 @@ function renderRatioLineChart(elId,pct2025,pct2026){
   el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">'+svg+'</svg>';
 }
 
+// ===== 월평균 비용 비교 (25년 vs 26년, 금액) =====
+var AVG_COMPARE_CATS=[
+  {key:'revenue', label:'매출'},
+  {key:'fixed',   label:'고정비'},
+  {key:'order',   label:'발주비'},
+  {key:'ad',      label:'광고비'},
+  {key:'variable',label:'변동비'},
+  {key:'repay',   label:'상환비'},
+];
+
+function get2025MonthlyAvg(key){
+  var sum=0;
+  HIST_2025.forEach(function(h){
+    var v=(key==='revenue')?h.revenue:h[key];
+    if(key==='order'&&BP_EXCLUDE_ACTIVE&&BP_ACCRUAL_2025[h.month]!==undefined){
+      v=v+BP_ACCRUAL_2025[h.month];
+    }
+    sum+=v;
+  });
+  return HIST_2025.length?sum/HIST_2025.length:0;
+}
+
+function get2026MonthlyAvg(rows,key){
+  if(!rows.length)return 0;
+  var sum=rows.reduce(function(s,r){
+    var v=(key==='revenue')?r.revenueAdj:r[key];
+    return s+v;
+  },0);
+  return sum/rows.length;
+}
+
+function renderAvgCompare(rows){
+  var el=document.getElementById('avgCompareGrid');
+  if(!el)return;
+  el.innerHTML=AVG_COMPARE_CATS.map(function(c){
+    var val25=get2025MonthlyAvg(c.key);
+    var val26=get2026MonthlyAvg(rows,c.key);
+    return buildAvgCompareCard(c.label,val25,val26);
+  }).join('');
+}
+
+function buildAvgCompareCard(label,val25,val26){
+  var maxV=Math.max(Math.abs(val25),Math.abs(val26),1);
+  var W=180,H=168,mTop=26,mBot=38,barW=38,gap=22;
+  var chartH=H-mTop-mBot;
+  var totalW=barW*2+gap;
+  var startX=(W-totalW)/2;
+  var x25=startX,x26=startX+barW+gap;
+  var h25=Math.max(2,(Math.abs(val25)/maxV)*chartH);
+  var h26=Math.max(2,(Math.abs(val26)/maxV)*chartH);
+  var y25=mTop+chartH-h25;
+  var y26=mTop+chartH-h26;
+  var diffPct=(val25!==0)?((val26-val25)/Math.abs(val25)*100):null;
+  var diffArrow=diffPct===null?'':(diffPct>0.05?' &#9650;':diffPct<-0.05?' &#9660;':'');
+  var diffText=diffPct===null?'—':(diffPct>=0?'+':'')+diffPct.toFixed(1)+'%';
+  var svg='';
+  svg+='<rect x="'+x25+'" y="'+y25.toFixed(1)+'" width="'+barW+'" height="'+h25.toFixed(1)+'" fill="#f4506b" rx="3" opacity="0.9"/>';
+  svg+='<text x="'+(x25+barW/2)+'" y="'+(y25-6).toFixed(1)+'" text-anchor="middle" fill="#f4506b" font-size="10" font-weight="700" font-family="DM Mono,monospace">'+fmtKorean(val25)+'</text>';
+  svg+='<text x="'+(x25+barW/2)+'" y="'+(mTop+chartH+16).toFixed(1)+'" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-family="Pretendard,sans-serif">25년</text>';
+  svg+='<rect x="'+x26+'" y="'+y26.toFixed(1)+'" width="'+barW+'" height="'+h26.toFixed(1)+'" fill="#3b82f6" rx="3" opacity="0.9"/>';
+  svg+='<text x="'+(x26+barW/2)+'" y="'+(y26-6).toFixed(1)+'" text-anchor="middle" fill="#3b82f6" font-size="10" font-weight="700" font-family="DM Mono,monospace">'+fmtKorean(val26)+'</text>';
+  svg+='<text x="'+(x26+barW/2)+'" y="'+(mTop+chartH+16).toFixed(1)+'" text-anchor="middle" fill="var(--text-muted)" font-size="10" font-family="Pretendard,sans-serif">26년</text>';
+  return'<div class="avg-compare-card">'+
+    '<div class="avg-compare-label">'+label+'</div>'+
+    '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block">'+svg+'</svg>'+
+    '<div class="avg-compare-diff">26/25 '+diffText+diffArrow+'</div>'+
+  '</div>';
+}
+
 function getWeek1Monday(year){
   var jan1=new Date(year,0,1);
   var day=jan1.getDay();
@@ -1223,6 +1303,7 @@ function renderAll(){
   renderKPI(rows);
   renderCostRatio(rows);
   renderRatioCompare(rows);
+  renderAvgCompare(rows);
   renderBreakeven(rows);
   renderTargetTable(rows);
   renderRepay(rows);
