@@ -105,10 +105,11 @@
     .ratio-grid .kpi-label{font-size:13px}
     #weeklyCheckGridRevenue .kpi-label,#weeklyCheckGridAdOrder .kpi-label,#weeklyCheckGridCost .kpi-label{font-size:16px;color:#fff;font-weight:700;text-transform:none;letter-spacing:0}
     html.light #weeklyCheckGridRevenue .kpi-label,html.light #weeklyCheckGridAdOrder .kpi-label,html.light #weeklyCheckGridCost .kpi-label{color:var(--text)}
-    #weeklyCheckGridRevenue .check-subtext-white,#weeklyCheckGridAdOrder .check-subtext-white,#weeklyCheckGridCost .check-subtext-white{color:#fff}
+    #weeklyCheckGridRevenue .check-subtext-white,#weeklyCheckGridAdOrder .check-subtext-white,#weeklyCheckGridCost .check-subtext-white{color:#fff;font-size:13px!important}
     html.light #weeklyCheckGridRevenue .check-subtext-white,html.light #weeklyCheckGridAdOrder .check-subtext-white,html.light #weeklyCheckGridCost .check-subtext-white{color:var(--text)}
-    .check-note-box{margin-top:6px;padding:6px 8px;background:var(--bg-card2);border-radius:6px;border-left:3px solid var(--yellow);font-weight:500;font-size:12px!important;color:var(--text-sub)!important}
+    .check-note-box{margin-top:6px;padding:6px 8px;background:var(--bg-card2);border-radius:6px;border-left:3px solid var(--yellow);font-weight:500;font-size:13px!important;color:var(--text-sub)!important}
     .check-status-tight{letter-spacing:-0.4px;word-spacing:-1px}
+    .check-icon-big{font-size:1.35em;vertical-align:-0.06em;display:inline-block}
     .ratio-grid .kpi-value{font-size:28px}
     .ratio-grid .kpi-sub{font-size:13px}
     #weeklyCheckGridRevenue{grid-template-columns:repeat(2,1fr)}
@@ -1334,8 +1335,11 @@ function renderWeeklyTab(){
 }
 
 function pctSuffix(pct){
-  return(pct!==null&&pct!==undefined&&!isNaN(pct))?' ('+pct.toFixed(1)+'%)':'';
+  return(pct!==null&&pct!==undefined&&!isNaN(pct))?'&#8201;('+pct.toFixed(1)+'%)':'';
 }
+
+function checkIcon(){return'<span class="check-icon-big">&#10003;</span>';}
+function warnIcon(){return'<span class="check-icon-big">&#9888;</span>';}
 
 function buildCheckMiniBar(expectedVal,actualVal,lowerIsBetter){
   var hasExp=expectedVal!==null&&expectedVal!==undefined;
@@ -1418,13 +1422,12 @@ function buildDailyCheckCard(label,actualVal,expectedVal,goodGe,settleVal,settle
     var pct=expectedVal!==0?(actualVal/expectedVal*100):null;
     var good=pct!==null&&(goodGe?pct>=100:pct<=100);
     color=pct!==null?(good?'var(--green)':'var(--red)'):'var(--text-muted)';
-    var pctStr=pct!==null?' ('+pct.toFixed(1)+'%)':'';
     if(pct===null){
       statusText='계산 불가';
     }else if(good){
-      statusText='&#10003;계획대로&#8201;진행'+pctStr;
+      statusText=checkIcon()+'계획대로&#8201;진행'+pctSuffix(pct);
     }else{
-      statusText=(goodGe?'&#9888;예상&#8201;미달':'&#9888;예상&#8201;초과')+pctStr;
+      statusText=warnIcon()+(goodGe?'예상&#8201;미달':'예상&#8201;초과')+pctSuffix(pct);
     }
     var diff=actualVal-expectedVal;
     subText=diff>=0?'예상대비 실적 '+fmt(diff)+'만원/일 초과':'예상대비 실적 '+fmt(-diff)+'만원/일 미달';
@@ -1455,8 +1458,8 @@ function buildExactCheckCard(label,expectedVal,actualVal,note){
       var diff=actualVal-expectedVal;
       var over=diff>0;
       color=over?'var(--red)':'var(--green)';
-      var pctStr=expectedVal!==0?' ('+(actualVal/expectedVal*100).toFixed(1)+'%)':'';
-      statusText=over?('&#9888;예상&#8201;초과'+pctStr):('&#10003;계획대로&#8201;집행'+pctStr);
+      var pct=expectedVal!==0?(actualVal/expectedVal*100):null;
+      statusText=over?(warnIcon()+'예상&#8201;초과'+pctSuffix(pct)):(checkIcon()+'계획대로&#8201;집행'+pctSuffix(pct));
       subText=diff===0?'예상과 정확히 일치':(over?'예상대비 '+fmt(diff)+'만원 초과':'예상대비 '+fmt(-diff)+'만원 미달');
     }else{
       color='var(--text-muted)';
