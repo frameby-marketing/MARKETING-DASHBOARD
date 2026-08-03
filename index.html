@@ -10,6 +10,7 @@
   <!-- BUILD: 2026-08-03 rev-weekly-fixed-variable-repay-cols-LMN-OPQ-RST -->
   <script>console.log('[진단] 대시보드 빌드: 2026-08-03 rev-weekly-fixed-variable-repay-cols-LMN-OPQ-RST — 이 로그가 안 보이면 캐시된 구버전 파일을 보고 있는 것입니다.');</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -128,6 +129,14 @@
     .detail-table td:last-child{text-align:left;color:var(--text-muted);font-family:'Pretendard',sans-serif;font-size:12px}
     .detail-table tr:last-child td{border-bottom:none}
     .detail-table tr.detail-total-row td{font-weight:700;border-top:2px solid var(--border-light);background:var(--bg-card2)}
+    .detail-auth-gate{text-align:center;padding:16px 8px 8px}
+    .detail-auth-gate-icon{font-size:42px;margin-bottom:16px}
+    .detail-auth-gate h2{font-size:19px;font-weight:800;color:var(--text);margin-bottom:12px}
+    .detail-auth-gate p{font-size:13.5px;line-height:1.6;color:var(--text-sub);margin-bottom:22px}
+    .detail-gate-signin-btn{width:100%;max-width:340px;background:#4285F4;color:#fff;border:none;padding:13px 20px;border-radius:12px;font-size:14.5px;font-weight:700;cursor:pointer;transition:opacity .15s ease}
+    .detail-gate-signin-btn:hover{opacity:.9}
+    .detail-gate-signin-btn:disabled{opacity:.6;cursor:not-allowed}
+    .detail-auth-gate-error{margin-top:14px;font-size:12.5px;color:var(--red)}
     .ratio-grid .kpi-value{font-size:28px}
     .ratio-grid .kpi-sub{font-size:13px}
     #weeklyCheckGridRevenue{grid-template-columns:repeat(2,1fr)}
@@ -654,9 +663,19 @@ var WEEKLY_SHEET_RANGE  = 'A1:T300';
 var INIT_BALANCE        = 0;
 
 // 고정비/변동비/상환비 상세 내역 (주차별로 시트가 하나씩 생김: '31주차','32주차',...)
+// 이 시트는 초대된 2명의 구글 계정으로만 접근이 제한되어 있어 구글 로그인(OAuth)이 필요함
 var DETAIL_SHEET_ID     = '1ZFanVDltvLOIXR0eH5yn8l-E2KVWNQL-pMbxlrLmJCM';
 var DETAIL_SHEET_RANGE  = 'A1:F300';
 var detailCache = {}; // { weekNum: [{category,item,expected,actual,diff,reason}, ...] }
+
+// 상세내역(고정비/변동비/상환비) 시트 접근용 구글 OAuth 클라이언트 ID
+var DETAIL_OAUTH_CLIENT_ID = '691753741006-9i13kjkk3ci2jv6lr6rupa491j7rlb64.apps.googleusercontent.com';
+var DETAIL_OAUTH_SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly';
+var detailTokenClient = null;
+var detailAccessToken = null;
+var pendingDetailRequest = null; // 로그인 후 이어서 열어줄 요청 {weekNum, category}
+var DETAIL_AUTH_EXPIRED = '__DETAIL_AUTH_EXPIRED__';
+var DETAIL_FORBIDDEN = '__DETAIL_FORBIDDEN__';
 
 var AUTO_REFRESH_MS = 300000; // 실시간 반영을 위한 자동 새로고침 주기(ms) — 5분
 var pollTimerId = null;
@@ -755,31 +774,33 @@ async function fetchDetailSheetRows(weekNum){
   if(detailCache[weekNum])return detailCache[weekNum];
   var sheetName=weekNum+'주차';
   var range=encodeURIComponent(quoteSheetName(sheetName)+'!'+DETAIL_SHEET_RANGE);
-  var url='https://docs.google.com/spreadsheets/d/'+DETAIL_SHEET_ID+'/gviz/tq?tqx=out:csv&range='+range+'&_ts='+Date.now();
-  var result=[];
+  var url='https://sheets.googleapis.com/v4/spreadsheets/'+DETAIL_SHEET_ID+'/values/'+range+'?valueRenderOption=UNFORMATTED_VALUE&_ts='+Date.now();
   try{
-    var res=await fetch(url,{cache:'no-store'});
+    var res=await fetch(url,{headers:{Authorization:'Bearer '+detailAccessToken}});
+    if(res.status===401)return DETAIL_AUTH_EXPIRED;
+    if(res.status===403)return DETAIL_FORBIDDEN;
     if(!res.ok)throw new Error('HTTP '+res.status);
-    var text=await res.text();
-    var csvRows=parseCsvRows(text);
-    if(csvRows.length>=2){
-      result=csvRows.slice(1).map(function(c){
+    var json=await res.json();
+    var values=json.values||[];
+    var result=[];
+    if(values.length>=2){
+      result=values.slice(1).map(function(c){
         return{
-          category:(c[0]||'').trim(),
-          item:(c[1]||'').trim(),
+          category:String(c[0]==null?'':c[0]).trim(),
+          item:String(c[1]==null?'':c[1]).trim(),
           expected:parseAccountingNumber(c[2]),
           actual:parseAccountingNumber(c[3]),
           diff:parseAccountingNumber(c[4]),
-          reason:(c[5]||'').trim(),
+          reason:String(c[5]==null?'':c[5]).trim(),
         };
       }).filter(function(r){return r.category||r.item;});
     }
+    detailCache[weekNum]=result;
+    return result;
   }catch(e){
     console.warn('[진단] 상세내역 로드 실패 ('+sheetName+'):',e.message);
-    result=null;
+    return null;
   }
-  detailCache[weekNum]=result;
-  return result;
 }
 
 function parseWeeklyCSV(text){
@@ -1379,13 +1400,104 @@ function getWeeklyExpected(rows,range){
 
 async function openDetailModal(weekNum,category){
   var overlay=document.getElementById('detailModalOverlay');
-  var titleEl=document.getElementById('detailModalTitle');
-  var bodyEl=document.getElementById('detailModalBody');
-  titleEl.textContent=weekNum+'주차 · '+category+' 상세 내역';
-  bodyEl.innerHTML='<div class="kpi-sub" style="padding:24px;text-align:center">불러오는 중...</div>';
   overlay.classList.add('show');
+
+  var token=detailAccessToken||getCachedDetailToken();
+  if(!token){
+    pendingDetailRequest={weekNum:weekNum,category:category};
+    renderDetailAuthGate();
+    return;
+  }
+  detailAccessToken=token;
+  document.getElementById('detailModalTitle').textContent=weekNum+'주차 · '+category+' 상세 내역';
+  document.getElementById('detailModalBody').innerHTML='<div class="kpi-sub" style="padding:24px;text-align:center">불러오는 중...</div>';
   var rows=await fetchDetailSheetRows(weekNum);
+  if(rows===DETAIL_AUTH_EXPIRED){
+    detailAccessToken=null;
+    try{localStorage.removeItem('detail_sheet_token');}catch(e){}
+    pendingDetailRequest={weekNum:weekNum,category:category};
+    renderDetailAuthGate();
+    return;
+  }
+  if(rows===DETAIL_FORBIDDEN){
+    document.getElementById('detailModalTitle').textContent='접근 권한 없음';
+    document.getElementById('detailModalBody').innerHTML='<div class="detail-auth-gate"><div class="detail-auth-gate-icon">&#128683;</div><h2>접근 권한이 없습니다</h2><p>로그인하신 구글 계정은 이 상세내역 시트에 접근 권한이 없습니다.<br>시트 접근 권한이 있는 계정으로 다시 로그인해주세요.</p><button class="detail-gate-signin-btn" onclick="detailSignOutAndRetry('+weekNum+',\''+category+'\')">다른 계정으로 로그인</button></div>';
+    return;
+  }
   renderDetailModalTable(rows,category);
+}
+
+function renderDetailAuthGate(){
+  document.getElementById('detailModalTitle').textContent='로그인 필요';
+  document.getElementById('detailModalBody').innerHTML=
+    '<div class="detail-auth-gate">'+
+      '<div class="detail-auth-gate-icon">&#128274;</div>'+
+      '<h2>Google 계정 로그인이 필요합니다</h2>'+
+      '<p>이 표는 초대된 구글 계정에만 공개되어 있습니다.<br>시트 접근 권한이 있는 계정으로 로그인해주세요.</p>'+
+      '<button class="detail-gate-signin-btn" id="detailGateSigninBtn" onclick="detailGateSignIn()">Google 계정으로 로그인</button>'+
+      '<div class="detail-auth-gate-error" id="detailAuthGateError"></div>'+
+    '</div>';
+}
+
+function showDetailAuthError(msg){
+  var el=document.getElementById('detailAuthGateError');
+  if(el)el.textContent=msg;
+  var btn=document.getElementById('detailGateSigninBtn');
+  if(btn){btn.disabled=false;btn.textContent='Google 계정으로 로그인';}
+}
+
+function getCachedDetailToken(){
+  try{
+    var raw=localStorage.getItem('detail_sheet_token');
+    if(!raw)return null;
+    var obj=JSON.parse(raw);
+    if(obj&&obj.token&&obj.expiresAt&&obj.expiresAt>Date.now()+30000)return obj.token;
+  }catch(e){}
+  return null;
+}
+
+function initDetailAuth(){
+  function setup(){
+    if(!window.google||!google.accounts||!google.accounts.oauth2){
+      setTimeout(setup,200);
+      return;
+    }
+    detailTokenClient=google.accounts.oauth2.initTokenClient({
+      client_id:DETAIL_OAUTH_CLIENT_ID,
+      scope:DETAIL_OAUTH_SCOPE,
+      callback:function(resp){
+        if(resp.error){
+          showDetailAuthError('로그인에 실패했습니다: '+resp.error+' 다시 시도해 주세요.');
+          return;
+        }
+        detailAccessToken=resp.access_token;
+        try{localStorage.setItem('detail_sheet_token',JSON.stringify({token:resp.access_token,expiresAt:Date.now()+((resp.expires_in||3300)*1000)}));}catch(e){}
+        if(pendingDetailRequest){
+          var req=pendingDetailRequest;
+          pendingDetailRequest=null;
+          openDetailModal(req.weekNum,req.category);
+        }
+      },
+    });
+  }
+  setup();
+}
+
+function detailGateSignIn(){
+  var btn=document.getElementById('detailGateSigninBtn');
+  if(!detailTokenClient){
+    showDetailAuthError('로그인 준비 중입니다. 잠시 후 다시 시도해 주세요.');
+    return;
+  }
+  if(btn){btn.disabled=true;btn.textContent='로그인 확인 중…';}
+  detailTokenClient.requestAccessToken({prompt:'select_account'});
+}
+
+function detailSignOutAndRetry(weekNum,category){
+  detailAccessToken=null;
+  try{localStorage.removeItem('detail_sheet_token');}catch(e){}
+  pendingDetailRequest={weekNum:weekNum,category:category};
+  renderDetailAuthGate();
 }
 
 function closeDetailModal(){
@@ -1933,6 +2045,7 @@ window.addEventListener('DOMContentLoaded',function(){
   var savedTheme=localStorage.getItem('rmv2_theme')||'dark';
   try{ setTheme(savedTheme); }catch(e){ console.error('setTheme 초기화 실패:', e); }
   try{ buildRatioTabs(); }catch(e){ console.error('buildRatioTabs 초기화 실패:', e); }
+  try{ initDetailAuth(); }catch(e){ console.error('initDetailAuth 초기화 실패:', e); }
   fetchSheetData();
 });
 
