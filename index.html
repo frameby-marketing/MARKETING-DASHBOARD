@@ -484,26 +484,20 @@
       <header class="page-header">
         <div>
           <h1 class="page-title">주차별 점검</h1>
-          <p class="page-sub">매주 월요일 오후 2시 미팅 · 지난주가 계획대로 흘러갔는지 확인합니다</p>
+          <p class="page-sub">매주 월요일 오후 2시 미팅 · 지난주가 계획대로 흘러갔는지 확인합니다 (매주 월요일 자동으로 직전 주차로 갱신)</p>
         </div>
         <div style="display:flex;align-items:center;gap:10px">
           <span class="period-badge" id="weeklyRangeBadge">&#8212;</span>
         </div>
       </header>
 
-      <div class="chart-section">
-        <div class="chart-section-title chart-section-title-big">&#128197; 주차 선택</div>
-        <div class="chart-section-sub">월요일 시작 기준으로 오늘까지 완료된 지난주까지 자동 생성됩니다. &#9675; 표시는 &#39;주차별 데이터&#39; 시트에 아직 입력되지 않은 주차예요.</div>
-        <div class="week-pill-row" id="weekPillRow"></div>
-      </div>
-
       <div>
-        <div class="target-label" style="margin-bottom:8px">선택한 주차 점검 <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">매출·광고비는 일평균 달성률(매출은 계획 이상·비용은 계획 이하가 정상), 발주비·변동비·상환비는 예상=실제 일치 여부</span></div>
+        <div class="target-label" style="margin-bottom:8px">이번 점검 대상: 직전 주차 <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">매출·광고비는 일평균 실적 vs 예상(달성률), 발주비·고정비·변동비·상환비는 예상=실제 일치 여부</span></div>
         <div class="ratio-grid" id="weeklyCheckGrid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"></div>
       </div>
 
       <div class="table-card">
-        <div class="table-section-label chart-section-title-big">전체 주차 요약 <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">단위: 만원(비용) · 만원/일(매출·광고비) · 회의 때 이 표만 보면 됩니다</span></div>
+        <div class="table-section-label chart-section-title-big">전체 주차 요약 <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">단위: 만원(비용) · 만원/일(매출·광고비) · 31주차(26-07-27)부터 · 회의 때 이 표만 보면 됩니다</span></div>
         <div class="table-wrap">
           <table id="weeklyTable">
             <thead>
@@ -569,6 +563,7 @@ var weeklyRows = [];
 var weeklyRowsMap = {};
 var selectedWeekIndex = null;
 var DASHBOARD_YEAR = 2026;
+var WEEK_START_INDEX = 31; // 주차별 데이터 기록이 31주차(26-07-27)부터 시작되므로 그 이전 주차는 표시하지 않음
 
 var SCENARIO_OPTIONS = [-20,-15,-10,-5,0,5,10,15,20];
 var FUTURE_MONTHS    = ['26-06','26-07','26-08','26-09','26-10','26-11','26-12'];
@@ -603,6 +598,7 @@ function setTheme(mode){
 function switchTab(tab){
   document.querySelectorAll('.tab-content').forEach(function(el){el.classList.remove('active')});
   document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelectorAll('.top-tab').forEach(function(el){el.classList.remove('active')});
   var navBtn=document.querySelector('[data-tab="'+tab+'"]');
   if(navBtn)navBtn.classList.add('active');
   if(tab==='weekly')renderWeeklyTab();
@@ -1228,42 +1224,24 @@ function toggleBPExclude(){
   renderAll();
 }
 
-function selectWeek(w){
-  selectedWeekIndex=w;
-  renderWeeklyTab();
-}
-
 function renderWeeklyTab(){
   var elCheck=document.getElementById('weeklyCheckGrid');
   if(!elCheck)return;
   var totalWeeks=getReviewableWeekCount();
   var rows=calcRows();
 
-  if(totalWeeks===0){
-    document.getElementById('weekPillRow').innerHTML='<div class="kpi-sub" style="padding:6px 0">아직 완료된 주차가 없습니다. 1주차가 끝나는 다음 월요일부터 지난주 점검을 볼 수 있어요.</div>';
-    document.getElementById('weeklyRangeBadge').textContent='점검 가능한 주차 없음';
-    elCheck.innerHTML='';
+  if(totalWeeks<WEEK_START_INDEX){
+    document.getElementById('weeklyRangeBadge').textContent='점검 가능한 주차 없음 (31주차부터 시작)';
+    elCheck.innerHTML='<div class="kpi-sub" style="padding:6px 0">31주차(2026-07-27)가 끝나는 다음 월요일부터 점검이 시작됩니다.</div>';
     document.getElementById('weeklyTableBody').innerHTML='';
     return;
   }
 
-  if(!selectedWeekIndex||selectedWeekIndex>totalWeeks||selectedWeekIndex<1){
-    selectedWeekIndex=totalWeeks;
-  }
+  var currentWeek=totalWeeks; // 자동: 오늘 기준 직전(가장 최근 완료된) 주차
+  var range=getWeekRange(currentWeek,DASHBOARD_YEAR);
+  document.getElementById('weeklyRangeBadge').textContent=currentWeek+'주차 ('+fmtDateShort(range.start)+'~'+fmtDateShort(range.end)+') · 매주 월요일 자동 갱신';
 
-  document.getElementById('weeklyRangeBadge').textContent='1주차 ~ '+totalWeeks+'주차 (전주까지 · 매주 월요일 갱신)';
-
-  var pillHtml='';
-  for(var w=1;w<=totalWeeks;w++){
-    var range=getWeekRange(w,DASHBOARD_YEAR);
-    var hasData=!!weeklyRowsMap[fmtDateISO(range.start)];
-    var active=(w===selectedWeekIndex)?' active':'';
-    var noData=hasData?'':' no-data';
-    pillHtml+='<button class="week-pill'+active+noData+'" onclick="selectWeek('+w+')">'+w+'주차 ('+fmtDateShort(range.start)+'~'+fmtDateShort(range.end)+')'+(hasData?'':' &#9675;')+'</button>';
-  }
-  document.getElementById('weekPillRow').innerHTML=pillHtml;
-
-  renderWeeklyCheckCards(rows,selectedWeekIndex);
+  renderWeeklyCheckCards(rows,currentWeek);
   renderWeeklyTable(rows,totalWeeks);
 }
 
@@ -1334,7 +1312,7 @@ function weeklyExactTriplet(exp,act,note){
 
 function renderWeeklyTable(rows,totalWeeks){
   var body='';
-  for(var w=1;w<=totalWeeks;w++){
+  for(var w=WEEK_START_INDEX;w<=totalWeeks;w++){
     var range=getWeekRange(w,DASHBOARD_YEAR);
     var exp=getWeeklyExpected(rows,range);
     var act=weeklyRowsMap[fmtDateISO(range.start)];
