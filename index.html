@@ -105,6 +105,9 @@
     .ratio-grid .kpi-label{font-size:13px}
     #weeklyCheckGridRevenue .kpi-label,#weeklyCheckGridAdOrder .kpi-label,#weeklyCheckGridCost .kpi-label{font-size:16px;color:#fff;font-weight:700;text-transform:none;letter-spacing:0}
     html.light #weeklyCheckGridRevenue .kpi-label,html.light #weeklyCheckGridAdOrder .kpi-label,html.light #weeklyCheckGridCost .kpi-label{color:var(--text)}
+    #weeklyCheckGridRevenue .check-subtext-white,#weeklyCheckGridAdOrder .check-subtext-white,#weeklyCheckGridCost .check-subtext-white{color:#fff}
+    html.light #weeklyCheckGridRevenue .check-subtext-white,html.light #weeklyCheckGridAdOrder .check-subtext-white,html.light #weeklyCheckGridCost .check-subtext-white{color:var(--text)}
+    .check-note-box{margin-top:6px;padding:6px 8px;background:var(--bg-card2);border-radius:6px;border-left:3px solid var(--yellow);font-weight:500;font-size:12px!important;color:var(--text-sub)!important}
     .ratio-grid .kpi-value{font-size:28px}
     .ratio-grid .kpi-sub{font-size:13px}
     #weeklyCheckGridRevenue{grid-template-columns:repeat(2,1fr)}
@@ -1434,9 +1437,9 @@ function buildDailyCheckCard(label,actualVal,expectedVal,goodGe,settleVal,settle
     settleText=settleLabel+' 미입력';
   }
   return'<div class="kpi-card"><div class="kpi-label">'+label+'</div>'+
-    '<div class="kpi-value" style="color:'+color+'">'+valueText+'</div>'+
-    '<div class="kpi-sub">'+(subText||'&#8212;')+'</div>'+
-    '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+statusText+'</div>'+
+    '<div class="kpi-value" style="color:'+color+'">'+statusText+'</div>'+
+    '<div class="kpi-sub check-subtext-white">'+(subText||'&#8212;')+'</div>'+
+    '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+valueText+'</div>'+
     '<div class="kpi-sub" style="color:'+settleColor+';margin-top:2px">'+settleText+'</div>'+
     buildCheckMiniBar3(expectedVal,actualVal,settleVal,!goodGe,settleLabel)+
   '</div>';
@@ -1459,10 +1462,12 @@ function buildExactCheckCard(label,expectedVal,actualVal,note){
       statusText='비교 데이터 없음';
     }
   }
+  var noteBox=note?'<div class="kpi-sub check-note-box"><strong>특이사항</strong> '+note+'</div>':'';
   return'<div class="kpi-card"><div class="kpi-label">'+label+'</div>'+
-    '<div class="kpi-value" style="color:'+color+'">'+valueText+'</div>'+
-    '<div class="kpi-sub">'+subText+'</div>'+
-    '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+statusText+(note?' &#183; '+note:'')+'</div>'+
+    '<div class="kpi-value" style="color:'+color+'">'+statusText+'</div>'+
+    '<div class="kpi-sub check-subtext-white">'+subText+'</div>'+
+    '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+valueText+'</div>'+
+    noteBox+
     buildCheckMiniBar(expectedVal,actualVal,true)+
   '</div>';
 }
