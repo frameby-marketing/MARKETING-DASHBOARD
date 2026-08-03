@@ -604,13 +604,17 @@ function switchTab(tab){
   if(tab==='weekly')renderWeeklyTab();
 }
 
+function quoteSheetName(name){
+  return "'"+String(name).replace(/'/g,"''")+"'";
+}
+
 var lastFetchAt = 0;
 async function fetchSheetData(){
   var now=Date.now();
   if(now-lastFetchAt<1000)return; // 여러 이벤트가 거의 동시에 겹쳐 들어오는 것 방지
   lastFetchAt=now;
   setSyncStatus('loading');
-  var range=encodeURIComponent(SHEET_NAME+'!'+SHEET_RANGE);
+  var range=encodeURIComponent(quoteSheetName(SHEET_NAME)+'!'+SHEET_RANGE);
   // 캐시 방지용 타임스탬프를 붙여 시트를 수정할 때마다 최신 데이터를 가져오도록 함
   var url='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&range='+range+'&_ts='+Date.now();
   try{
@@ -629,13 +633,18 @@ async function fetchSheetData(){
 }
 
 async function fetchWeeklySheetData(){
-  var range=encodeURIComponent(WEEKLY_SHEET_NAME+'!'+WEEKLY_SHEET_RANGE);
+  var range=encodeURIComponent(quoteSheetName(WEEKLY_SHEET_NAME)+'!'+WEEKLY_SHEET_RANGE);
   var url='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&range='+range+'&_ts='+Date.now();
   try{
     var res=await fetch(url,{cache:'no-store'});
-    if(!res.ok)throw new Error();
-    parseWeeklyCSV(await res.text());
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    var text=await res.text();
+    if(!text||!text.trim()){
+      console.warn('주차별 데이터 시트가 비어있거나 시트를 찾지 못했습니다. 시트 이름이 정확히 "'+WEEKLY_SHEET_NAME+'" 인지 확인해주세요.');
+    }
+    parseWeeklyCSV(text);
   }catch(e){
+    console.warn('주차별 데이터 시트 로드 실패:', e.message, '— 시트 이름/공유 설정을 확인해주세요.');
     weeklyRows=[];weeklyRowsMap={};
   }
   renderWeeklyTab();
