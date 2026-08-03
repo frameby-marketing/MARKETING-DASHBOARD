@@ -103,6 +103,8 @@
     .ratio-grid .kpi-label{font-size:13px}
     .ratio-grid .kpi-value{font-size:28px}
     .ratio-grid .kpi-sub{font-size:13px}
+    #weeklyCheckGridRevenue{grid-template-columns:repeat(3,1fr)}
+    #weeklyCheckGridCost{grid-template-columns:repeat(4,1fr)}
     .ratio-tab-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
     .ratio-tab{padding:10px 22px;border-radius:22px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .15s}
     .ratio-tab:hover{border-color:var(--accent);color:var(--text)}
@@ -228,6 +230,8 @@
     @media(max-width:900px){
       .kpi-grid{grid-template-columns:repeat(2,1fr)}
       .ratio-grid{grid-template-columns:repeat(2,1fr)}
+      #weeklyCheckGridRevenue{grid-template-columns:repeat(2,1fr)}
+      #weeklyCheckGridCost{grid-template-columns:repeat(2,1fr)}
       .avg-compare-grid{grid-template-columns:repeat(3,1fr)}
       .chart-grid{grid-template-columns:1fr}
       .settings-grid{grid-template-columns:1fr}
@@ -493,7 +497,8 @@
 
       <div>
         <div class="target-label" style="margin-bottom:8px">이번 점검 대상: 직전 주차 <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">매출·광고비는 일평균 실적 vs 예상(달성률), 발주비·고정비·변동비·상환비는 예상=실제 일치 여부</span></div>
-        <div class="ratio-grid" id="weeklyCheckGrid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"></div>
+        <div class="ratio-grid" id="weeklyCheckGridRevenue"></div>
+        <div class="ratio-grid" id="weeklyCheckGridCost" style="margin-top:12px"></div>
       </div>
 
       <div class="table-card">
@@ -503,13 +508,13 @@
             <thead>
               <tr>
                 <th rowspan="2">주차</th><th rowspan="2">기간</th>
-                <th colspan="3">매출(자사+네이버, 일평균)</th>
-                <th colspan="3">매출(통합, 일평균)</th>
-                <th colspan="3">광고비(통합, 일평균)</th>
-                <th colspan="3">발주비</th>
-                <th colspan="3">고정비</th>
-                <th colspan="3">변동비</th>
-                <th colspan="3">상환비</th>
+                <th colspan="3" style="text-align:center">매출(자사+네이버, 일평균)</th>
+                <th colspan="3" style="text-align:center;border-right:2px solid var(--border-light)">매출(통합, 일평균)</th>
+                <th colspan="3" style="text-align:center;border-right:2px solid var(--border-light)">광고비(통합, 일평균)</th>
+                <th colspan="3" style="text-align:center;border-right:2px solid var(--border-light)">발주비</th>
+                <th colspan="3" style="text-align:center;border-right:2px solid var(--border-light)">고정비</th>
+                <th colspan="3" style="text-align:center;border-right:2px solid var(--border-light)">변동비</th>
+                <th colspan="3" style="text-align:center">상환비</th>
               </tr>
               <tr>
                 <th>실적</th><th>예상</th><th>달성률</th>
@@ -1234,7 +1239,7 @@ function toggleBPExclude(){
 }
 
 function renderWeeklyTab(){
-  var elCheck=document.getElementById('weeklyCheckGrid');
+  var elCheck=document.getElementById('weeklyCheckGridRevenue');
   if(!elCheck)return;
   var totalWeeks=getReviewableWeekCount();
   var rows=calcRows();
@@ -1242,6 +1247,7 @@ function renderWeeklyTab(){
   if(totalWeeks<WEEK_START_INDEX){
     document.getElementById('weeklyRangeBadge').textContent='점검 가능한 주차 없음 (31주차부터 시작)';
     elCheck.innerHTML='<div class="kpi-sub" style="padding:6px 0">31주차(2026-07-27)가 끝나는 다음 월요일부터 점검이 시작됩니다.</div>';
+    document.getElementById('weeklyCheckGridCost').innerHTML='';
     document.getElementById('weeklyTableBody').innerHTML='';
     return;
   }
@@ -1252,6 +1258,37 @@ function renderWeeklyTab(){
 
   renderWeeklyCheckCards(rows,currentWeek);
   renderWeeklyTable(rows,totalWeeks);
+}
+
+function buildCheckMiniBar(expectedVal,actualVal){
+  var hasExp=expectedVal!==null&&expectedVal!==undefined;
+  var hasAct=actualVal!==null&&actualVal!==undefined;
+  if(!hasExp&&!hasAct)return'';
+  var maxV=Math.max(Math.abs(hasExp?expectedVal:0),Math.abs(hasAct?actualVal:0),1);
+  var W=170,H=92,mTop=18,mBot=20,barW=36,gap=22;
+  var chartH=H-mTop-mBot;
+  var totalW=barW*2+gap;
+  var startX=(W-totalW)/2;
+  var x1=startX,x2=startX+barW+gap;
+  var h1=hasExp?Math.max(2,(Math.abs(expectedVal)/maxV)*chartH):0;
+  var h2=hasAct?Math.max(2,(Math.abs(actualVal)/maxV)*chartH):0;
+  var y1=mTop+chartH-h1,y2=mTop+chartH-h2;
+  var actColor='#8b909c';
+  if(hasExp&&hasAct){
+    actColor=actualVal>expectedVal?'#22c55e':(actualVal<expectedVal?'#ef4444':'#8b909c');
+  }
+  var svg='';
+  if(hasExp){
+    svg+='<rect x="'+x1+'" y="'+y1.toFixed(1)+'" width="'+barW+'" height="'+h1.toFixed(1)+'" fill="#8b909c" rx="3" opacity="0.55"/>';
+    svg+='<text x="'+(x1+barW/2)+'" y="'+(y1-5).toFixed(1)+'" text-anchor="middle" fill="var(--text-muted)" font-size="9.5" font-family="DM Mono,monospace">'+fmt(expectedVal)+'</text>';
+  }
+  if(hasAct){
+    svg+='<rect x="'+x2+'" y="'+y2.toFixed(1)+'" width="'+barW+'" height="'+h2.toFixed(1)+'" fill="'+actColor+'" rx="3" opacity="0.9"/>';
+    svg+='<text x="'+(x2+barW/2)+'" y="'+(y2-5).toFixed(1)+'" text-anchor="middle" fill="'+actColor+'" font-size="9.5" font-weight="700" font-family="DM Mono,monospace">'+fmt(actualVal)+'</text>';
+  }
+  svg+='<text x="'+(x1+barW/2)+'" y="'+(mTop+chartH+14).toFixed(1)+'" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="Pretendard,sans-serif">예상</text>';
+  svg+='<text x="'+(x2+barW/2)+'" y="'+(mTop+chartH+14).toFixed(1)+'" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="Pretendard,sans-serif">실적</text>';
+  return'<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block;margin-top:8px">'+svg+'</svg>';
 }
 
 function buildDailyCheckCard(label,actualVal,expectedVal,goodGe){
@@ -1270,7 +1307,9 @@ function buildDailyCheckCard(label,actualVal,expectedVal,goodGe){
   return'<div class="kpi-card"><div class="kpi-label">'+label+'</div>'+
     '<div class="kpi-value" style="color:'+color+'">'+valueText+'</div>'+
     '<div class="kpi-sub">실적 '+(hasAct?fmt(actualVal)+'만원/일':'&#8212;')+' / 예상 '+(hasExp?fmt(expectedVal)+'만원/일':'&#8212;')+'</div>'+
-    '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+statusText+'</div></div>';
+    '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+statusText+'</div>'+
+    buildCheckMiniBar(expectedVal,actualVal)+
+  '</div>';
 }
 
 function buildExactCheckCard(label,expectedVal,actualVal,note){
@@ -1286,37 +1325,44 @@ function buildExactCheckCard(label,expectedVal,actualVal,note){
   return'<div class="kpi-card"><div class="kpi-label">'+label+'</div>'+
     '<div class="kpi-value" style="color:'+color+'">'+valueText+'</div>'+
     '<div class="kpi-sub">예상 '+(hasExp?fmt(expectedVal)+'만원':'&#8212;')+'</div>'+
-    '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+statusText+(note?' &#183; '+note:'')+'</div></div>';
+    '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+statusText+(note?' &#183; '+note:'')+'</div>'+
+    buildCheckMiniBar(expectedVal,actualVal)+
+  '</div>';
 }
 
 function renderWeeklyCheckCards(rows,weekIndex){
   var range=getWeekRange(weekIndex,DASHBOARD_YEAR);
   var exp=getWeeklyExpected(rows,range);
   var act=weeklyRowsMap[fmtDateISO(range.start)];
-  var html='';
-  html+=buildDailyCheckCard('매출 점검 (자사+네이버, 일평균)', act?act.ownNaverRevenue:null, exp.ownNaver, true);
-  html+=buildDailyCheckCard('매출 점검 (통합, 일평균)', act?act.combinedRevenue:null, exp.combined, true);
-  html+=buildDailyCheckCard('광고비 점검 (통합, 일평균)', act?act.combinedAd:null, exp.ad, false);
-  html+=buildExactCheckCard('발주비 점검', act?act.expectedOrder:null, act?act.actualOrder:null, act?act.orderNote:'');
-  html+=buildExactCheckCard('고정비 점검', act?act.expectedFixed:null, act?act.actualFixed:null, act?act.fixedNote:'');
-  html+=buildExactCheckCard('변동비 점검', act?act.expectedVariable:null, act?act.actualVariable:null, act?act.variableNote:'');
-  html+=buildExactCheckCard('상환비 점검', act?act.expectedRepay:null, act?act.actualRepay:null, act?act.repayNote:'');
-  document.getElementById('weeklyCheckGrid').innerHTML=html;
+  var htmlRevenue='';
+  htmlRevenue+=buildDailyCheckCard('매출 점검 (자사+네이버, 일평균)', act?act.ownNaverRevenue:null, exp.ownNaver, true);
+  htmlRevenue+=buildDailyCheckCard('매출 점검 (통합, 일평균)', act?act.combinedRevenue:null, exp.combined, true);
+  htmlRevenue+=buildDailyCheckCard('광고비 점검 (통합, 일평균)', act?act.combinedAd:null, exp.ad, false);
+  document.getElementById('weeklyCheckGridRevenue').innerHTML=htmlRevenue;
+
+  var htmlCost='';
+  htmlCost+=buildExactCheckCard('발주비 점검', act?act.expectedOrder:null, act?act.actualOrder:null, act?act.orderNote:'');
+  htmlCost+=buildExactCheckCard('고정비 점검', act?act.expectedFixed:null, act?act.actualFixed:null, act?act.fixedNote:'');
+  htmlCost+=buildExactCheckCard('변동비 점검', act?act.expectedVariable:null, act?act.actualVariable:null, act?act.variableNote:'');
+  htmlCost+=buildExactCheckCard('상환비 점검', act?act.expectedRepay:null, act?act.actualRepay:null, act?act.repayNote:'');
+  document.getElementById('weeklyCheckGridCost').innerHTML=htmlCost;
 }
 
-function weeklyPctCell(actVal,expVal,goodGe){
-  if(actVal===null||actVal===undefined||!expVal)return'<td>&#8212;</td>';
+function weeklyPctCell(actVal,expVal,goodGe,divider){
+  var b=divider?'border-right:2px solid var(--border-light);':'';
+  if(actVal===null||actVal===undefined||!expVal)return'<td style="'+b+'">&#8212;</td>';
   var pct=actVal/expVal*100;
   var good=goodGe?pct>=95:pct<=105;
-  return'<td style="color:'+(good?'var(--green)':'var(--red)')+'">'+pct.toFixed(0)+'%</td>';
+  return'<td style="'+b+'color:'+(good?'var(--green)':'var(--red)')+'">'+pct.toFixed(0)+'%</td>';
 }
 
-function weeklyExactTriplet(exp,act,note){
+function weeklyExactTriplet(exp,act,note,divider){
   var match=(exp!==null&&exp!==undefined&&act!==null&&act!==undefined)?Math.abs(act-exp)<1:null;
   var color=match===null?'':(match?'var(--green)':'var(--red)');
+  var b=divider?'border-right:2px solid var(--border-light);':'';
   return'<td>'+(exp===null||exp===undefined?'&#8212;':fmt(exp))+'</td>'+
     '<td'+(color?' style="color:'+color+'"':'')+'>'+(act===null||act===undefined?'&#8212;':fmt(act))+'</td>'+
-    '<td style="text-align:left;color:var(--text-muted);font-family:\'Pretendard\',sans-serif;font-size:11px">'+(note||'')+'</td>';
+    '<td style="'+b+'text-align:left;color:var(--text-muted);font-family:\'Pretendard\',sans-serif;font-size:11px">'+(note||'')+'</td>';
 }
 
 function renderWeeklyTable(rows,totalWeeks){
@@ -1334,13 +1380,13 @@ function renderWeeklyTable(rows,totalWeeks){
       weeklyPctCell(act?act.ownNaverRevenue:null,exp.ownNaver,true)+
       '<td>'+c(act?act.combinedRevenue:null)+'</td>'+
       '<td>'+c(exp.combined)+'</td>'+
-      weeklyPctCell(act?act.combinedRevenue:null,exp.combined,true)+
+      weeklyPctCell(act?act.combinedRevenue:null,exp.combined,true,true)+
       '<td>'+c(act?act.combinedAd:null)+'</td>'+
       '<td>'+c(exp.ad)+'</td>'+
-      weeklyPctCell(act?act.combinedAd:null,exp.ad,false)+
-      weeklyExactTriplet(act?act.expectedOrder:null,act?act.actualOrder:null,act?act.orderNote:'')+
-      weeklyExactTriplet(act?act.expectedFixed:null,act?act.actualFixed:null,act?act.fixedNote:'')+
-      weeklyExactTriplet(act?act.expectedVariable:null,act?act.actualVariable:null,act?act.variableNote:'')+
+      weeklyPctCell(act?act.combinedAd:null,exp.ad,false,true)+
+      weeklyExactTriplet(act?act.expectedOrder:null,act?act.actualOrder:null,act?act.orderNote:'',true)+
+      weeklyExactTriplet(act?act.expectedFixed:null,act?act.actualFixed:null,act?act.fixedNote:'',true)+
+      weeklyExactTriplet(act?act.expectedVariable:null,act?act.actualVariable:null,act?act.variableNote:'',true)+
       weeklyExactTriplet(act?act.expectedRepay:null,act?act.actualRepay:null,act?act.repayNote:'')+
       '</tr>';
   }
