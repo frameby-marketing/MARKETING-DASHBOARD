@@ -43,11 +43,16 @@
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Pretendard',sans-serif;font-size:14px}
-    .top-tabs{display:flex;gap:4px;padding:10px 16px;background:var(--bg-card);border-bottom:1px solid var(--border)}
-    .top-tab{padding:9px 20px;border-radius:10px;border:none;background:none;color:var(--text-sub);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s}
-    .top-tab:hover{background:var(--bg-card2);color:var(--text)}
-    .top-tab.active{background:var(--accent);color:#fff}
-    .app{display:flex;height:calc(100vh - 48px);overflow:hidden}
+    .top-tabs{background:var(--bg-card);border-bottom:1px solid var(--border)}
+    .top-tabs-title{display:flex;align-items:center;gap:10px;padding:16px 20px 14px;font-size:19px;font-weight:700;color:var(--text)}
+    .top-tabs-title .icon{font-size:20px}
+    .top-tabs-row{display:flex;gap:30px;padding:0 20px}
+    .top-tab{background:none;border:none;padding:0 0 13px;font-size:15px;font-weight:600;color:var(--text-muted);cursor:pointer;font-family:inherit;position:relative}
+    .top-tab:hover{color:var(--text)}
+    .top-tab.active{color:var(--accent)}
+    .top-tab.active::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--accent);border-radius:2px}
+    body{display:flex;flex-direction:column}
+    .app{display:flex;flex:1;overflow:hidden;min-height:0}
 
     .sync-status{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:11px;color:var(--text-muted);background:var(--bg-card2);border:1px solid var(--border);border-radius:20px}
     .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);transition:background 0.3s}
@@ -289,8 +294,11 @@
 </head>
 <body>
 <div class="top-tabs">
-  <button class="top-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">&#128202; 통합</button>
-  <button class="top-tab" data-tab="weekly" onclick="switchTab('weekly')">&#128197; 주차별 점검</button>
+  <div class="top-tabs-title"><span class="icon">&#128200;</span><span>영업이익 · 누적 자금수지 시뮬레이션</span></div>
+  <div class="top-tabs-row">
+    <button class="top-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">통합</button>
+    <button class="top-tab" data-tab="weekly" onclick="switchTab('weekly')">주차별 점검</button>
+  </div>
 </div>
 <div class="app">
   <main class="main">
