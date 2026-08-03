@@ -700,11 +700,10 @@ function pnOrNull(v){
 }
 
 function parseWeeklyCSV(text){
-  var lines=text.trim().split('\n');
-  if(lines.length<2){weeklyRows=[];weeklyRowsMap={};return}
-  console.log('[진단] 주차별 데이터 원본 헤더 행:',lines[0]);
-  weeklyRows=lines.slice(1).map(function(line){
-    var c=splitCsvLine(line);
+  var allRows=parseCsvRows(text);
+  if(allRows.length<2){weeklyRows=[];weeklyRowsMap={};return}
+  console.log('[진단] 주차별 데이터 원본 헤더 행:',allRows[0].join(' | '));
+  weeklyRows=allRows.slice(1).map(function(c){
     return{
       startDate:normalizeDate(c[0]||''),
       endDate:normalizeDate(c[1]||''),
@@ -766,22 +765,36 @@ function stopAutoRefresh(){
   if(pollTimerId){clearInterval(pollTimerId);pollTimerId=null;}
 }
 
-function splitCsvLine(line){
-  var r=[],cur='',inQ=false;
-  for(var i=0;i<line.length;i++){
-    var ch=line[i];
-    if(ch==='"')inQ=!inQ;
-    else if(ch===','&&!inQ){r.push(cur.trim());cur='';}
-    else cur+=ch;
+// 전체 CSV 텍스트를 통째로 파싱 — 따옴표로 감싼 셀 안의 줄바꿈(엔터)·쉼표를 올바르게 처리한다.
+// (기존에는 텍스트를 먼저 '\n' 기준으로 줄 단위로 쪼갠 뒤 각 줄을 파싱했는데, 특이사항 메모처럼
+//  셀 안에 줄바꿈이 들어간 경우 그 지점에서 행이 통째로 둘로 쪼개지면서 뒤쪽 열들이 전부 유실됐음)
+function parseCsvRows(text){
+  var rows=[],row=[],field='',inQ=false;
+  for(var i=0;i<text.length;i++){
+    var ch=text[i];
+    if(inQ){
+      if(ch==='"'){
+        if(text[i+1]==='"'){field+='"';i++;}
+        else{inQ=false;}
+      }else{
+        field+=ch;
+      }
+    }else{
+      if(ch==='"'){inQ=true;}
+      else if(ch===','){row.push(field.trim());field='';}
+      else if(ch==='\r'){/* skip */}
+      else if(ch==='\n'){row.push(field.trim());rows.push(row);row=[];field='';}
+      else{field+=ch;}
+    }
   }
-  r.push(cur.trim());return r;
+  if(field!==''||row.length>0){row.push(field.trim());rows.push(row);}
+  return rows.filter(function(r){return!(r.length===1&&r[0]==='');});
 }
 
 function parseCSV(text){
-  var lines=text.trim().split('\n');
-  if(lines.length<2){useDemoData();return}
-  rawRows=lines.slice(1).map(function(line){
-    var c=splitCsvLine(line);
+  var allRows=parseCsvRows(text);
+  if(allRows.length<2){useDemoData();return}
+  rawRows=allRows.slice(1).map(function(c){
     return{month:c[0]||'',dailyAvg:pn(c[1]),revenue:pn(c[2]),
            fixed:pn(c[3]),order:pn(c[4]),ad:pn(c[5]),
            variable:pn(c[6]),repay:pn(c[7]),memo:c[8]||'',basis:c[9]||''};
