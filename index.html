@@ -108,6 +108,7 @@
     #weeklyCheckGridRevenue .check-subtext-white,#weeklyCheckGridAdOrder .check-subtext-white,#weeklyCheckGridCost .check-subtext-white{color:#fff}
     html.light #weeklyCheckGridRevenue .check-subtext-white,html.light #weeklyCheckGridAdOrder .check-subtext-white,html.light #weeklyCheckGridCost .check-subtext-white{color:var(--text)}
     .check-note-box{margin-top:6px;padding:6px 8px;background:var(--bg-card2);border-radius:6px;border-left:3px solid var(--yellow);font-weight:500;font-size:12px!important;color:var(--text-sub)!important}
+    .check-status-tight{letter-spacing:-0.4px;word-spacing:-1px}
     .ratio-grid .kpi-value{font-size:28px}
     .ratio-grid .kpi-sub{font-size:13px}
     #weeklyCheckGridRevenue{grid-template-columns:repeat(2,1fr)}
@@ -1332,6 +1333,10 @@ function renderWeeklyTab(){
   renderWeeklyTable(rows,totalWeeks);
 }
 
+function pctSuffix(pct){
+  return(pct!==null&&pct!==undefined&&!isNaN(pct))?' ('+pct.toFixed(1)+'%)':'';
+}
+
 function buildCheckMiniBar(expectedVal,actualVal,lowerIsBetter){
   var hasExp=expectedVal!==null&&expectedVal!==undefined;
   var hasAct=actualVal!==null&&actualVal!==undefined;
@@ -1406,41 +1411,37 @@ function buildDailyCheckCard(label,actualVal,expectedVal,goodGe,settleVal,settle
   var hasAct=actualVal!==null&&actualVal!==undefined;
   var hasExp=expectedVal!==null&&expectedVal!==undefined;
   var hasSet=settleVal!==null&&settleVal!==undefined;
-  var color='var(--text-muted)',statusText='실적 미입력',valueText='—',subText='';
+  var color='var(--text-muted)',statusText='실적 미입력',subText='';
   if(!hasExp){
     statusText='비교 데이터 없음';
   }else if(hasAct){
     var pct=expectedVal!==0?(actualVal/expectedVal*100):null;
-    valueText=pct!==null?pct.toFixed(1)+'%':'—';
     var good=pct!==null&&(goodGe?pct>=100:pct<=100);
     color=pct!==null?(good?'var(--green)':'var(--red)'):'var(--text-muted)';
+    var pctStr=pct!==null?' ('+pct.toFixed(1)+'%)':'';
     if(pct===null){
       statusText='계산 불가';
     }else if(good){
-      statusText='&#10003; 계획대로 진행';
+      statusText='&#10003;계획대로&#8201;진행'+pctStr;
     }else{
-      statusText=goodGe?'&#9888; 예상 미달':'&#9888; 예상 초과';
+      statusText=(goodGe?'&#9888;예상&#8201;미달':'&#9888;예상&#8201;초과')+pctStr;
     }
     var diff=actualVal-expectedVal;
     subText=diff>=0?'예상대비 실적 '+fmt(diff)+'만원/일 초과':'예상대비 실적 '+fmt(-diff)+'만원/일 미달';
   }
-  var settleText,settleColor='var(--text-muted)';
-  if(hasSet){
+  var settleText;
+  if(hasSet&&hasExp){
+    var sdiff=settleVal-expectedVal;
+    settleText=sdiff===0?'예상대비 '+settleLabel+' 정확히 일치':(sdiff>0?'예상대비 '+settleLabel+' '+fmt(sdiff)+'만원/일 초과':'예상대비 '+settleLabel+' '+fmt(-sdiff)+'만원/일 미달');
+  }else if(hasSet){
     settleText=settleLabel+' '+fmt(settleVal)+'만원/일';
-    if(hasExp){
-      var sdiff=settleVal-expectedVal;
-      var sGood=goodGe?(settleVal>=expectedVal):(settleVal<=expectedVal);
-      settleColor=sdiff===0?'var(--text-muted)':(sGood?'var(--green)':'var(--red)');
-      settleText+=' ('+(sdiff>=0?'예상대비 +':'예상대비 -')+fmt(Math.abs(sdiff))+')';
-    }
   }else{
     settleText=settleLabel+' 미입력';
   }
   return'<div class="kpi-card"><div class="kpi-label">'+label+'</div>'+
     '<div class="kpi-value" style="color:'+color+'">'+statusText+'</div>'+
     '<div class="kpi-sub check-subtext-white">'+(subText||'&#8212;')+'</div>'+
-    '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+valueText+'</div>'+
-    '<div class="kpi-sub" style="color:'+settleColor+';margin-top:2px">'+settleText+'</div>'+
+    '<div class="kpi-sub check-subtext-white" style="margin-top:2px">'+settleText+'</div>'+
     buildCheckMiniBar3(expectedVal,actualVal,settleVal,!goodGe,settleLabel)+
   '</div>';
 }
@@ -1448,14 +1449,14 @@ function buildDailyCheckCard(label,actualVal,expectedVal,goodGe,settleVal,settle
 function buildExactCheckCard(label,expectedVal,actualVal,note){
   var hasExp=expectedVal!==null&&expectedVal!==undefined;
   var hasAct=actualVal!==null&&actualVal!==undefined;
-  var color='var(--text-muted)',statusText='실적 미입력',valueText='&#8212;',subText='예상 '+(hasExp?fmt(expectedVal)+'만원':'&#8212;');
+  var color='var(--text-muted)',statusText='실적 미입력',subText='&#8212;';
   if(hasAct){
-    valueText=fmt(actualVal)+'만원';
     if(hasExp){
       var diff=actualVal-expectedVal;
       var over=diff>0;
       color=over?'var(--red)':'var(--green)';
-      statusText=over?'&#9888; 예상 초과':'&#10003; 계획대로 집행';
+      var pctStr=expectedVal!==0?' ('+(actualVal/expectedVal*100).toFixed(1)+'%)':'';
+      statusText=over?('&#9888;예상&#8201;초과'+pctStr):('&#10003;계획대로&#8201;집행'+pctStr);
       subText=diff===0?'예상과 정확히 일치':(over?'예상대비 '+fmt(diff)+'만원 초과':'예상대비 '+fmt(-diff)+'만원 미달');
     }else{
       color='var(--text-muted)';
@@ -1466,7 +1467,6 @@ function buildExactCheckCard(label,expectedVal,actualVal,note){
   return'<div class="kpi-card"><div class="kpi-label">'+label+'</div>'+
     '<div class="kpi-value" style="color:'+color+'">'+statusText+'</div>'+
     '<div class="kpi-sub check-subtext-white">'+subText+'</div>'+
-    '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+valueText+'</div>'+
     noteBox+
     buildCheckMiniBar(expectedVal,actualVal,true)+
   '</div>';
