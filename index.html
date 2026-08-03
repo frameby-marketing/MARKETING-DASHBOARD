@@ -107,7 +107,7 @@
     html.light #weeklyCheckGridRevenue .kpi-label,html.light #weeklyCheckGridAdOrder .kpi-label,html.light #weeklyCheckGridCost .kpi-label{color:var(--text)}
     #weeklyCheckGridRevenue .check-subtext-white,#weeklyCheckGridAdOrder .check-subtext-white,#weeklyCheckGridCost .check-subtext-white{color:#fff;font-size:13px!important}
     html.light #weeklyCheckGridRevenue .check-subtext-white,html.light #weeklyCheckGridAdOrder .check-subtext-white,html.light #weeklyCheckGridCost .check-subtext-white{color:var(--text)}
-    .check-note-box{margin-top:6px;padding:6px 8px;background:var(--bg-card2);border-radius:6px;border-left:3px solid var(--yellow);font-weight:500;font-size:13px!important;color:var(--text-sub)!important}
+    .check-note-box{margin-top:6px;padding:6px 8px;background:var(--bg-card2);border-radius:6px;border-left:3px solid var(--yellow);font-weight:500;font-size:15px!important;color:var(--text-sub)!important}
     .check-status-tight{letter-spacing:-0.4px;word-spacing:-1px}
     .check-icon-big{font-size:1.35em;vertical-align:-0.06em;display:inline-block}
     .ratio-grid .kpi-value{font-size:28px}
@@ -1346,7 +1346,7 @@ function buildCheckMiniBar(expectedVal,actualVal,lowerIsBetter){
   var hasAct=actualVal!==null&&actualVal!==undefined;
   if(!hasExp&&!hasAct)return'';
   var maxV=Math.max(Math.abs(hasExp?expectedVal:0),Math.abs(hasAct?actualVal:0),1);
-  var W=170,H=92,mTop=18,mBot=20,barW=36,gap=22;
+  var W=210,H=92,mTop=18,mBot=20,barW=36,gap=22;
   var chartH=H-mTop-mBot;
   var totalW=barW*2+gap;
   var startX=(W-totalW)/2;
@@ -1458,8 +1458,14 @@ function buildExactCheckCard(label,expectedVal,actualVal,note){
       var diff=actualVal-expectedVal;
       var over=diff>0;
       color=over?'var(--red)':'var(--green)';
-      var pct=expectedVal!==0?(actualVal/expectedVal*100):null;
-      statusText=over?(warnIcon()+'예상&#8201;초과'+pctSuffix(pct)):(checkIcon()+'계획대로&#8201;집행'+pctSuffix(pct));
+      var pctText;
+      if(diff===0){
+        pctText='&#8201;(100%)';
+      }else{
+        var pct=expectedVal!==0?(actualVal/expectedVal*100):null;
+        pctText=pctSuffix(pct);
+      }
+      statusText=over?(warnIcon()+'예상&#8201;초과'+pctText):(checkIcon()+'계획대로&#8201;집행'+pctText);
       subText=diff===0?'예상과 정확히 일치':(over?'예상대비 '+fmt(diff)+'만원 초과':'예상대비 '+fmt(-diff)+'만원 미달');
     }else{
       color='var(--text-muted)';
