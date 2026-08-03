@@ -101,14 +101,16 @@
     /* RATIO CARDS */
     .ratio-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
     .ratio-grid .kpi-label{font-size:13px}
-    #weeklyCheckGridRevenue .kpi-label,#weeklyCheckGridCost .kpi-label{font-size:16px;color:#fff;font-weight:700;text-transform:none;letter-spacing:0}
-    html.light #weeklyCheckGridRevenue .kpi-label,html.light #weeklyCheckGridCost .kpi-label{color:var(--text)}
+    #weeklyCheckGridRevenue .kpi-label,#weeklyCheckGridAdOrder .kpi-label,#weeklyCheckGridCost .kpi-label{font-size:16px;color:#fff;font-weight:700;text-transform:none;letter-spacing:0}
+    html.light #weeklyCheckGridRevenue .kpi-label,html.light #weeklyCheckGridAdOrder .kpi-label,html.light #weeklyCheckGridCost .kpi-label{color:var(--text)}
     .ratio-grid .kpi-value{font-size:28px}
     .ratio-grid .kpi-sub{font-size:13px}
-    #weeklyCheckGridRevenue{grid-template-columns:repeat(3,1fr)}
-    #weeklyCheckGridCost{grid-template-columns:repeat(4,1fr)}
-    #monthTrendGridRevenue{grid-template-columns:repeat(3,1fr)}
-    #monthTrendGridCost{grid-template-columns:repeat(4,1fr)}
+    #weeklyCheckGridRevenue{grid-template-columns:repeat(2,1fr)}
+    #weeklyCheckGridAdOrder{grid-template-columns:repeat(2,1fr)}
+    #weeklyCheckGridCost{grid-template-columns:repeat(3,1fr)}
+    #monthTrendGridRevenue{grid-template-columns:repeat(2,1fr)}
+    #monthTrendGridAdOrder{grid-template-columns:repeat(2,1fr)}
+    #monthTrendGridCost{grid-template-columns:repeat(3,1fr)}
     .ratio-tab-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
     #weeklyTable td,#weeklyTable th{border-right:1px solid var(--border)}
     .ratio-tab{padding:10px 22px;border-radius:22px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .15s}
@@ -236,8 +238,10 @@
       .kpi-grid{grid-template-columns:repeat(2,1fr)}
       .ratio-grid{grid-template-columns:repeat(2,1fr)}
       #weeklyCheckGridRevenue{grid-template-columns:repeat(2,1fr)}
+      #weeklyCheckGridAdOrder{grid-template-columns:repeat(2,1fr)}
       #weeklyCheckGridCost{grid-template-columns:repeat(2,1fr)}
       #monthTrendGridRevenue{grid-template-columns:repeat(2,1fr)}
+      #monthTrendGridAdOrder{grid-template-columns:repeat(2,1fr)}
       #monthTrendGridCost{grid-template-columns:repeat(2,1fr)}
       .avg-compare-grid{grid-template-columns:repeat(3,1fr)}
       .chart-grid{grid-template-columns:1fr}
@@ -517,6 +521,7 @@
       <div>
         <div class="target-label" style="margin-bottom:8px">이번 점검 대상: 직전 주차 <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">매출·광고비는 일평균 실적 vs 예상(달성률), 발주비·고정비·변동비·상환비는 예상=실제 일치 여부</span></div>
         <div class="ratio-grid" id="weeklyCheckGridRevenue"></div>
+        <div class="ratio-grid" id="weeklyCheckGridAdOrder" style="margin-top:12px"></div>
         <div class="ratio-grid" id="weeklyCheckGridCost" style="margin-top:12px"></div>
       </div>
 
@@ -554,6 +559,7 @@
         <div class="table-section-label chart-section-title-big" id="monthTrendLabel">월별 예측 추세</div>
         <div class="chart-section-sub">지금 진행 중인 주차가 속한 달의 계획입니다 — 매출·광고비는 일평균, 발주비·고정비·변동비·상환비는 그 달 전체 계획 금액</div>
         <div class="ratio-grid" id="monthTrendGridRevenue"></div>
+        <div class="ratio-grid" id="monthTrendGridAdOrder" style="margin-top:12px"></div>
         <div class="ratio-grid" id="monthTrendGridCost" style="margin-top:12px"></div>
       </div>
     </div>
@@ -1274,6 +1280,7 @@ function renderWeeklyTab(){
   if(totalWeeks<WEEK_START_INDEX){
     document.getElementById('weeklyRangeBadge').textContent='점검 가능한 주차 없음 (31주차부터 시작)';
     elCheck.innerHTML='<div class="kpi-sub" style="padding:6px 0">31주차(2026-07-27)가 끝나는 다음 월요일부터 점검이 시작됩니다.</div>';
+    document.getElementById('weeklyCheckGridAdOrder').innerHTML='';
     document.getElementById('weeklyCheckGridCost').innerHTML='';
     document.getElementById('weeklyTableBody').innerHTML='';
     return;
@@ -1378,14 +1385,18 @@ function renderWeeklyCheckCards(rows,weekIndex){
   var range=getWeekRange(weekIndex,DASHBOARD_YEAR);
   var exp=getWeeklyExpected(rows,range);
   var act=weeklyRowsMap[fmtDateISO(range.start)];
+
   var htmlRevenue='';
   htmlRevenue+=buildDailyCheckCard('매출 점검 (자사+네이버, 일평균)', act?act.ownNaverRevenue:null, exp.ownNaver, true);
   htmlRevenue+=buildDailyCheckCard('매출 점검 (통합, 일평균)', act?act.combinedRevenue:null, exp.combined, true);
-  htmlRevenue+=buildDailyCheckCard('광고비 점검 (통합, 일평균)', act?act.combinedAd:null, exp.ad, false);
   document.getElementById('weeklyCheckGridRevenue').innerHTML=htmlRevenue;
 
+  var htmlAdOrder='';
+  htmlAdOrder+=buildDailyCheckCard('광고비 점검 (통합, 일평균)', act?act.combinedAd:null, exp.ad, false);
+  htmlAdOrder+=buildExactCheckCard('발주비 점검', act?act.expectedOrder:null, act?act.actualOrder:null, act?act.orderNote:'');
+  document.getElementById('weeklyCheckGridAdOrder').innerHTML=htmlAdOrder;
+
   var htmlCost='';
-  htmlCost+=buildExactCheckCard('발주비 점검', act?act.expectedOrder:null, act?act.actualOrder:null, act?act.orderNote:'');
   htmlCost+=buildExactCheckCard('고정비 점검', act?act.expectedFixed:null, act?act.actualFixed:null, act?act.fixedNote:'');
   htmlCost+=buildExactCheckCard('변동비 점검', act?act.expectedVariable:null, act?act.actualVariable:null, act?act.variableNote:'');
   htmlCost+=buildExactCheckCard('상환비 점검', act?act.expectedRepay:null, act?act.actualRepay:null, act?act.repayNote:'');
@@ -1462,9 +1473,11 @@ function renderMonthTrend(rows){
   var row=null;
   for(var i=0;i<rows.length;i++){if(rows[i].month===mk){row=rows[i];break;}}
   document.getElementById('monthTrendLabel').textContent=as.year+'년 '+(as.monthIndex0+1)+'월 예측 추세';
+  var elA=document.getElementById('monthTrendGridAdOrder');
   var elC=document.getElementById('monthTrendGridCost');
   if(!row){
     elR.innerHTML='<div class="kpi-sub" style="padding:6px 0">해당 월 데이터가 없습니다.</div>';
+    elA.innerHTML='';
     elC.innerHTML='';
     return;
   }
@@ -1474,10 +1487,11 @@ function renderMonthTrend(rows){
   }
   elR.innerHTML=
     card('일평균 매출 (자사+네이버)',fmt(row.dailyAvg)+'만원/일','blue')+
-    card('일평균 매출 (통합)',fmt(row.revenueAdj/dim)+'만원/일','blue')+
-    card('일평균 광고비 (통합)',fmt(row.ad/dim)+'만원/일','yellow');
+    card('일평균 매출 (통합)',fmt(row.revenueAdj/dim)+'만원/일','blue');
+  elA.innerHTML=
+    card('일평균 광고비 (통합)',fmt(row.ad/dim)+'만원/일','yellow')+
+    card('발주비 (월 전체 계획)',fmt(row.order)+'만원','yellow');
   elC.innerHTML=
-    card('발주비 (월 전체 계획)',fmt(row.order)+'만원','yellow')+
     card('고정비 (월 전체 계획)',fmt(row.fixed)+'만원','yellow')+
     card('변동비 (월 전체 계획)',fmt(row.variable)+'만원','yellow')+
     card('상환비 (월 전체 계획)',fmt(row.repay)+'만원','yellow');
