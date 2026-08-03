@@ -34,13 +34,17 @@
     .theme-btn:hover{color:var(--text)}
     .theme-btn.active{background:var(--accent);color:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
     @media print{
-      .theme-toggle,.refresh-btn,.header-action-btn,.settings-fab,.sync-status{display:none!important}
+      .theme-toggle,.refresh-btn,.header-action-btn,.settings-fab,.sync-status,.top-tabs{display:none!important}
       .app{height:auto}
       .main{overflow:visible;padding:16px}
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%;background:var(--bg);color:var(--text);font-family:'Pretendard',sans-serif;font-size:14px}
-    .app{display:flex;height:100vh;overflow:hidden}
+    .top-tabs{display:flex;gap:4px;padding:10px 16px;background:var(--bg-card);border-bottom:1px solid var(--border)}
+    .top-tab{padding:9px 20px;border-radius:10px;border:none;background:none;color:var(--text-sub);font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s}
+    .top-tab:hover{background:var(--bg-card2);color:var(--text)}
+    .top-tab.active{background:var(--accent);color:#fff}
+    .app{display:flex;height:calc(100vh - 48px);overflow:hidden}
 
     .sync-status{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:11px;color:var(--text-muted);background:var(--bg-card2);border:1px solid var(--border);border-radius:20px}
     .sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text-muted);transition:background 0.3s}
@@ -234,6 +238,10 @@
   </style>
 </head>
 <body>
+<div class="top-tabs">
+  <button class="top-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">&#128202; 통합</button>
+  <button class="top-tab" data-tab="weekly" onclick="switchTab('weekly')">&#128197; 주차별 점검</button>
+</div>
 <div class="app">
   <main class="main">
     <div class="tab-content active" id="tab-dashboard">
@@ -436,20 +444,91 @@
           </div>
         </div>
         <div class="settings-card full-width">
-          <div class="settings-section-title">주간실적 시트 구성 가이드 <span style="font-size:10px;font-weight:400;color:var(--text-muted)">(주차별 점검 기능은 현재 화면에서 빠져 있지만, 시트 구조는 참고용으로 남겨둡니다)</span></div>
+          <div class="settings-section-title">주차별 데이터 시트 구성 가이드 <span style="font-size:10px;font-weight:400;color:var(--text-muted)">(주차별 점검 탭용 · 같은 스프레드시트에 새 시트로 추가)</span></div>
           <div class="guide-table-wrap">
             <table class="guide-table">
               <thead><tr><th>열</th><th>내용</th><th>예시</th><th>비고</th></tr></thead>
               <tbody>
-                <tr><td>A열</td><td>주차 시작일 (월요일)</td><td>2026-01-05</td><td>YYYY-MM-DD 형식 권장, 행 2부터 입력</td></tr>
-                <tr><td>B열</td><td>주차 종료일 (일요일)</td><td>2026-01-11</td><td>참고용 표시 · 계산에는 미사용</td></tr>
-                <tr><td>C열</td><td>매출 실적 (원)</td><td>28,000,000</td><td>해당 주(월~일) 실제 매출</td></tr>
-                <tr><td>D열</td><td>발주비 실적 (원)</td><td>8,000,000</td><td>해당 주 실제 발주비 집행액</td></tr>
-                <tr><td>E열</td><td>광고비 실적 (원)</td><td>9,500,000</td><td>해당 주 실제 광고비 집행액</td></tr>
-                <tr><td>F열</td><td>메모 (선택)</td><td>설 연휴 프로모션</td><td>주차별 요약 테이블 비고란에 표시</td></tr>
+                <tr><td>A열</td><td>주차 시작일 (월요일)</td><td>2026-07-27</td><td>YYYY-MM-DD, 행 2부터 매주 한 줄씩 추가</td></tr>
+                <tr><td>B열</td><td>주차 종료일 (일요일)</td><td>2026-08-01</td><td>참고용 표시 · 계산에는 미사용</td></tr>
+                <tr><td>C열</td><td>통합일평균매출 (원)</td><td>3,611,497</td><td>모든 채널 합산 일평균 매출 실적</td></tr>
+                <tr><td>D열</td><td>일평균매출(자사+네이버) (원)</td><td>2,589,314</td><td>'매출데이터' 시트 B열과 비교되는 실적</td></tr>
+                <tr><td>E열</td><td>통합일평균광고비 (원)</td><td>1,042,781</td><td>모든 채널 합산 일평균 광고비 실적</td></tr>
+                <tr><td>F열</td><td>예상발주비 (원)</td><td>0</td><td>그 주에 나가기로 계획된 발주비</td></tr>
+                <tr><td>G열</td><td>실제발주비 (원)</td><td>0</td><td>그 주에 실제로 나간 발주비</td></tr>
+                <tr><td>H열</td><td>발주비 특이사항 (선택)</td><td>결제일 지연</td><td>예상과 다를 때 사유 기재</td></tr>
+                <tr><td>I열</td><td>예상고정비 (원)</td><td>0</td><td>그 주 계획된 고정비</td></tr>
+                <tr><td>J열</td><td>실제고정비 (원)</td><td>0</td><td>그 주 실제 고정비</td></tr>
+                <tr><td>K열</td><td>고정비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
+                <tr><td>L열</td><td>예상변동비 (원)</td><td>0</td><td>그 주 계획된 변동비</td></tr>
+                <tr><td>M열</td><td>실제변동비 (원)</td><td>0</td><td>그 주 실제 변동비</td></tr>
+                <tr><td>N열</td><td>변동비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
+                <tr><td>O열</td><td>예상상환비 (원)</td><td>0</td><td>그 주 계획된 상환비</td></tr>
+                <tr><td>P열</td><td>실제상환비 (원)</td><td>0</td><td>그 주 실제 상환비</td></tr>
+                <tr><td>Q열</td><td>상환비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
               </tbody>
             </table>
           </div>
+          <div class="guide-steps">
+            <div class="guide-step"><span class="step-num">1</span><span>같은 스프레드시트에 시트 하나 추가 → 이름을 <code>주차별 데이터</code>로 지정</span></div>
+            <div class="guide-step"><span class="step-num">2</span><span>2행에 이미 입력해두신 첫 주(7/27~8/1) 데이터가 있고, 그 아래로 매주 월요일 미팅 전 한 줄씩 추가하시면 됩니다</span></div>
+            <div class="guide-step"><span class="step-num">3</span><span>발주비·고정비·변동비·상환비는 그 주에 계획된 게 있을 때만 예상 칸에 금액을 넣고, 실제 집행 여부를 실제 칸에 기재 — 둘 다 0이면 '계획 없음, 실제로도 없음'으로 정상 처리됩니다</span></div>
+          </div>
+          <div class="settings-note">&#x203B; 매출·광고비 예상치는 이 시트에 입력할 필요가 없습니다. 대시보드가 '매출데이터' 시트의 월별 계획값을 그 주가 걸쳐있는 달의 일수 비중으로 가중평균해 자동으로 일평균 기대값을 계산합니다 (한 주가 두 달에 걸쳐있으면 각 달의 일수만큼 반영).</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: WEEKLY CHECK -->
+    <div class="tab-content" id="tab-weekly">
+      <header class="page-header">
+        <div>
+          <h1 class="page-title">주차별 점검</h1>
+          <p class="page-sub">매주 월요일 오후 2시 미팅 · 지난주가 계획대로 흘러갔는지 확인합니다</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="period-badge" id="weeklyRangeBadge">&#8212;</span>
+        </div>
+      </header>
+
+      <div class="chart-section">
+        <div class="chart-section-title chart-section-title-big">&#128197; 주차 선택</div>
+        <div class="chart-section-sub">월요일 시작 기준으로 오늘까지 완료된 지난주까지 자동 생성됩니다. &#9675; 표시는 &#39;주차별 데이터&#39; 시트에 아직 입력되지 않은 주차예요.</div>
+        <div class="week-pill-row" id="weekPillRow"></div>
+      </div>
+
+      <div>
+        <div class="target-label" style="margin-bottom:8px">선택한 주차 점검 <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">매출·광고비는 일평균 달성률(매출은 계획 이상·비용은 계획 이하가 정상), 발주비·변동비·상환비는 예상=실제 일치 여부</span></div>
+        <div class="ratio-grid" id="weeklyCheckGrid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr))"></div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-section-label chart-section-title-big">전체 주차 요약 <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">단위: 만원(비용) · 만원/일(매출·광고비) · 회의 때 이 표만 보면 됩니다</span></div>
+        <div class="table-wrap">
+          <table id="weeklyTable">
+            <thead>
+              <tr>
+                <th rowspan="2">주차</th><th rowspan="2">기간</th>
+                <th colspan="3">매출(자사+네이버, 일평균)</th>
+                <th colspan="3">매출(통합, 일평균)</th>
+                <th colspan="3">광고비(통합, 일평균)</th>
+                <th colspan="3">발주비</th>
+                <th colspan="3">고정비</th>
+                <th colspan="3">변동비</th>
+                <th colspan="3">상환비</th>
+              </tr>
+              <tr>
+                <th>실적</th><th>예상</th><th>달성률</th>
+                <th>실적</th><th>예상</th><th>달성률</th>
+                <th>실적</th><th>예상</th><th>집행률</th>
+                <th>예상</th><th>실제</th><th>특이사항</th>
+                <th>예상</th><th>실제</th><th>특이사항</th>
+                <th>예상</th><th>실제</th><th>특이사항</th>
+                <th>예상</th><th>실제</th><th>특이사항</th>
+              </tr>
+            </thead>
+            <tbody id="weeklyTableBody"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -499,8 +578,8 @@ var TOTAL_REPAY_GOAL = 32700; // 목표 상환금액: 3억 2천 7백만원
 var SHEET_ID            = '1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI';
 var SHEET_NAME          = '매출데이터';
 var SHEET_RANGE         = 'A1:J13';
-var WEEKLY_SHEET_NAME   = '주간실적';
-var WEEKLY_SHEET_RANGE  = 'A1:F60';
+var WEEKLY_SHEET_NAME   = '주차별 데이터';
+var WEEKLY_SHEET_RANGE  = 'A1:Q300';
 var INIT_BALANCE        = 0;
 
 var AUTO_REFRESH_MS = 300000; // 실시간 반영을 위한 자동 새로고침 주기(ms) — 5분
@@ -566,13 +645,35 @@ async function fetchWeeklySheetData(){
   renderWeeklyTab();
 }
 
+function pnOrNull(v){
+  if(v===undefined||v===null||String(v).trim()==='')return null;
+  return pn(v);
+}
+
 function parseWeeklyCSV(text){
   var lines=text.trim().split('\n');
   if(lines.length<2){weeklyRows=[];weeklyRowsMap={};return}
   weeklyRows=lines.slice(1).map(function(line){
     var c=splitCsvLine(line);
-    return{startDate:normalizeDate(c[0]||''),endDate:normalizeDate(c[1]||''),
-           revenue:pn(c[2]),order:pn(c[3]),ad:pn(c[4]),memo:c[5]||''};
+    return{
+      startDate:normalizeDate(c[0]||''),
+      endDate:normalizeDate(c[1]||''),
+      combinedRevenue:pnOrNull(c[2]),   // 통합일평균매출
+      ownNaverRevenue:pnOrNull(c[3]),   // 일평균매출(자사+네이버)
+      combinedAd:pnOrNull(c[4]),        // 통합일평균광고비
+      expectedOrder:pnOrNull(c[5]),
+      actualOrder:pnOrNull(c[6]),
+      orderNote:c[7]||'',
+      expectedFixed:pnOrNull(c[8]),
+      actualFixed:pnOrNull(c[9]),
+      fixedNote:c[10]||'',
+      expectedVariable:pnOrNull(c[11]),
+      actualVariable:pnOrNull(c[12]),
+      variableNote:c[13]||'',
+      expectedRepay:pnOrNull(c[14]),
+      actualRepay:pnOrNull(c[15]),
+      repayNote:c[16]||'',
+    };
   }).filter(function(r){return r.startDate});
   weeklyRowsMap={};
   weeklyRows.forEach(function(r){weeklyRowsMap[r.startDate]=r});
@@ -1076,17 +1177,44 @@ function assignMonthForWeek(range){
 }
 function monthKeyFromYM(year,monthIndex0){return String(year).slice(2)+'-'+pad2(monthIndex0+1)}
 
-function getExpectedForWeek(rows,range){
-  var as=assignMonthForWeek(range);
-  var key=monthKeyFromYM(as.year,as.monthIndex0);
-  var row=null;
-  for(var i=0;i<rows.length;i++){if(rows[i].month===key){row=rows[i];break}}
-  if(!row)return null;
-  var dim=daysInMonth(as.year,as.monthIndex0);
-  var factor=7/dim;
-  return{revenue:row.revenueAdj*factor,order:row.order*factor,ad:row.ad*factor,
-         fixed:row.fixed*factor,variable:row.variable*factor,repay:row.repay*factor,
-         profit:row.profit*factor,monthKey:key};
+function getMonthDayBuckets(range){
+  var buckets={};
+  var d=new Date(range.start.getFullYear(),range.start.getMonth(),range.start.getDate());
+  for(var i=0;i<7;i++){
+    var key=d.getFullYear()+'_'+d.getMonth();
+    buckets[key]=(buckets[key]||0)+1;
+    d.setDate(d.getDate()+1);
+  }
+  return Object.keys(buckets).map(function(k){
+    var parts=k.split('_');
+    return {year:parseInt(parts[0],10),monthIndex0:parseInt(parts[1],10),days:buckets[k]};
+  });
+}
+
+// 주차가 두 달에 걸쳐있으면(예: 7월+8월) 각 달의 일평균 기대치를 그 달에 속한 일수만큼 가중평균 —
+// "7월은 7월과, 8월은 8월과 비교" 요건을 하나의 블렌딩된 일평균 기대값으로 반영
+function weightedExpectedDaily(rows,range,valueFn){
+  var buckets=getMonthDayBuckets(range);
+  var total=0,totalDays=0;
+  buckets.forEach(function(b){
+    var mk=monthKeyFromYM(b.year,b.monthIndex0);
+    var row=null;
+    for(var i=0;i<rows.length;i++){if(rows[i].month===mk){row=rows[i];break;}}
+    if(!row)return;
+    var val=valueFn(row,b);
+    if(val===null||val===undefined||isNaN(val))return;
+    total+=val*b.days;
+    totalDays+=b.days;
+  });
+  return totalDays>0?total/totalDays:null;
+}
+
+function getWeeklyExpected(rows,range){
+  return {
+    ownNaver: weightedExpectedDaily(rows,range,function(row){return row.dailyAvg;}),
+    combined: weightedExpectedDaily(rows,range,function(row,b){return row.revenueAdj/daysInMonth(b.year,b.monthIndex0);}),
+    ad:       weightedExpectedDaily(rows,range,function(row,b){return row.ad/daysInMonth(b.year,b.monthIndex0);}),
+  };
 }
 
 function toggleBPExclude(){
@@ -1115,7 +1243,6 @@ function renderWeeklyTab(){
     document.getElementById('weekPillRow').innerHTML='<div class="kpi-sub" style="padding:6px 0">아직 완료된 주차가 없습니다. 1주차가 끝나는 다음 월요일부터 지난주 점검을 볼 수 있어요.</div>';
     document.getElementById('weeklyRangeBadge').textContent='점검 가능한 주차 없음';
     elCheck.innerHTML='';
-    document.getElementById('weeklyCumGrid').innerHTML='';
     document.getElementById('weeklyTableBody').innerHTML='';
     return;
   }
@@ -1137,72 +1264,57 @@ function renderWeeklyTab(){
   document.getElementById('weekPillRow').innerHTML=pillHtml;
 
   renderWeeklyCheckCards(rows,selectedWeekIndex);
-  renderWeeklyCumulative(rows,selectedWeekIndex);
   renderWeeklyTable(rows,totalWeeks);
+}
+
+function buildDailyCheckCard(label,actualVal,expectedVal,goodGe){
+  var hasAct=actualVal!==null&&actualVal!==undefined;
+  var hasExp=expectedVal!==null&&expectedVal!==undefined;
+  var color='var(--text-muted)',statusText='실적 미입력',valueText='—';
+  if(!hasExp){
+    statusText='비교 데이터 없음';
+  }else if(hasAct){
+    var pct=expectedVal!==0?(actualVal/expectedVal*100):null;
+    valueText=pct!==null?pct.toFixed(1)+'%':'—';
+    var good=pct!==null&&(goodGe?pct>=95:pct<=105);
+    color=pct!==null?(good?'var(--green)':'var(--red)'):'var(--text-muted)';
+    statusText=pct!==null?(good?'&#10003; 계획대로 진행':'&#9888; 점검 필요'):'계산 불가';
+  }
+  return'<div class="kpi-card"><div class="kpi-label">'+label+'</div>'+
+    '<div class="kpi-value" style="color:'+color+'">'+valueText+'</div>'+
+    '<div class="kpi-sub">실적 '+(hasAct?fmt(actualVal)+'만원/일':'&#8212;')+' / 예상 '+(hasExp?fmt(expectedVal)+'만원/일':'&#8212;')+'</div>'+
+    '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+statusText+'</div></div>';
+}
+
+function buildExactCheckCard(label,expectedVal,actualVal,note){
+  var hasExp=expectedVal!==null&&expectedVal!==undefined;
+  var hasAct=actualVal!==null&&actualVal!==undefined;
+  var color='var(--text-muted)',statusText='실적 미입력',valueText='&#8212;';
+  if(hasAct){
+    valueText=fmt(actualVal)+'만원';
+    var match=hasExp&&Math.abs(actualVal-expectedVal)<1;
+    color=match?'var(--green)':'var(--red)';
+    statusText=match?'&#10003; 계획대로 집행':'&#9888; 차이 발생';
+  }
+  return'<div class="kpi-card"><div class="kpi-label">'+label+'</div>'+
+    '<div class="kpi-value" style="color:'+color+'">'+valueText+'</div>'+
+    '<div class="kpi-sub">예상 '+(hasExp?fmt(expectedVal)+'만원':'&#8212;')+'</div>'+
+    '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+statusText+(note?' &#183; '+note:'')+'</div></div>';
 }
 
 function renderWeeklyCheckCards(rows,weekIndex){
   var range=getWeekRange(weekIndex,DASHBOARD_YEAR);
-  var exp=getExpectedForWeek(rows,range);
+  var exp=getWeeklyExpected(rows,range);
   var act=weeklyRowsMap[fmtDateISO(range.start)];
-  var cats=[
-    {key:'revenue',label:'매출 점검',goodGe:true},
-    {key:'order',  label:'발주비 점검',goodGe:false},
-    {key:'ad',     label:'광고비 점검',goodGe:false},
-  ];
-  var html=cats.map(function(c){
-    var expVal=exp?exp[c.key]:null;
-    var actVal=(act&&(act[c.key]!==undefined))?act[c.key]:null;
-    var hasAct=actVal!==null&&actVal!==undefined;
-    var pct=(expVal&&hasAct)?(actVal/expVal*100):null;
-    var color='var(--text-muted)',statusText='실적 미입력',valueText='—';
-    if(!expVal){
-      statusText='계획 데이터 없음';
-    }else if(hasAct){
-      valueText=pct.toFixed(1)+'%';
-      var good=c.goodGe?(pct>=95):(pct<=105);
-      color=good?'var(--green)':'var(--red)';
-      statusText=good?'&#10003; 계획대로 진행':'&#9888; 점검 필요';
-    }
-    return'<div class="kpi-card"><div class="kpi-label">'+c.label+'</div>'+
-      '<div class="kpi-value" style="color:'+color+'">'+valueText+'</div>'+
-      '<div class="kpi-sub">실적 '+(hasAct?fmt(actVal)+'만원':'—')+' / 계획 '+(expVal?fmt(expVal)+'만원':'—')+'</div>'+
-      '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+statusText+'</div></div>';
-  }).join('');
+  var html='';
+  html+=buildDailyCheckCard('매출 점검 (자사+네이버, 일평균)', act?act.ownNaverRevenue:null, exp.ownNaver, true);
+  html+=buildDailyCheckCard('매출 점검 (통합, 일평균)', act?act.combinedRevenue:null, exp.combined, true);
+  html+=buildDailyCheckCard('광고비 점검 (통합, 일평균)', act?act.combinedAd:null, exp.ad, false);
+  html+=buildExactCheckCard('발주비 점검', act?act.expectedOrder:null, act?act.actualOrder:null, act?act.orderNote:'');
+  html+=buildExactCheckCard('고정비 점검', act?act.expectedFixed:null, act?act.actualFixed:null, act?act.fixedNote:'');
+  html+=buildExactCheckCard('변동비 점검', act?act.expectedVariable:null, act?act.actualVariable:null, act?act.variableNote:'');
+  html+=buildExactCheckCard('상환비 점검', act?act.expectedRepay:null, act?act.actualRepay:null, act?act.repayNote:'');
   document.getElementById('weeklyCheckGrid').innerHTML=html;
-}
-
-function renderWeeklyCumulative(rows,weekIndex){
-  var cumSimProfit=0,cumActProfit=0,filledWeeks=0;
-  for(var w=1;w<=weekIndex;w++){
-    var range=getWeekRange(w,DASHBOARD_YEAR);
-    var exp=getExpectedForWeek(rows,range);
-    if(!exp)continue;
-    cumSimProfit+=exp.profit;
-    var act=weeklyRowsMap[fmtDateISO(range.start)];
-    if(act){
-      filledWeeks++;
-      cumActProfit+=(act.revenue||0)-(act.order||0)-(act.ad||0)-exp.fixed-exp.variable-exp.repay;
-    }else{
-      cumActProfit+=exp.profit;
-    }
-  }
-  var simBalance=INIT_BALANCE+cumSimProfit;
-  var actBalance=INIT_BALANCE+cumActProfit;
-  var fillNote=filledWeeks<weekIndex?' · 실적 입력 '+filledWeeks+'/'+weekIndex+'주':'';
-  var items=[
-    {label:weekIndex+'주차까지 누적 영업이익 (실적 반영 추정)',
-     value:fmtKorean(cumActProfit,true),
-     sub:'계획 '+fmtKorean(cumSimProfit,true)+' · 차이 '+fmtKorean(cumActProfit-cumSimProfit,true)+fillNote,
-     cls:cumActProfit>=cumSimProfit?'green':'red'},
-    {label:weekIndex+'주차까지 누적 자금수지 (실적 반영 추정)',
-     value:fmtKorean(actBalance,true),
-     sub:'계획 '+fmtKorean(simBalance,true)+' · 차이 '+fmtKorean(actBalance-simBalance,true),
-     cls:actBalance>=simBalance?'green':'red'},
-  ];
-  document.getElementById('weeklyCumGrid').innerHTML=items.map(function(it){
-    return'<div class="kpi-card"><div class="kpi-label">'+it.label+'</div><div class="kpi-value '+it.cls+'">'+it.value+'</div><div class="kpi-sub">'+it.sub+'</div></div>';
-  }).join('');
 }
 
 function weeklyPctCell(actVal,expVal,goodGe){
@@ -1212,27 +1324,37 @@ function weeklyPctCell(actVal,expVal,goodGe){
   return'<td style="color:'+(good?'var(--green)':'var(--red)')+'">'+pct.toFixed(0)+'%</td>';
 }
 
+function weeklyExactTriplet(exp,act,note){
+  var match=(exp!==null&&exp!==undefined&&act!==null&&act!==undefined)?Math.abs(act-exp)<1:null;
+  var color=match===null?'':(match?'var(--green)':'var(--red)');
+  return'<td>'+(exp===null||exp===undefined?'&#8212;':fmt(exp))+'</td>'+
+    '<td'+(color?' style="color:'+color+'"':'')+'>'+(act===null||act===undefined?'&#8212;':fmt(act))+'</td>'+
+    '<td style="text-align:left;color:var(--text-muted);font-family:\'Pretendard\',sans-serif;font-size:11px">'+(note||'')+'</td>';
+}
+
 function renderWeeklyTable(rows,totalWeeks){
   var body='';
   for(var w=1;w<=totalWeeks;w++){
     var range=getWeekRange(w,DASHBOARD_YEAR);
-    var exp=getExpectedForWeek(rows,range);
+    var exp=getWeeklyExpected(rows,range);
     var act=weeklyRowsMap[fmtDateISO(range.start)];
-    var revExp=exp?exp.revenue:null, ordExp=exp?exp.order:null, adExp=exp?exp.ad:null;
-    var revAct=act?act.revenue:null, ordAct=act?act.order:null, adAct=act?act.ad:null;
+    function c(v){return(v===null||v===undefined)?'&#8212;':fmt(v);}
     body+='<tr>'+
       '<td>'+w+'주차</td>'+
       '<td style="color:var(--text-sub)">'+fmtDateShort(range.start)+'~'+fmtDateShort(range.end)+'</td>'+
-      '<td>'+(revAct===null||revAct===undefined?'&#8212;':fmt(revAct))+'</td>'+
-      '<td>'+(revExp===null?'&#8212;':fmt(revExp))+'</td>'+
-      weeklyPctCell(revAct,revExp,true)+
-      '<td>'+(ordAct===null||ordAct===undefined?'&#8212;':fmt(ordAct))+'</td>'+
-      '<td>'+(ordExp===null?'&#8212;':fmt(ordExp))+'</td>'+
-      weeklyPctCell(ordAct,ordExp,false)+
-      '<td>'+(adAct===null||adAct===undefined?'&#8212;':fmt(adAct))+'</td>'+
-      '<td>'+(adExp===null?'&#8212;':fmt(adExp))+'</td>'+
-      weeklyPctCell(adAct,adExp,false)+
-      '<td style="text-align:left;color:var(--text-muted);font-family:\'Pretendard\',sans-serif;font-size:11px">'+(act?(act.memo||''):'실적 미입력')+'</td>'+
+      '<td>'+c(act?act.ownNaverRevenue:null)+'</td>'+
+      '<td>'+c(exp.ownNaver)+'</td>'+
+      weeklyPctCell(act?act.ownNaverRevenue:null,exp.ownNaver,true)+
+      '<td>'+c(act?act.combinedRevenue:null)+'</td>'+
+      '<td>'+c(exp.combined)+'</td>'+
+      weeklyPctCell(act?act.combinedRevenue:null,exp.combined,true)+
+      '<td>'+c(act?act.combinedAd:null)+'</td>'+
+      '<td>'+c(exp.ad)+'</td>'+
+      weeklyPctCell(act?act.combinedAd:null,exp.ad,false)+
+      weeklyExactTriplet(act?act.expectedOrder:null,act?act.actualOrder:null,act?act.orderNote:'')+
+      weeklyExactTriplet(act?act.expectedFixed:null,act?act.actualFixed:null,act?act.fixedNote:'')+
+      weeklyExactTriplet(act?act.expectedVariable:null,act?act.actualVariable:null,act?act.variableNote:'')+
+      weeklyExactTriplet(act?act.expectedRepay:null,act?act.actualRepay:null,act?act.repayNote:'')+
       '</tr>';
   }
   document.getElementById('weeklyTableBody').innerHTML=body;
