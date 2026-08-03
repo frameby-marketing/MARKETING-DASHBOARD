@@ -7,6 +7,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>매출 &amp; 영업이익 시뮬레이션</title>
+  <!-- BUILD: 2026-08-03 rev-weekly-fixed-variable-repay-cols-LMN-OPQ-RST -->
+  <script>console.log('[진단] 대시보드 빌드: 2026-08-03 rev-weekly-fixed-variable-repay-cols-LMN-OPQ-RST — 이 로그가 안 보이면 캐시된 구버전 파일을 보고 있는 것입니다.');</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -1456,6 +1458,15 @@ function renderWeeklyCheckCards(rows,weekIndex){
   var range=getWeekRange(weekIndex,DASHBOARD_YEAR);
   var exp=getWeeklyExpected(rows,range);
   var act=weeklyRowsMap[fmtDateISO(range.start)];
+  console.log('[진단] 이번에 표시 중인 주차:',weekIndex,'/ 시작일 키:',fmtDateISO(range.start));
+  console.log('[진단] 해당 주차의 시트 행을 찾았는가?',!!act);
+  if(act){
+    console.log('[진단] 고정비 예상/실제:',act.expectedFixed,'/',act.actualFixed);
+    console.log('[진단] 변동비 예상/실제:',act.expectedVariable,'/',act.actualVariable);
+    console.log('[진단] 상환비 예상/실제:',act.expectedRepay,'/',act.actualRepay);
+  }else{
+    console.log('[진단] weeklyRowsMap에 이 날짜의 행이 없습니다. 키 목록:',Object.keys(weeklyRowsMap));
+  }
 
   var htmlRevenue='';
   htmlRevenue+=buildDailyCheckCard('매출 점검 (자사+네이버, 일평균)', act?act.ownNaverRevenue:null, exp.ownNaver, true, act?act.ownNaverSettlement:null, '정산');
