@@ -107,6 +107,8 @@
     .ratio-grid .kpi-sub{font-size:13px}
     #weeklyCheckGridRevenue{grid-template-columns:repeat(3,1fr)}
     #weeklyCheckGridCost{grid-template-columns:repeat(4,1fr)}
+    #monthTrendGridRevenue{grid-template-columns:repeat(3,1fr)}
+    #monthTrendGridCost{grid-template-columns:repeat(4,1fr)}
     .ratio-tab-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
     #weeklyTable td,#weeklyTable th{border-right:1px solid var(--border)}
     .ratio-tab{padding:10px 22px;border-radius:22px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .15s}
@@ -235,6 +237,8 @@
       .ratio-grid{grid-template-columns:repeat(2,1fr)}
       #weeklyCheckGridRevenue{grid-template-columns:repeat(2,1fr)}
       #weeklyCheckGridCost{grid-template-columns:repeat(2,1fr)}
+      #monthTrendGridRevenue{grid-template-columns:repeat(2,1fr)}
+      #monthTrendGridCost{grid-template-columns:repeat(2,1fr)}
       .avg-compare-grid{grid-template-columns:repeat(3,1fr)}
       .chart-grid{grid-template-columns:1fr}
       .settings-grid{grid-template-columns:1fr}
@@ -549,7 +553,8 @@
       <div class="table-card">
         <div class="table-section-label chart-section-title-big" id="monthTrendLabel">월별 예측 추세</div>
         <div class="chart-section-sub">지금 진행 중인 주차가 속한 달의 계획입니다 — 매출·광고비는 일평균, 발주비·고정비·변동비·상환비는 그 달 전체 계획 금액</div>
-        <div class="ratio-grid" id="monthTrendGrid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr))"></div>
+        <div class="ratio-grid" id="monthTrendGridRevenue"></div>
+        <div class="ratio-grid" id="monthTrendGridCost" style="margin-top:12px"></div>
       </div>
     </div>
 
@@ -1347,18 +1352,25 @@ function buildDailyCheckCard(label,actualVal,expectedVal,goodGe){
 function buildExactCheckCard(label,expectedVal,actualVal,note){
   var hasExp=expectedVal!==null&&expectedVal!==undefined;
   var hasAct=actualVal!==null&&actualVal!==undefined;
-  var color='var(--text-muted)',statusText='실적 미입력',valueText='&#8212;';
+  var color='var(--text-muted)',statusText='실적 미입력',valueText='&#8212;',subText='예상 '+(hasExp?fmt(expectedVal)+'만원':'&#8212;');
   if(hasAct){
     valueText=fmt(actualVal)+'만원';
-    var match=hasExp&&Math.abs(actualVal-expectedVal)<1;
-    color=match?'var(--green)':'var(--red)';
-    statusText=match?'&#10003; 계획대로 집행':'&#9888; 차이 발생';
+    if(hasExp){
+      var diff=actualVal-expectedVal;
+      var over=diff>0;
+      color=over?'var(--red)':'var(--green)';
+      statusText=over?'&#9888; 예상 초과':'&#10003; 계획대로 집행';
+      subText=diff===0?'예상과 정확히 일치':(over?'예상대비 '+fmt(diff)+'만원 초과':'예상대비 '+fmt(-diff)+'만원 미달');
+    }else{
+      color='var(--text-muted)';
+      statusText='비교 데이터 없음';
+    }
   }
   return'<div class="kpi-card"><div class="kpi-label">'+label+'</div>'+
     '<div class="kpi-value" style="color:'+color+'">'+valueText+'</div>'+
-    '<div class="kpi-sub">예상 '+(hasExp?fmt(expectedVal)+'만원':'&#8212;')+'</div>'+
+    '<div class="kpi-sub">'+subText+'</div>'+
     '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+statusText+(note?' &#183; '+note:'')+'</div>'+
-    buildCheckMiniBar(expectedVal,actualVal)+
+    buildCheckMiniBar(expectedVal,actualVal,true)+
   '</div>';
 }
 
@@ -1389,8 +1401,9 @@ function weeklyPctCell(actVal,expVal,goodGe,divider){
 }
 
 function weeklyExactTriplet(exp,act,note,divider){
-  var match=(exp!==null&&exp!==undefined&&act!==null&&act!==undefined)?Math.abs(act-exp)<1:null;
-  var color=match===null?'':(match?'var(--green)':'var(--red)');
+  var hasBoth=(exp!==null&&exp!==undefined&&act!==null&&act!==undefined);
+  var over=hasBoth?(act>exp):null;
+  var color=hasBoth?(over?'var(--red)':'var(--green)'):'';
   var b=divider?'border-right:2px solid var(--border-light);':'';
   return'<td>'+(exp===null||exp===undefined?'&#8212;':fmt(exp))+'</td>'+
     '<td'+(color?' style="color:'+color+'"':'')+'>'+(act===null||act===undefined?'&#8212;':fmt(act))+'</td>'+
@@ -1440,8 +1453,8 @@ function renderWeeklyTable(rows,totalWeeks){
 }
 
 function renderMonthTrend(rows){
-  var el=document.getElementById('monthTrendGrid');
-  if(!el)return;
+  var elR=document.getElementById('monthTrendGridRevenue');
+  if(!elR)return;
   var curWeekIdx=getCurrentWeekIndex(DASHBOARD_YEAR);
   var range=getWeekRange(curWeekIdx,DASHBOARD_YEAR);
   var as=assignMonthForWeek(range);
@@ -1449,20 +1462,25 @@ function renderMonthTrend(rows){
   var row=null;
   for(var i=0;i<rows.length;i++){if(rows[i].month===mk){row=rows[i];break;}}
   document.getElementById('monthTrendLabel').textContent=as.year+'년 '+(as.monthIndex0+1)+'월 예측 추세';
-  if(!row){el.innerHTML='<div class="kpi-sub" style="padding:6px 0">해당 월 데이터가 없습니다.</div>';return;}
+  var elC=document.getElementById('monthTrendGridCost');
+  if(!row){
+    elR.innerHTML='<div class="kpi-sub" style="padding:6px 0">해당 월 데이터가 없습니다.</div>';
+    elC.innerHTML='';
+    return;
+  }
   var dim=daysInMonth(as.year,as.monthIndex0);
-  var items=[
-    {label:'일평균 매출 (자사+네이버)',value:fmt(row.dailyAvg)+'만원/일',cls:'blue'},
-    {label:'일평균 매출 (통합)',value:fmt(row.revenueAdj/dim)+'만원/일',cls:'blue'},
-    {label:'일평균 광고비 (통합)',value:fmt(row.ad/dim)+'만원/일',cls:'yellow'},
-    {label:'발주비 (월 전체 계획)',value:fmt(row.order)+'만원',cls:'yellow'},
-    {label:'고정비 (월 전체 계획)',value:fmt(row.fixed)+'만원',cls:'yellow'},
-    {label:'변동비 (월 전체 계획)',value:fmt(row.variable)+'만원',cls:'yellow'},
-    {label:'상환비 (월 전체 계획)',value:fmt(row.repay)+'만원',cls:'yellow'},
-  ];
-  el.innerHTML=items.map(function(it){
-    return'<div class="kpi-card"><div class="kpi-label">'+it.label+'</div><div class="kpi-value '+it.cls+'">'+it.value+'</div></div>';
-  }).join('');
+  function card(label,value,cls){
+    return'<div class="kpi-card"><div class="kpi-label">'+label+'</div><div class="kpi-value '+cls+'">'+value+'</div></div>';
+  }
+  elR.innerHTML=
+    card('일평균 매출 (자사+네이버)',fmt(row.dailyAvg)+'만원/일','blue')+
+    card('일평균 매출 (통합)',fmt(row.revenueAdj/dim)+'만원/일','blue')+
+    card('일평균 광고비 (통합)',fmt(row.ad/dim)+'만원/일','yellow');
+  elC.innerHTML=
+    card('발주비 (월 전체 계획)',fmt(row.order)+'만원','yellow')+
+    card('고정비 (월 전체 계획)',fmt(row.fixed)+'만원','yellow')+
+    card('변동비 (월 전체 계획)',fmt(row.variable)+'만원','yellow')+
+    card('상환비 (월 전체 계획)',fmt(row.repay)+'만원','yellow');
 }
 
 function renderKPI(rows){
