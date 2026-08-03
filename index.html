@@ -110,6 +110,24 @@
     .check-note-box{margin-top:6px;padding:6px 8px;background:var(--bg-card2);border-radius:6px;border-left:3px solid var(--yellow);font-weight:500;font-size:15px!important;color:var(--text-sub)!important}
     .check-status-tight{letter-spacing:-0.4px;word-spacing:-1px}
     .check-icon-big{font-size:1.35em;vertical-align:-0.06em;display:inline-block}
+    .check-detail-link{margin-top:8px;padding-top:7px;border-top:1px dashed var(--border);text-align:center;font-size:12px;color:var(--accent);cursor:pointer;font-weight:600}
+    .check-detail-link:hover{text-decoration:underline}
+    .weekly-note-clickable{color:var(--accent)!important;cursor:pointer;text-decoration:underline;text-decoration-style:dotted}
+    .detail-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
+    .detail-modal-overlay.show{display:flex}
+    .detail-modal{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;max-width:760px;width:100%;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+    .detail-modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--border);flex-shrink:0}
+    .detail-modal-header h3{font-size:17px;font-weight:700;color:var(--text)}
+    .detail-modal-close{background:none;border:none;font-size:24px;color:var(--text-muted);cursor:pointer;line-height:1;padding:4px 8px;border-radius:6px}
+    .detail-modal-close:hover{background:var(--bg-card2);color:var(--text)}
+    .detail-modal-body{padding:18px 22px;overflow-y:auto}
+    .detail-table{width:100%;border-collapse:collapse;font-size:13px}
+    .detail-table th{font-size:11px;color:var(--text-muted);font-weight:500;padding:8px 10px;border-bottom:1px solid var(--border);text-align:center;white-space:nowrap}
+    .detail-table td{padding:8px 10px;border-bottom:1px solid var(--border);text-align:center;font-family:'DM Mono',monospace;color:var(--text-sub)}
+    .detail-table td:first-child{text-align:left;color:var(--text);font-family:'Pretendard',sans-serif}
+    .detail-table td:last-child{text-align:left;color:var(--text-muted);font-family:'Pretendard',sans-serif;font-size:12px}
+    .detail-table tr:last-child td{border-bottom:none}
+    .detail-table tr.detail-total-row td{font-weight:700;border-top:2px solid var(--border-light);background:var(--bg-card2)}
     .ratio-grid .kpi-value{font-size:28px}
     .ratio-grid .kpi-sub{font-size:13px}
     #weeklyCheckGridRevenue{grid-template-columns:repeat(2,1fr)}
@@ -580,6 +598,15 @@
   <button class="settings-fab" id="settingsFab" onclick="switchTab('settings')" title="설정">
     <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M18.66 5.34l1.41-1.41"/></svg>
   </button>
+  <div class="detail-modal-overlay" id="detailModalOverlay" onclick="closeDetailModal()">
+    <div class="detail-modal" onclick="event.stopPropagation()">
+      <div class="detail-modal-header">
+        <h3 id="detailModalTitle">상세 내역</h3>
+        <button class="detail-modal-close" onclick="closeDetailModal()">&times;</button>
+      </div>
+      <div class="detail-modal-body" id="detailModalBody"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -625,6 +652,11 @@ var SHEET_RANGE         = 'A1:J13';
 var WEEKLY_SHEET_NAME   = '주차별 데이터';
 var WEEKLY_SHEET_RANGE  = 'A1:T300';
 var INIT_BALANCE        = 0;
+
+// 고정비/변동비/상환비 상세 내역 (주차별로 시트가 하나씩 생김: '31주차','32주차',...)
+var DETAIL_SHEET_ID     = '1ZFanVDltvLOIXR0eH5yn8l-E2KVWNQL-pMbxlrLmJCM';
+var DETAIL_SHEET_RANGE  = 'A1:F300';
+var detailCache = {}; // { weekNum: [{category,item,expected,actual,diff,reason}, ...] }
 
 var AUTO_REFRESH_MS = 300000; // 실시간 반영을 위한 자동 새로고침 주기(ms) — 5분
 var pollTimerId = null;
@@ -702,6 +734,52 @@ async function fetchWeeklySheetData(){
 function pnOrNull(v){
   if(v===undefined||v===null||String(v).trim()==='')return null;
   return pn(v);
+}
+
+// 상세내역 시트 숫자는 이미 '만원' 단위라 10000으로 나누지 않음. 회계식 음수 표기(괄호)와
+// 일반 마이너스 부호를 모두 처리한다: "(10)" -> -10, "-580" -> -580, "500" -> 500
+function parseAccountingNumber(v){
+  if(v===undefined||v===null)return null;
+  var s=String(v).trim();
+  if(s==='')return null;
+  var neg=false;
+  if(/^\(.*\)$/.test(s)){neg=true;s=s.slice(1,-1);}
+  s=s.replace(/[₩,\s]/g,'');
+  if(s==='')return null;
+  var n=parseFloat(s);
+  if(isNaN(n))return null;
+  return neg?-Math.abs(n):n;
+}
+
+async function fetchDetailSheetRows(weekNum){
+  if(detailCache[weekNum])return detailCache[weekNum];
+  var sheetName=weekNum+'주차';
+  var range=encodeURIComponent(quoteSheetName(sheetName)+'!'+DETAIL_SHEET_RANGE);
+  var url='https://docs.google.com/spreadsheets/d/'+DETAIL_SHEET_ID+'/gviz/tq?tqx=out:csv&range='+range+'&_ts='+Date.now();
+  var result=[];
+  try{
+    var res=await fetch(url,{cache:'no-store'});
+    if(!res.ok)throw new Error('HTTP '+res.status);
+    var text=await res.text();
+    var csvRows=parseCsvRows(text);
+    if(csvRows.length>=2){
+      result=csvRows.slice(1).map(function(c){
+        return{
+          category:(c[0]||'').trim(),
+          item:(c[1]||'').trim(),
+          expected:parseAccountingNumber(c[2]),
+          actual:parseAccountingNumber(c[3]),
+          diff:parseAccountingNumber(c[4]),
+          reason:(c[5]||'').trim(),
+        };
+      }).filter(function(r){return r.category||r.item;});
+    }
+  }catch(e){
+    console.warn('[진단] 상세내역 로드 실패 ('+sheetName+'):',e.message);
+    result=null;
+  }
+  detailCache[weekNum]=result;
+  return result;
 }
 
 function parseWeeklyCSV(text){
@@ -1299,6 +1377,50 @@ function getWeeklyExpected(rows,range){
   };
 }
 
+async function openDetailModal(weekNum,category){
+  var overlay=document.getElementById('detailModalOverlay');
+  var titleEl=document.getElementById('detailModalTitle');
+  var bodyEl=document.getElementById('detailModalBody');
+  titleEl.textContent=weekNum+'주차 · '+category+' 상세 내역';
+  bodyEl.innerHTML='<div class="kpi-sub" style="padding:24px;text-align:center">불러오는 중...</div>';
+  overlay.classList.add('show');
+  var rows=await fetchDetailSheetRows(weekNum);
+  renderDetailModalTable(rows,category);
+}
+
+function closeDetailModal(){
+  document.getElementById('detailModalOverlay').classList.remove('show');
+}
+
+function renderDetailModalTable(rows,category){
+  var bodyEl=document.getElementById('detailModalBody');
+  if(rows===null){
+    bodyEl.innerHTML='<div class="kpi-sub" style="padding:24px;text-align:center">상세 내역을 불러오지 못했습니다.<br>해당 주차 시트(예: "31주차")가 상세내역 스프레드시트에 있는지 확인해주세요.</div>';
+    return;
+  }
+  var filtered=rows.filter(function(r){return r.category===category;});
+  if(!filtered.length){
+    bodyEl.innerHTML='<div class="kpi-sub" style="padding:24px;text-align:center">이 주차에는 '+category+' 항목이 없습니다.</div>';
+    return;
+  }
+  function sum(key){return filtered.reduce(function(s,r){return s+(r[key]||0)},0)}
+  var sumExp=sum('expected'),sumAct=sum('actual'),sumDiff=sum('diff');
+  function diffColor(v){return v>0?'var(--red)':(v<0?'var(--green)':'var(--text-sub)')}
+  var body=filtered.map(function(r){
+    return'<tr><td>'+(r.item||'&#8212;')+'</td>'+
+      '<td>'+(r.expected!==null?fmt(r.expected):'&#8212;')+'</td>'+
+      '<td>'+(r.actual!==null?fmt(r.actual):'&#8212;')+'</td>'+
+      '<td style="color:'+(r.diff!==null?diffColor(r.diff):'inherit')+'">'+(r.diff!==null?fmtSign(r.diff):'&#8212;')+'</td>'+
+      '<td>'+(r.reason||'')+'</td></tr>';
+  }).join('');
+  var totalRow='<tr class="detail-total-row"><td>합계</td><td>'+fmt(sumExp)+'</td><td>'+fmt(sumAct)+'</td>'+
+    '<td style="color:'+diffColor(sumDiff)+'">'+fmtSign(sumDiff)+'</td><td></td></tr>';
+  bodyEl.innerHTML='<div class="table-wrap"><table class="detail-table">'+
+    '<thead><tr><th style="text-align:left">항목</th><th>예상액</th><th>실지급액</th><th>차이</th><th style="text-align:left">사유</th></tr></thead>'+
+    '<tbody>'+body+totalRow+'</tbody></table></div>'+
+    '<div class="kpi-sub" style="margin-top:10px;text-align:right">단위: 만원</div>';
+}
+
 function toggleBPExclude(){
   BP_EXCLUDE_ACTIVE=!BP_EXCLUDE_ACTIVE;
   ['bpExcludeBtn','bpExcludeBtn2','bpExcludeBtn3'].forEach(function(id){
@@ -1449,7 +1571,7 @@ function buildDailyCheckCard(label,actualVal,expectedVal,goodGe,settleVal,settle
   '</div>';
 }
 
-function buildExactCheckCard(label,expectedVal,actualVal,note){
+function buildExactCheckCard(label,expectedVal,actualVal,note,category,weekIndex){
   var hasExp=expectedVal!==null&&expectedVal!==undefined;
   var hasAct=actualVal!==null&&actualVal!==undefined;
   var color='var(--text-muted)',statusText='실적 미입력',subText='&#8212;';
@@ -1473,11 +1595,13 @@ function buildExactCheckCard(label,expectedVal,actualVal,note){
     }
   }
   var noteBox=note?'<div class="kpi-sub check-note-box"><strong>특이사항</strong> '+note+'</div>':'';
+  var detailLink=category?'<div class="check-detail-link" onclick="openDetailModal('+weekIndex+',\''+category+'\')">자세히 보기 &#8250;</div>':'';
   return'<div class="kpi-card"><div class="kpi-label">'+label+'</div>'+
     '<div class="kpi-value" style="color:'+color+'">'+statusText+'</div>'+
     '<div class="kpi-sub check-subtext-white">'+subText+'</div>'+
     noteBox+
     buildCheckMiniBar(expectedVal,actualVal,true)+
+    detailLink+
   '</div>';
 }
 
@@ -1506,9 +1630,9 @@ function renderWeeklyCheckCards(rows,weekIndex){
   document.getElementById('weeklyCheckGridAdOrder').innerHTML=htmlAdOrder;
 
   var htmlCost='';
-  htmlCost+=buildExactCheckCard('고정비 점검', act?act.expectedFixed:null, act?act.actualFixed:null, act?act.fixedNote:'');
-  htmlCost+=buildExactCheckCard('변동비 점검', act?act.expectedVariable:null, act?act.actualVariable:null, act?act.variableNote:'');
-  htmlCost+=buildExactCheckCard('상환비 점검', act?act.expectedRepay:null, act?act.actualRepay:null, act?act.repayNote:'');
+  htmlCost+=buildExactCheckCard('고정비 점검', act?act.expectedFixed:null, act?act.actualFixed:null, act?act.fixedNote:'', '고정비', weekIndex);
+  htmlCost+=buildExactCheckCard('변동비 점검', act?act.expectedVariable:null, act?act.actualVariable:null, act?act.variableNote:'', '변동비', weekIndex);
+  htmlCost+=buildExactCheckCard('상환비 점검', act?act.expectedRepay:null, act?act.actualRepay:null, act?act.repayNote:'', '상환비', weekIndex);
   document.getElementById('weeklyCheckGridCost').innerHTML=htmlCost;
 }
 
@@ -1544,14 +1668,16 @@ function weeklyTripleCells(expVal,actVal,settleVal,goodGe,divider){
     pctCell;
 }
 
-function weeklyExactTriplet(exp,act,note,divider){
+function weeklyExactTriplet(exp,act,note,divider,category,weekNum){
   var hasBoth=(exp!==null&&exp!==undefined&&act!==null&&act!==undefined);
   var over=hasBoth?(act>exp):null;
   var color=hasBoth?(over?'var(--red)':'var(--green)'):'';
   var b=divider?'border-right:2px solid var(--border-light);':'';
+  var noteCellClass=(category&&note)?' weekly-note-clickable':'';
+  var noteCellClick=(category&&note)?' onclick="openDetailModal('+weekNum+',\''+category+'\')"':'';
   return'<td>'+(exp===null||exp===undefined?'&#8212;':fmt(exp))+'</td>'+
     '<td'+(color?' style="color:'+color+'"':'')+'>'+(act===null||act===undefined?'&#8212;':fmt(act))+'</td>'+
-    '<td style="'+b+'color:var(--text-muted);font-family:\'Pretendard\',sans-serif;font-size:11px">'+(note||'')+'</td>';
+    '<td class="'+noteCellClass+'" style="'+b+'color:var(--text-muted);font-family:\'Pretendard\',sans-serif;font-size:11px"'+noteCellClick+'>'+(note||'')+'</td>';
 }
 
 function getMaxWeekInSheetData(){
@@ -1581,9 +1707,9 @@ function renderWeeklyTable(rows,totalWeeks){
       weeklyTripleCells(exp.combined,act?act.combinedRevenue:null,act?act.combinedSettlement:null,true,true)+
       weeklyTripleCells(exp.ad,act?act.combinedAd:null,act?act.combinedAdCharge:null,false,true)+
       weeklyExactTriplet(act?act.expectedOrder:null,act?act.actualOrder:null,act?act.orderNote:'',true)+
-      weeklyExactTriplet(act?act.expectedFixed:null,act?act.actualFixed:null,act?act.fixedNote:'',true)+
-      weeklyExactTriplet(act?act.expectedVariable:null,act?act.actualVariable:null,act?act.variableNote:'',true)+
-      weeklyExactTriplet(act?act.expectedRepay:null,act?act.actualRepay:null,act?act.repayNote:'')+
+      weeklyExactTriplet(act?act.expectedFixed:null,act?act.actualFixed:null,act?act.fixedNote:'',true,'고정비',w)+
+      weeklyExactTriplet(act?act.expectedVariable:null,act?act.actualVariable:null,act?act.variableNote:'',true,'변동비',w)+
+      weeklyExactTriplet(act?act.expectedRepay:null,act?act.actualRepay:null,act?act.repayNote:'',false,'상환비',w)+
       '</tr>';
   }
   document.getElementById('weeklyTableBody').innerHTML=body;
@@ -1808,6 +1934,10 @@ window.addEventListener('DOMContentLoaded',function(){
   try{ setTheme(savedTheme); }catch(e){ console.error('setTheme 초기화 실패:', e); }
   try{ buildRatioTabs(); }catch(e){ console.error('buildRatioTabs 초기화 실패:', e); }
   fetchSheetData();
+});
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape')closeDetailModal();
 });
 
 window.addEventListener('pageshow',function(){
