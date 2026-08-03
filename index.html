@@ -784,9 +784,9 @@ async function fetchDetailSheetRows(weekNum){
   if(detailCache[weekNum])return detailCache[weekNum];
   var sheetName=weekNum+'주차';
   var range=encodeURIComponent(quoteSheetName(sheetName)+'!'+DETAIL_SHEET_RANGE);
-  var url='https://sheets.googleapis.com/v4/spreadsheets/'+DETAIL_SHEET_ID+'/values/'+range+'?valueRenderOption=UNFORMATTED_VALUE&_ts='+Date.now();
+  var url='https://sheets.googleapis.com/v4/spreadsheets/'+DETAIL_SHEET_ID+'/values/'+range+'?valueRenderOption=UNFORMATTED_VALUE';
   try{
-    var res=await fetch(url,{headers:{Authorization:'Bearer '+detailAccessToken}});
+    var res=await fetch(url,{headers:{Authorization:'Bearer '+detailAccessToken},cache:'no-store'});
     console.log('[진단] 상세내역 API 응답 상태:',res.status,'/ 요청 시트명:',JSON.stringify(sheetName),'/ 요청 range:',decodeURIComponent(range));
     if(res.status===401)return DETAIL_AUTH_EXPIRED;
     if(res.status===403)return DETAIL_FORBIDDEN;
