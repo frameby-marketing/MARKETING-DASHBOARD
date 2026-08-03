@@ -770,6 +770,16 @@ function parseAccountingNumber(v){
   return neg?-Math.abs(n):n;
 }
 
+async function getDetailSpreadsheetTabs(){
+  try{
+    var url='https://sheets.googleapis.com/v4/spreadsheets/'+DETAIL_SHEET_ID+'?fields=sheets.properties.title';
+    var res=await fetch(url,{headers:{Authorization:'Bearer '+detailAccessToken}});
+    if(!res.ok)return null;
+    var json=await res.json();
+    return(json.sheets||[]).map(function(s){return s.properties.title;});
+  }catch(e){return null;}
+}
+
 async function fetchDetailSheetRows(weekNum){
   if(detailCache[weekNum])return detailCache[weekNum];
   var sheetName=weekNum+'주차';
@@ -777,9 +787,16 @@ async function fetchDetailSheetRows(weekNum){
   var url='https://sheets.googleapis.com/v4/spreadsheets/'+DETAIL_SHEET_ID+'/values/'+range+'?valueRenderOption=UNFORMATTED_VALUE&_ts='+Date.now();
   try{
     var res=await fetch(url,{headers:{Authorization:'Bearer '+detailAccessToken}});
+    console.log('[진단] 상세내역 API 응답 상태:',res.status,'/ 요청 시트명:',JSON.stringify(sheetName),'/ 요청 range:',decodeURIComponent(range));
     if(res.status===401)return DETAIL_AUTH_EXPIRED;
     if(res.status===403)return DETAIL_FORBIDDEN;
-    if(!res.ok)throw new Error('HTTP '+res.status);
+    if(!res.ok){
+      var errBody=await res.text().catch(function(){return'';});
+      console.warn('[진단] 구글 API 오류 응답 원문:',errBody);
+      var tabs=await getDetailSpreadsheetTabs();
+      console.warn('[진단] 상세내역 스프레드시트에 실제로 존재하는 시트 이름 목록:',tabs);
+      throw new Error('HTTP '+res.status);
+    }
     var json=await res.json();
     var values=json.values||[];
     var result=[];
@@ -1507,7 +1524,7 @@ function closeDetailModal(){
 function renderDetailModalTable(rows,category){
   var bodyEl=document.getElementById('detailModalBody');
   if(rows===null){
-    bodyEl.innerHTML='<div class="kpi-sub" style="padding:24px;text-align:center">상세 내역을 불러오지 못했습니다.<br>해당 주차 시트(예: "31주차")가 상세내역 스프레드시트에 있는지 확인해주세요.</div>';
+    bodyEl.innerHTML='<div class="kpi-sub" style="padding:24px;text-align:center">상세 내역을 불러오지 못했습니다.<br>F12 콘솔(Console)에서 정확한 오류 내용과 실제 시트 이름 목록을 확인할 수 있어요.</div>';
     return;
   }
   var filtered=rows.filter(function(r){return r.category===category;});
