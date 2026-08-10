@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>매출 &amp; 영업이익 시뮬레이션</title>
-  <!-- BUILD: 2026-08-10 rev-daily-friday-report-calendar-month-projection -->
-  <script>console.log('[진단] 대시보드 빌드: 2026-08-10 rev-daily-friday-report-calendar-month-projection — 이 로그가 안 보이면 캐시된 구버전 파일을 보고 있는 것입니다.');</script>
+  <!-- BUILD: 2026-08-10 rev-daily-friday-report-calendar-month-projection-v2 -->
+  <script>console.log('[진단] 대시보드 빌드: 2026-08-10 rev-daily-friday-report-calendar-month-projection-v2 — 이 로그가 안 보이면 캐시된 구버전 파일을 보고 있는 것입니다.');</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -76,6 +76,7 @@
     .period-badge{padding:4px 12px;border-radius:20px;background:var(--bg-card2);border:1px solid var(--border);font-size:12px;color:var(--text-sub);font-family:'DM Mono',monospace}
     #weeklyRangeBadge,#weeklyScorecardRangeBadge{padding:10px 19px;font-size:17px;font-weight:800;color:var(--text);border:1px solid var(--accent);box-shadow:0 0 0 2px rgba(99,102,241,.10);letter-spacing:-.25px}
     #weeklyScorecardRangeBadge{display:inline-flex;align-items:center;white-space:nowrap}
+    .excluded-date-text{color:var(--red)!important;font-weight:900!important;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);border-radius:6px;padding:2px 6px;margin-left:3px}
 
     /* CHART */
     .chart-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
@@ -1014,6 +1015,13 @@ function formatUsedWeekRange(fullRange,usedRange){
   var excluded=getExcludedDatesText(fullRange,usedRange);
   return fmtDateShort(usedRange.start)+'~'+fmtDateShort(usedRange.end)+(excluded?' · '+excluded:'');
 }
+function excludedDatesHtml(text){
+  return text?'<span class="excluded-date-text">'+text+'</span>':'';
+}
+function formatUsedWeekRangeHtml(fullRange,usedRange){
+  var excluded=getExcludedDatesText(fullRange,usedRange);
+  return fmtDateShort(usedRange.start)+'~'+fmtDateShort(usedRange.end)+(excluded?' · '+excludedDatesHtml(excluded):'');
+}
 
 function normalizeDate(v){
   if(!v)return'';
@@ -1780,7 +1788,7 @@ function renderWeeklyTab(){
   var currentWeek=totalWeeks; // 자동: 오늘 기준 직전(가장 최근 완료된) 주차
   var range=getWeekRange(currentWeek,DASHBOARD_YEAR);
   var usedRange=getMonthClippedWeekRange(range);
-  document.getElementById('weeklyRangeBadge').textContent=currentWeek+'주차 ('+formatUsedWeekRange(range,usedRange)+') · 매주 금요일 자동 갱신';
+  document.getElementById('weeklyRangeBadge').innerHTML=currentWeek+'주차 ('+formatUsedWeekRangeHtml(range,usedRange)+') · 매주 금요일 자동 갱신';
 
   renderWeeklyCheckCards(rows,currentWeek);
   renderWeeklyScorecard(rows);
@@ -2113,7 +2121,7 @@ function renderWeeklyScorecard(rows){
       var expectedVal=c.type==='daily'?(exp?exp[c.expKey]:null):(act?act[c.expKey2]:null);
       return scorecardCell(scorecardPass(actualVal,expectedVal,c.goodGe));
     }).join('');
-    var periodText=formatUsedWeekRange(mw.fullRange,mw.range);
+    var periodText=formatUsedWeekRangeHtml(mw.fullRange,mw.range);
     return'<tr><td>'+(idx+1)+'주차 <span style="display:block;font-size:10px;color:var(--text-muted);margin-top:3px">'+periodText+'</span></td>'+cells+'</tr>';
   }).join('');
   tbodyEl.innerHTML=bodyHtml;
@@ -2123,7 +2131,7 @@ function renderWeeklyScorecard(rows){
   var lastExcluded=getExcludedDatesText(monthWeeks[monthWeeks.length-1].fullRange,monthWeeks[monthWeeks.length-1].range);
   var exclusions=[];
   [firstExcluded,lastExcluded].forEach(function(x){if(x&&exclusions.indexOf(x)===-1)exclusions.push(x);});
-  if(scoreRangeBadge)scoreRangeBadge.textContent=fmtDateShort(firstUsed)+'~'+fmtDateShort(lastUsed)+' 데이터 반영'+(exclusions.length?' · '+exclusions.join(' · '):'');
+  if(scoreRangeBadge)scoreRangeBadge.innerHTML=fmtDateShort(firstUsed)+'~'+fmtDateShort(lastUsed)+' 데이터 반영'+(exclusions.length?' · '+exclusions.map(excludedDatesHtml).join(' · '):'');
 
   if(cumPeriod){
     cumPeriod.textContent='· '+fmtDateShort(firstUsed)+'~'+fmtDateShort(lastUsed)+' 기준 ('+monthWeeks[0].globalWeek+'~'+monthWeeks[monthWeeks.length-1].globalWeek+'주차)';
@@ -2193,6 +2201,10 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   today.setHours(0,0,0,0);
   var monthStart=new Date(curAs.year,curAs.monthIndex0,1);
   var monthEnd=new Date(curAs.year,curAs.monthIndex0,daysInMonth(curAs.year,curAs.monthIndex0));
+  // 전망의 실제값 반영 기준은 '오늘 이전'이 아니라 금요일 보고가 완료된 마지막 주차의 목요일까지다.
+  // 예: 2026-08-10(월)에는 32주차 8/1~8/6만 실제, 8/7~8/31은 예상값을 사용한다.
+  var actualCutoff=monthWeeks&&monthWeeks.length?new Date(monthWeeks[monthWeeks.length-1].range.end):new Date(monthStart.getTime()-86400000);
+  actualCutoff.setHours(0,0,0,0);
   var dim=daysInMonth(curAs.year,curAs.monthIndex0);
   var expectedDailyRevenue=planRow.revenueAdj/dim;
   var expectedDailyAd=planRow.ad/dim;
@@ -2211,7 +2223,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   for(var d=new Date(monthStart);d<=monthEnd;d.setDate(d.getDate()+1)){
     var key=fmtDateISO(d);
     var day=weeklyRowsMap[key]||null;
-    var isPast=d<today; // 오늘은 아직 완료되지 않은 날짜로 보고 예상 사용. 금요일 보고 시 실제는 목요일까지 반영됨.
+    var isPast=d<=actualCutoff; // 금요일 보고가 끝난 마지막 목요일까지만 실제값, 그 다음 날부터는 날짜가 지났더라도 다음 보고 전까지 예상값 사용.
     if(day){
       [['order','orderNote'],['fixed','fixedNote'],['variable','variableNote'],['repay','repayNote']].forEach(function(pair){
         var note=String(day[pair[1]]||'').trim();
@@ -2265,7 +2277,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     var expected=Number(a.expected)||0, forecast=Number(a.forecast)||0;
     var delta=forecast-expected;
     var pct=expected?Math.abs(delta/expected*100):0;
-    var itemGood=Math.abs(delta)<0.000001; // 예상과 다르면 방향과 무관하게 '예상 이탈'로 표시
+    var itemGood=a.isRevenue?delta>=-0.000001:delta<=0.000001; // 매출은 증가/동일=양호, 광고비·비용은 감소/동일=양호
     var maxVal=Math.max(Math.abs(expected),Math.abs(forecast),1);
     var expH=Math.max(4,Math.round(Math.abs(expected)/maxVal*138));
     var fcH=Math.max(4,Math.round(Math.abs(forecast)/maxVal*138));
@@ -2292,6 +2304,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     var expected=Number(a.expected)||0,forecast=Number(a.forecast)||0;
     var delta=forecast-expected;
     var same=Math.abs(delta)<0.000001;
+    var evalGood=a.isRevenue?delta>=-0.000001:delta<=0.000001;
     var reason='';
     if(a.name==='매출'){
       var avg=avgOrNull(pastRevenueSum,pastRevenueCount);
@@ -2321,7 +2334,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
       if(!monthNotes[key].length&&Math.abs(delta)>=0.000001)reason+=' 별도 특이사항은 입력되지 않았습니다.';
     }
     var changeText=same?'예상과 동일':('예상 대비 '+fmtSignedKorean(delta)+' ('+(delta>0?'증가':'감소')+')');
-    return '<div class="projection-eval-row '+(same?'good':'bad')+'"><div class="projection-eval-name">'+a.name+'</div><div class="projection-eval-text">'+changeText+'<span class="projection-eval-reason">· '+reason+'</span></div></div>';
+    return '<div class="projection-eval-row '+(evalGood?'good':'bad')+'"><div class="projection-eval-name">'+a.name+'</div><div class="projection-eval-text">'+changeText+'<span class="projection-eval-reason">· '+reason+'</span></div></div>';
   }
   var evaluationListHtml='<div class="projection-eval-list">'+assessments.map(evalRowHtml).join('')+'</div>';
 
@@ -2335,7 +2348,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     '<div class="kpi-sub">원래 계획 '+fmtKorean(plannedProfit,true)+' · 차이 '+fmtKorean(diff,true)+'</div>'+ 
     '<div class="kpi-sub" style="color:'+(good?'var(--green)':'var(--red)')+';font-weight:800;margin-top:4px">'+(good?'✓ 계획 달성·초과 전망':'⚠ 계획 미달 전망')+'</div>'+ 
     '<div class="kpi-sub projection-equation" style="margin-top:12px;line-height:1.8"><div style="font-weight:800">매출 '+fmtKorean(projectedRevenue,false)+'</div><div style="margin-top:2px">− 광고비 '+fmtKorean(projectedAd,false)+' − 발주비 '+fmtKorean(projectedOrder,false)+' − 고정비 '+fmtKorean(projectedFixed,false)+' − 변동비 '+fmtKorean(projectedVariable,false)+' − 상환비 '+fmtKorean(projectedRepay,false)+'</div></div>'+ 
-    '<div class="kpi-sub projection-footnote" style="margin-top:8px">'+monthLabel+' 달력 기준만 사용 · 지난 날짜 '+actualDayCount+'일: 일별 데이터의 실제값 · 오늘 포함 남은 날짜 '+expectedDayCount+'일: 매출데이터의 월 계획 일할값(매출·광고비) + 일별 데이터의 예상비용</div>'+ 
+    '<div class="kpi-sub projection-footnote" style="margin-top:8px">'+monthLabel+' 달력 기준만 사용 · 마지막 완료 보고일 '+(actualDayCount?fmtDateShort(actualCutoff):'없음')+'까지 '+actualDayCount+'일: 일별 데이터의 실제값 · 이후 '+expectedDayCount+'일: 매출데이터의 월 계획 일할값(매출·광고비) + 일별 데이터의 예상비용</div>'+ 
     missingNote+
   '</div>'+ 
   '<div class="kpi-card projection-assessment-card"><div class="kpi-label">항목별 평가 · 예상 vs 전망</div><div class="projection-bars-grid">'+assessments.map(assessmentBarHtml).join('')+'</div>'+evaluationListHtml+'</div>';
@@ -2351,7 +2364,7 @@ function renderWeeklyTable(rows,totalWeeks){
     var act=getAggregatedWeekRow(range);
     body+='<tr>'+
       '<td>'+w+'주차</td>'+
-      '<td style="color:var(--text-sub)">'+formatUsedWeekRange(fullRange,range)+'</td>'+
+      '<td style="color:var(--text-sub)">'+formatUsedWeekRangeHtml(fullRange,range)+'</td>'+
       weeklyTripleCells(exp.ownNaver,act?act.ownNaverRevenue:null,act?act.ownNaverSettlement:null,true,true)+
       weeklyTripleCells(exp.combined,act?act.combinedRevenue:null,act?act.combinedSettlement:null,true,true)+
       weeklyTripleCells(exp.ad,act?act.combinedAd:null,act?act.combinedAdCharge:null,false,true)+
