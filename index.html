@@ -2185,11 +2185,44 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     '</div>';
   }
 
+
+  function buildProjectionCauseSummary(){
+    var causes=[];
+    function addCause(label, planned, projected, isRevenue){
+      var delta=projected-planned;
+      if(Math.abs(delta)<0.5)return;
+      if(isRevenue){
+        if(delta<0) causes.push(label+' '+fmtKorean(Math.abs(delta),false)+' 감소');
+        else causes.push(label+' '+fmtKorean(Math.abs(delta),false)+' 증가');
+      }else{
+        if(delta>0) causes.push(label+' '+fmtKorean(Math.abs(delta),false)+' 증가');
+        else causes.push(label+' '+fmtKorean(Math.abs(delta),false)+' 감소');
+      }
+    }
+    addCause('매출', plannedRevenue, projectedRevenue, true);
+    addCause('광고비', plannedAd, projectedAd, false);
+    addCause('발주비', plannedOrder, projectedOrder, false);
+    addCause('고정비', plannedFixed, projectedFixed, false);
+    addCause('변동비', plannedVariable, projectedVariable, false);
+    addCause('상환비', plannedRepay, projectedRepay, false);
+
+    if(!causes.length){
+      return good
+        ? '계획 대비 주요 항목 차이가 크지 않아 영업이익도 계획 수준으로 전망됩니다.'
+        : '계획 대비 일부 항목의 차이로 영업이익이 계획보다 낮게 전망됩니다.';
+    }
+    var impactText=causes.map(function(c){return '· '+c;}).join('<br>');
+    return (good
+      ? '계획 대비 주요 변동 요인<br>'
+      : '영업이익이 계획보다 낮아지는 주요 원인<br>') + impactText;
+  }
+
   projEl.innerHTML='<div class="kpi-card projection-main-card">'+
     '<div class="kpi-label">'+monthLabel+' 실적 추세 반영 영업이익 전망</div>'+ 
     '<div class="kpi-value" style="color:'+color+'">'+fmtKorean(projectedProfit,true)+'</div>'+ 
     '<div class="kpi-sub">원래 계획 '+fmtKorean(plannedProfit,true)+' · 차이 '+fmtKorean(diff,true)+'</div>'+ 
     '<div class="kpi-sub" style="color:'+(good?'var(--green)':'var(--red)')+';font-weight:800;margin-top:4px">'+(good?'✓ 계획 달성·초과 전망':'⚠ 계획 미달 전망')+'</div>'+ 
+    '<div class="kpi-sub projection-cause" style="margin-top:8px;line-height:1.65;color:var(--text-sub)">'+buildProjectionCauseSummary()+'</div>'+
     '<div class="kpi-sub projection-equation" style="margin-top:12px;line-height:1.8"><div style="font-weight:800">매출 '+fmtKorean(projectedRevenue,false)+'</div><div style="margin-top:2px">− 광고비 '+fmtKorean(projectedAd,false)+' − 발주비 '+fmtKorean(projectedOrder,false)+' − 고정비 '+fmtKorean(projectedFixed,false)+' − 변동비 '+fmtKorean(projectedVariable,false)+' − 상환비 '+fmtKorean(projectedRepay,false)+'</div></div>'+ 
     '<div class="kpi-sub projection-footnote" style="margin-top:8px">매출·광고비: 1~'+monthWeeks.length+'주차 실적 일평균을 월말까지 유지 가정 · 비용: 완료된 주차는 실제, 아직 완료되지 않은 주차는 예상 금액 반영</div>'+ 
   '</div>'+ 
