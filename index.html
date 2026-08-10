@@ -179,8 +179,26 @@
     .cum-status-grid .cum-card{width:100%;min-height:146px;display:flex;flex-direction:column;justify-content:center}
     .cum-status-grid .cum-card-note{margin-top:9px}
     @media(max-width:700px){.cum-status-grid{grid-template-columns:1fr}.cum-status-col.bad .cum-status-col-title{text-align:left}.cum-card.is-bad,.cum-card.is-bad .kpi-label,.cum-card.is-bad .kpi-value,.cum-card.is-bad .kpi-sub{text-align:left!important}.cum-card.is-bad{border-right:1px solid var(--border);border-left:4px solid var(--red)}}
-    .projection-two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
-    .projection-two-col .kpi-card{height:100%}
+    .projection-two-col{display:flex;flex-direction:column;gap:12px}
+    .projection-two-col .kpi-card{width:100%}
+    .projection-assessment-card .kpi-label{font-size:16px!important;color:#fff!important;font-weight:700;text-transform:none;letter-spacing:0}
+    .projection-bars-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin-top:16px}
+    .projection-bar-item{background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:14px 10px 12px;min-width:0}
+    .projection-bar-title{font-size:14px;font-weight:800;color:#fff;text-align:center;margin-bottom:14px}
+    .projection-bar-chart{height:190px;display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end;padding:0 4px}
+    .projection-bar-col{height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:stretch;min-width:0}
+    .projection-bar-value{font-family:'DM Mono',monospace;font-size:12px;font-weight:700;color:#fff;text-align:center;white-space:nowrap;margin-bottom:6px}
+    .projection-bar-track{height:142px;display:flex;align-items:flex-end;justify-content:center;border-bottom:1px solid var(--border-light)}
+    .projection-bar{width:72%;min-height:4px;border-radius:6px 6px 2px 2px;transition:height .35s ease}
+    .projection-bar.expected{background:#7b8190}
+    .projection-bar.forecast.good{background:var(--green)}
+    .projection-bar.forecast.bad{background:var(--red)}
+    .projection-bar-label{font-size:11px;font-weight:700;color:var(--text-sub);text-align:center;margin-top:7px}
+    .projection-bar-diff{margin-top:11px;padding-top:10px;border-top:1px dashed var(--border);font-size:12px;font-weight:700;text-align:center;line-height:1.5;min-height:48px}
+    .projection-bar-diff.good{color:var(--green)}
+    .projection-bar-diff.bad{color:var(--red)}
+    @media(max-width:1100px){.projection-bars-grid{grid-template-columns:repeat(3,1fr)}}
+    @media(max-width:700px){.projection-bars-grid{grid-template-columns:repeat(2,1fr)}}
     .projection-main-card .kpi-label{font-size:16px!important;color:#fff!important;font-weight:700;text-transform:none;letter-spacing:0}
     .projection-main-card .kpi-value{font-size:52px!important;line-height:1.08;margin:10px 0 12px}
     .projection-main-card .kpi-sub{font-size:20px!important;color:#fff!important;line-height:1.7!important}
@@ -2137,13 +2155,35 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     return{good:true,text:'예상했던 수준입니다. (차이 없음)'};
   }
   var assessments=[
-    ['매출',evalRevenue(projectedRevenue,planRow.revenueAdj)],
-    ['광고비',evalExpense(projectedAd,planRow.ad,'광고비')],
-    ['발주비',evalExpense(projectedOrder,planRow.order,'발주비')],
-    ['고정비',evalExpense(projectedFixed,planRow.fixed,'고정비')],
-    ['변동비',evalExpense(projectedVariable,planRow.variable,'변동비')],
-    ['상환비',evalExpense(projectedRepay,planRow.repay,'상환비')]
+    {name:'매출',forecast:projectedRevenue,expected:planRow.revenueAdj,isRevenue:true},
+    {name:'광고비',forecast:projectedAd,expected:planRow.ad,isRevenue:false},
+    {name:'발주비',forecast:projectedOrder,expected:planRow.order,isRevenue:false},
+    {name:'고정비',forecast:projectedFixed,expected:planRow.fixed,isRevenue:false},
+    {name:'변동비',forecast:projectedVariable,expected:planRow.variable,isRevenue:false},
+    {name:'상환비',forecast:projectedRepay,expected:planRow.repay,isRevenue:false}
   ];
+
+  function assessmentBarHtml(a){
+    var expected=Number(a.expected)||0, forecast=Number(a.forecast)||0;
+    var delta=forecast-expected;
+    var pct=expected?Math.abs(delta/expected*100):0;
+    // 매출은 증가/달성이 양호, 비용은 감소/동일이 양호
+    var itemGood=a.isRevenue ? forecast>=expected : forecast<=expected;
+    var maxVal=Math.max(Math.abs(expected),Math.abs(forecast),1);
+    var expH=Math.max(4,Math.round(Math.abs(expected)/maxVal*138));
+    var fcH=Math.max(4,Math.round(Math.abs(forecast)/maxVal*138));
+    var direction=delta>0?'늘었습니다':(delta<0?'줄었습니다':'동일합니다');
+    var deltaWord=delta>0?'증가':(delta<0?'감소':'차이 없음');
+    var diffText=delta===0?'예상과 동일 (차이 없음)':('예상보다 '+pct.toFixed(1)+'% '+direction+' ('+fmtKorean(Math.abs(delta),false)+' '+deltaWord+')');
+    return '<div class="projection-bar-item">'+
+      '<div class="projection-bar-title">'+a.name+'</div>'+
+      '<div class="projection-bar-chart">'+
+        '<div class="projection-bar-col"><div class="projection-bar-value">'+fmtKorean(expected,false)+'</div><div class="projection-bar-track"><div class="projection-bar expected" style="height:'+expH+'px"></div></div><div class="projection-bar-label">예상</div></div>'+
+        '<div class="projection-bar-col"><div class="projection-bar-value">'+fmtKorean(forecast,false)+'</div><div class="projection-bar-track"><div class="projection-bar forecast '+(itemGood?'good':'bad')+'" style="height:'+fcH+'px"></div></div><div class="projection-bar-label">전망</div></div>'+
+      '</div>'+
+      '<div class="projection-bar-diff '+(itemGood?'good':'bad')+'">'+diffText+'</div>'+
+    '</div>';
+  }
 
   projEl.innerHTML='<div class="kpi-card projection-main-card">'+
     '<div class="kpi-label">'+monthLabel+' 실적 추세 반영 영업이익 전망</div>'+ 
@@ -2153,7 +2193,8 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     '<div class="kpi-sub projection-equation" style="margin-top:12px;line-height:1.8"><div style="font-weight:800">매출 '+fmtKorean(projectedRevenue,false)+'</div><div style="margin-top:2px">− 광고비 '+fmtKorean(projectedAd,false)+' − 발주비 '+fmtKorean(projectedOrder,false)+' − 고정비 '+fmtKorean(projectedFixed,false)+' − 변동비 '+fmtKorean(projectedVariable,false)+' − 상환비 '+fmtKorean(projectedRepay,false)+'</div></div>'+ 
     '<div class="kpi-sub projection-footnote" style="margin-top:8px">매출·광고비: 1~'+monthWeeks.length+'주차 실적 일평균을 월말까지 유지 가정 · 비용: 완료된 주차는 실제, 아직 완료되지 않은 주차는 예상 금액 반영</div>'+ 
   '</div>'+ 
-  '<div class="kpi-card"><div class="kpi-label">항목별 평가</div><div class="assessment-list">'+assessments.map(function(a){return'<div class="assessment-item '+(a[1].good?'good':'bad')+'"><span class="assessment-name">'+a[0]+'</span><span class="assessment-text">'+a[1].text+'</span></div>';}).join('')+'</div></div>';
+  '<div class="kpi-card projection-assessment-card"><div class="kpi-label">항목별 평가 · 예상 vs 전망</div><div class="projection-bars-grid">'+assessments.map(assessmentBarHtml).join('')+'</div></div>';
+
 }
 
 function renderWeeklyTable(rows,totalWeeks){
