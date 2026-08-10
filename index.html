@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>매출 &amp; 영업이익 시뮬레이션</title>
-  <!-- BUILD: 2026-08-10 rev-weekly-actual-past-expected-future-projection -->
+  <!-- BUILD: 2026-08-10 rev-weekly-row-lookup-fix -->
   <script>console.log('[진단] 대시보드 빌드: 2026-08-10 rev-weekly-friday-current-cumulative-projection — 이 로그가 안 보이면 캐시된 구버전 파일을 보고 있는 것입니다.');</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -949,6 +949,23 @@ function normalizeDate(v){
 }
 function pad2(n){return String(n).padStart(2,'0')}
 
+// 주차 행 조회를 날짜 문자열 형식에 덜 민감하게 처리한다.
+// 시작일 키가 정확히 일치하지 않아도 시작일/종료일 정규화 값으로 다시 찾아 실적 누락 오판을 방지.
+function getWeeklyRowForRange(range){
+  if(!range||isNaN(range.start)||isNaN(range.end))return null;
+  var startKey=fmtDateISO(range.start);
+  var endKey=fmtDateISO(range.end);
+  if(weeklyRowsMap[startKey])return weeklyRowsMap[startKey];
+
+  for(var i=0;i<weeklyRows.length;i++){
+    var r=weeklyRows[i];
+    var rs=normalizeDate(r.startDate||'');
+    var re=normalizeDate(r.endDate||'');
+    if(rs===startKey || (re&&re===endKey))return r;
+  }
+  return null;
+}
+
 function startAutoRefresh(){
   stopAutoRefresh();
   pollTimerId=setInterval(function(){
@@ -1849,7 +1866,7 @@ function buildExactCheckCard(label,expectedVal,actualVal,note,category,weekIndex
 function renderWeeklyCheckCards(rows,weekIndex){
   var range=getWeekRange(weekIndex,DASHBOARD_YEAR);
   var exp=getWeeklyExpected(rows,range);
-  var act=weeklyRowsMap[fmtDateISO(range.start)];
+  var act=getWeeklyRowForRange(range);
   console.log('[진단] 이번에 표시 중인 주차:',weekIndex,'/ 시작일 키:',fmtDateISO(range.start));
   console.log('[진단] 해당 주차의 시트 행을 찾았는가?',!!act);
   if(act){
@@ -1857,7 +1874,7 @@ function renderWeeklyCheckCards(rows,weekIndex){
     console.log('[진단] 변동비 예상/실제:',act.expectedVariable,'/',act.actualVariable);
     console.log('[진단] 상환비 예상/실제:',act.expectedRepay,'/',act.actualRepay);
   }else{
-    console.log('[진단] weeklyRowsMap에 이 날짜의 행이 없습니다. 키 목록:',Object.keys(weeklyRowsMap));
+    console.log('[진단] 해당 주차 행을 찾지 못했습니다. 요청 시작일/종료일:',fmtDateISO(range.start),fmtDateISO(range.end),' / 파싱된 행:',weeklyRows);
   }
 
   var htmlRevenue='';
@@ -2021,7 +2038,7 @@ function renderWeeklyScorecard(rows){
 
   var bodyHtml=monthWeeks.map(function(mw,idx){
     var exp=getWeeklyExpected(rows,mw.range);
-    var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
+    var act=getWeeklyRowForRange(mw.range);
     var cells=activeCols.map(function(c){
       var actualVal=act?act[c.key]:null;
       var expectedVal=c.type==='daily'?(exp?exp[c.expKey]:null):(act?act[c.expKey2]:null);
@@ -2039,7 +2056,7 @@ function renderWeeklyScorecard(rows){
     var sumAct=0,sumExp=0,count=0,notes=[];
     monthWeeks.forEach(function(mw){
       var exp=getWeeklyExpected(rows,mw.range);
-      var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
+      var act=getWeeklyRowForRange(mw.range);
       var actualVal=act?act[col.key]:null;
       var expectedVal=col.type==='daily'?(exp?exp[col.expKey]:null):(act?act[col.expKey2]:null);
       if(actualVal!==null&&actualVal!==undefined&&expectedVal!==null&&expectedVal!==undefined){
@@ -2112,7 +2129,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   function projectedWeeklyDaily(actualKey,expectedKey,monthlyPlanTotal){
     var total=0,coveredDays=0;
     allMonthWeeks.forEach(function(mw){
-      var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
+      var act=getWeeklyRowForRange(mw.range);
       var exp=getWeeklyExpected(rows,mw.range);
       var daily=null;
 
@@ -2152,7 +2169,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   function projectedWeeklyCost(actualKey,expectedKey){
     var total=0;
     allMonthWeeks.forEach(function(mw){
-      var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
+      var act=getWeeklyRowForRange(mw.range);
       if(mw.globalWeek<=visibleMax){
         // 완료된 주차는 실제 집행액, 아직 완료되지 않은 주차는 예상 집행액 사용
         total+=(act&&act[actualKey]!==null&&act[actualKey]!==undefined)?act[actualKey]:0;
@@ -2268,7 +2285,7 @@ function renderWeeklyTable(rows,totalWeeks){
   for(var w=WEEK_START_INDEX;w<=lastWeek;w++){
     var range=getWeekRange(w,DASHBOARD_YEAR);
     var exp=getWeeklyExpected(rows,range);
-    var act=weeklyRowsMap[fmtDateISO(range.start)];
+    var act=getWeeklyRowForRange(range);
     body+='<tr>'+
       '<td>'+w+'주차</td>'+
       '<td style="color:var(--text-sub)">'+fmtDateShort(range.start)+'~'+fmtDateShort(range.end)+'</td>'+
