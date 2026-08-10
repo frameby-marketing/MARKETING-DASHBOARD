@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>매출 &amp; 영업이익 시뮬레이션</title>
-  <!-- BUILD: 2026-08-10 rev-weekly-friday-current-cumulative-projection -->
-  <script>console.log('[진단] 대시보드 빌드: 2026-08-10 rev-weekly-friday-current-cumulative-projection — 이 로그가 안 보이면 캐시된 구버전 파일을 보고 있는 것입니다.');</script>
+  <!-- BUILD: 2026-08-10 rev-daily-friday-report-calendar-month-projection -->
+  <script>console.log('[진단] 대시보드 빌드: 2026-08-10 rev-daily-friday-report-calendar-month-projection — 이 로그가 안 보이면 캐시된 구버전 파일을 보고 있는 것입니다.');</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -74,6 +74,7 @@
     .page-title{font-size:20px;font-weight:600}
     .page-sub{font-size:12px;color:var(--text-muted);margin-top:4px}
     .period-badge{padding:4px 12px;border-radius:20px;background:var(--bg-card2);border:1px solid var(--border);font-size:12px;color:var(--text-sub);font-family:'DM Mono',monospace}
+    #weeklyRangeBadge{padding:9px 18px;font-size:16px;font-weight:800;color:var(--text);border:1px solid var(--accent);box-shadow:0 0 0 2px rgba(99,102,241,.10);letter-spacing:-.2px}
 
     /* CHART */
     .chart-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
@@ -534,7 +535,7 @@
       </header>
       <div class="settings-grid">
         <div class="settings-card full-width">
-          <div class="settings-note" style="margin-top:0">&#x203B; 이 대시보드는 스프레드시트 ID <code>1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI</code>에 고정 연동되어 있으며, <code>매출데이터</code>(A1:J13) · <code>주간실적</code>(A1:F60) 두 시트를 자동으로 읽어옵니다. 우측 상단 &#39;스프레드시트&#39; 버튼으로 바로 열 수 있어요.</div>
+          <div class="settings-note" style="margin-top:0">&#x203B; 이 대시보드는 스프레드시트 ID <code>1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI</code>에 고정 연동되어 있으며, <code>매출데이터</code>(A1:J13) · <code>일별 데이터</code>(A1:S500) 두 시트를 자동으로 읽어옵니다. 우측 상단 &#39;스프레드시트&#39; 버튼으로 바로 열 수 있어요.</div>
         </div>
         <div class="settings-card full-width">
           <div class="settings-section-title">매출데이터 시트 구성 가이드</div>
@@ -562,41 +563,41 @@
           </div>
         </div>
         <div class="settings-card full-width">
-          <div class="settings-section-title">주차별 데이터 시트 구성 가이드 <span style="font-size:10px;font-weight:400;color:var(--text-muted)">(주차별 점검 탭용 · 같은 스프레드시트에 새 시트로 추가)</span></div>
+          <div class="settings-section-title">일별 데이터 시트 구성 가이드 <span style="font-size:10px;font-weight:400;color:var(--text-muted)">(주차별 점검 탭용 · 같은 스프레드시트에 새 시트로 추가)</span></div>
           <div class="guide-table-wrap">
             <table class="guide-table">
               <thead><tr><th>열</th><th>내용</th><th>예시</th><th>비고</th></tr></thead>
               <tbody>
-                <tr><td>A열</td><td>주차 시작일 (금요일)</td><td>2026-07-24</td><td>YYYY-MM-DD, 행 2부터 매주 한 줄씩 추가</td></tr>
-                <tr><td>B열</td><td>주차 종료일 (일요일)</td><td>2026-08-01</td><td>참고용 표시 · 계산에는 미사용</td></tr>
-                <tr><td>C열</td><td>통합일평균매출 (원)</td><td>3,611,497</td><td>모든 채널 합산 일평균 매출 실적(실시간)</td></tr>
-                <tr><td>D열</td><td>통합일평균정산 (원)</td><td>3,550,000</td><td>모든 채널 합산 일평균 정산 매출 (지난주 정산 확정분)</td></tr>
-                <tr><td>E열</td><td>일평균매출(자사+네이버) (원)</td><td>2,589,314</td><td>'매출데이터' 시트 B열과 비교되는 실적(실시간)</td></tr>
-                <tr><td>F열</td><td>일평균정산(자사+네이버) (원)</td><td>2,540,000</td><td>자사+네이버 일평균 정산 매출</td></tr>
-                <tr><td>G열</td><td>통합일평균광고비 (원)</td><td>1,042,781</td><td>모든 채널 합산 일평균 광고비 실적(실시간 확인)</td></tr>
-                <tr><td>H열</td><td>통합일평균광고충전 (원)</td><td>1,020,000</td><td>실제 충전된 일평균 광고비</td></tr>
-                <tr><td>I열</td><td>예상발주비 (원)</td><td>0</td><td>그 주에 나가기로 계획된 발주비</td></tr>
-                <tr><td>J열</td><td>실제발주비 (원)</td><td>0</td><td>그 주에 실제로 나간 발주비</td></tr>
-                <tr><td>K열</td><td>발주비 특이사항 (선택)</td><td>결제일 지연</td><td>예상과 다를 때 사유 기재</td></tr>
-                <tr><td>L열</td><td>예상고정비 (원)</td><td>0</td><td>그 주 계획된 고정비</td></tr>
-                <tr><td>M열</td><td>실제고정비 (원)</td><td>0</td><td>그 주 실제 고정비</td></tr>
-                <tr><td>N열</td><td>고정비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
-                <tr><td>O열</td><td>예상변동비 (원)</td><td>0</td><td>그 주 계획된 변동비</td></tr>
-                <tr><td>P열</td><td>실제변동비 (원)</td><td>0</td><td>그 주 실제 변동비</td></tr>
-                <tr><td>Q열</td><td>변동비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
-                <tr><td>R열</td><td>예상상환비 (원)</td><td>0</td><td>그 주 계획된 상환비</td></tr>
-                <tr><td>S열</td><td>실제상환비 (원)</td><td>0</td><td>그 주 실제 상환비</td></tr>
-                <tr><td>T열</td><td>상환비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
+                <tr><td>A열</td><td>일자</td><td>2026-07-24</td><td>YYYY-MM-DD, 행 2부터 일별로 한 줄씩 추가</td></tr>
+                
+                <tr><td>B열</td><td>통합일평균매출 (원)</td><td>3,611,497</td><td>모든 채널 합산 일평균 매출 실적(실시간)</td></tr>
+                <tr><td>C열</td><td>통합일평균정산 (원)</td><td>3,550,000</td><td>모든 채널 합산 일평균 정산 매출 (지난주 정산 확정분)</td></tr>
+                <tr><td>D열</td><td>일평균매출(자사+네이버) (원)</td><td>2,589,314</td><td>'매출데이터' 시트 B열과 비교되는 실적(실시간)</td></tr>
+                <tr><td>E열</td><td>일평균정산(자사+네이버) (원)</td><td>2,540,000</td><td>자사+네이버 일평균 정산 매출</td></tr>
+                <tr><td>F열</td><td>통합일평균광고비 (원)</td><td>1,042,781</td><td>모든 채널 합산 일평균 광고비 실적(실시간 확인)</td></tr>
+                <tr><td>G열</td><td>통합일평균광고충전 (원)</td><td>1,020,000</td><td>실제 충전된 일평균 광고비</td></tr>
+                <tr><td>H열</td><td>예상발주비 (원)</td><td>0</td><td>해당 일자에 계획된 발주비</td></tr>
+                <tr><td>I열</td><td>실제발주비 (원)</td><td>0</td><td>해당 일자에 실제로 나간 발주비</td></tr>
+                <tr><td>J열</td><td>발주비 특이사항 (선택)</td><td>결제일 지연</td><td>예상과 다를 때 사유 기재</td></tr>
+                <tr><td>K열</td><td>예상고정비 (원)</td><td>0</td><td>해당 일자에 계획된 고정비</td></tr>
+                <tr><td>L열</td><td>실제고정비 (원)</td><td>0</td><td>해당 일자에 실제 집행된 고정비</td></tr>
+                <tr><td>M열</td><td>고정비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
+                <tr><td>N열</td><td>예상변동비 (원)</td><td>0</td><td>해당 일자에 계획된 변동비</td></tr>
+                <tr><td>O열</td><td>실제변동비 (원)</td><td>0</td><td>해당 일자에 실제 집행된 변동비</td></tr>
+                <tr><td>P열</td><td>변동비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
+                <tr><td>Q열</td><td>예상상환비 (원)</td><td>0</td><td>해당 일자에 계획된 상환비</td></tr>
+                <tr><td>R열</td><td>실제상환비 (원)</td><td>0</td><td>해당 일자에 실제 집행된 상환비</td></tr>
+                <tr><td>S열</td><td>상환비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
               </tbody>
             </table>
           </div>
           <div class="settings-note">&#x203B; 매출·광고비는 이제 예상·실적(실시간)·정산(또는 충전) 3가지를 함께 비교합니다. 실시간 매출과 실제 정산 매출 사이에는 정산 주기 때문에 차이가 날 수 있어 두 지표를 나란히 볼 수 있도록 했습니다.</div>
           <div class="guide-steps">
-            <div class="guide-step"><span class="step-num">1</span><span>같은 스프레드시트에 시트 하나 추가 → 이름을 <code>주차별 데이터</code>로 지정</span></div>
-            <div class="guide-step"><span class="step-num">2</span><span>2행에 이미 입력해두신 첫 주(7/24~7/30, 금~목 기준) 데이터가 있고, 그 아래로 매주 한 줄씩 추가하시면 됩니다</span></div>
-            <div class="guide-step"><span class="step-num">3</span><span>발주비·고정비·변동비·상환비는 그 주에 계획된 게 있을 때만 예상 칸에 금액을 넣고, 실제 집행 여부를 실제 칸에 기재 — 둘 다 0이면 '계획 없음, 실제로도 없음'으로 정상 처리됩니다</span></div>
+            <div class="guide-step"><span class="step-num">1</span><span>같은 스프레드시트에 시트 하나 추가 → 이름을 <code>일별 데이터</code>로 지정</span></div>
+            <div class="guide-step"><span class="step-num">2</span><span>2행부터 <code>일자</code> 기준으로 하루에 한 줄씩 데이터를 추가하시면 됩니다. 대시보드는 일별 데이터를 금~목 주차 단위로 자동 집계합니다</span></div>
+            <div class="guide-step"><span class="step-num">3</span><span>발주비·고정비·변동비·상환비는 해당 일자에 계획된 금액을 예상 칸에 넣고, 실제 집행 금액을 실제 칸에 기재 — 둘 다 0이면 '계획 없음, 실제로도 없음'으로 정상 처리됩니다</span></div>
           </div>
-          <div class="settings-note">&#x203B; 매출·광고비 예상치는 이 시트에 입력할 필요가 없습니다. 대시보드가 '매출데이터' 시트의 월별 계획값을 그 주가 걸쳐있는 달의 일수 비중으로 가중평균해 자동으로 일평균 기대값을 계산합니다 (한 주가 두 달에 걸쳐있으면 각 달의 일수만큼 반영).</div>
+          <div class="settings-note">&#x203B; 매출·광고비 예상치는 이 시트에 입력할 필요가 없습니다. 대시보드가 '매출데이터' 시트의 월별 계획값을 기준으로 일평균 기대값을 계산하고, 일별 실적은 금~목 주차 단위로 평균/합계 집계하여 비교합니다.</div>
         </div>
       </div>
     </div>
@@ -606,7 +607,7 @@
       <header class="page-header">
         <div>
           <h1 class="page-title">주차별 점검</h1>
-          <p class="page-sub">매주 월요일 오후 2시 미팅 · 지난주가 계획대로 흘러갔는지 확인합니다 (주차는 금~목 기준 · 매주 금요일 자동으로 직전 주차로 갱신)</p>
+          <p class="page-sub">매주 금요일 오후 2시 보고 · 전주 금요일~이번 주 목요일 실적을 점검합니다 (주차는 금~목 기준 · 매주 금요일 자동 갱신)</p>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <span class="period-badge" id="weeklyRangeBadge">&#8212;</span>
@@ -614,7 +615,7 @@
       </header>
 
       <div>
-        <div class="target-label" style="margin-bottom:8px">이번 점검 대상: 직전 주차 <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">매출·광고비는 일평균 실적 vs 예상(달성률), 발주비·고정비·변동비·상환비는 예상=실제 일치 여부</span></div>
+        <div class="target-label" style="margin-bottom:8px">이번 점검 대상: 전주 금요일~이번 주 목요일 <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">매출·광고비는 일평균 실적 vs 예상(달성률), 발주비·고정비·변동비·상환비는 예상=실제 일치 여부</span></div>
         <div class="ratio-grid" id="weeklyCheckGridRevenue"></div>
         <div class="ratio-grid" id="weeklyCheckGridAdOrder" style="margin-top:12px"></div>
         <div class="ratio-grid" id="weeklyCheckGridCost" style="margin-top:12px"></div>
@@ -723,7 +724,7 @@ var weeklyRows = [];
 var weeklyRowsMap = {};
 var selectedWeekIndex = null;
 var DASHBOARD_YEAR = 2026;
-var WEEK_START_INDEX = 31; // 주차별 데이터 기록이 31주차(26-07-24, 금~목 기준)부터 시작되므로 그 이전 주차는 표시하지 않음
+var WEEK_START_INDEX = 31; // 일별 데이터 기록을 주차로 묶어 31주차(26-07-24, 금~목 기준)부터 시작되므로 그 이전 주차는 표시하지 않음
 
 var SCENARIO_OPTIONS = [-20,-15,-10,-5,0,5,10,15,20];
 var FUTURE_MONTHS    = ['26-06','26-07','26-08','26-09','26-10','26-11','26-12'];
@@ -733,8 +734,8 @@ var TOTAL_REPAY_GOAL = 32700; // 목표 상환금액: 3억 2천 7백만원
 var SHEET_ID            = '1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI';
 var SHEET_NAME          = '매출데이터';
 var SHEET_RANGE         = 'A1:J13';
-var WEEKLY_SHEET_NAME   = '주차별 데이터';
-var WEEKLY_SHEET_RANGE  = 'A1:T300';
+var WEEKLY_SHEET_NAME   = '일별 데이터';
+var WEEKLY_SHEET_RANGE  = 'A1:S500';
 var INIT_BALANCE        = 0;
 
 // 고정비/변동비/상환비 상세 내역 (주차별로 시트가 하나씩 생김: '31주차','32주차',...)
@@ -815,11 +816,11 @@ async function fetchWeeklySheetData(){
     if(!res.ok)throw new Error('HTTP '+res.status);
     var text=await res.text();
     if(!text||!text.trim()){
-      console.warn('주차별 데이터 시트가 비어있거나 시트를 찾지 못했습니다. 시트 이름이 정확히 "'+WEEKLY_SHEET_NAME+'" 인지 확인해주세요.');
+      console.warn('일별 데이터 시트가 비어있거나 시트를 찾지 못했습니다. 시트 이름이 정확히 "'+WEEKLY_SHEET_NAME+'" 인지 확인해주세요.');
     }
     parseWeeklyCSV(text);
   }catch(e){
-    console.warn('주차별 데이터 시트 로드 실패:', e.message, '— 시트 이름/공유 설정을 확인해주세요.');
+    console.warn('일별 데이터 시트 로드 실패:', e.message, '— 시트 이름/공유 설정을 확인해주세요.');
     weeklyRows=[];weeklyRowsMap={};
   }
   renderWeeklyTab();
@@ -898,36 +899,35 @@ async function fetchDetailSheetRows(weekNum){
 function parseWeeklyCSV(text){
   var allRows=parseCsvRows(text);
   if(allRows.length<2){weeklyRows=[];weeklyRowsMap={};return}
-  console.log('[진단] 주차별 데이터 원본 헤더 행:',allRows[0].join(' | '));
+  console.log('[진단] 일별 데이터 원본 헤더 행:',allRows[0].join(' | '));
   weeklyRows=allRows.slice(1).map(function(c){
     return{
-      startDate:normalizeDate(c[0]||''),
-      endDate:normalizeDate(c[1]||''),
-      combinedRevenue:pnOrNull(c[2]),      // 통합일평균매출
-      combinedSettlement:pnOrNull(c[3]),   // 통합일평균정산
-      ownNaverRevenue:pnOrNull(c[4]),      // 일평균매출(자사+네이버)
-      ownNaverSettlement:pnOrNull(c[5]),   // 일평균정산(자사+네이버)
-      combinedAd:pnOrNull(c[6]),           // 통합일평균광고비
-      combinedAdCharge:pnOrNull(c[7]),     // 통합일평균광고충전
-      expectedOrder:pnOrNull(c[8]),
-      actualOrder:pnOrNull(c[9]),
-      orderNote:c[10]||'',
-      expectedFixed:pnOrNull(c[11]),
-      actualFixed:pnOrNull(c[12]),
-      fixedNote:c[13]||'',
-      expectedVariable:pnOrNull(c[14]),
-      actualVariable:pnOrNull(c[15]),
-      variableNote:c[16]||'',
-      expectedRepay:pnOrNull(c[17]),
-      actualRepay:pnOrNull(c[18]),
-      repayNote:c[19]||'',
+      date:normalizeDate(c[0]||''),
+      combinedRevenue:pnOrNull(c[1]),      // 통합일평균매출
+      combinedSettlement:pnOrNull(c[2]),   // 통합일평균정산
+      ownNaverRevenue:pnOrNull(c[3]),      // 일평균매출(자사+네이버)
+      ownNaverSettlement:pnOrNull(c[4]),   // 일평균정산(자사+네이버)
+      combinedAd:pnOrNull(c[5]),           // 통합일평균광고비
+      combinedAdCharge:pnOrNull(c[6]),     // 통합일평균광고충전
+      expectedOrder:pnOrNull(c[7]),
+      actualOrder:pnOrNull(c[8]),
+      orderNote:c[9]||'',
+      expectedFixed:pnOrNull(c[10]),
+      actualFixed:pnOrNull(c[11]),
+      fixedNote:c[12]||'',
+      expectedVariable:pnOrNull(c[13]),
+      actualVariable:pnOrNull(c[14]),
+      variableNote:c[15]||'',
+      expectedRepay:pnOrNull(c[16]),
+      actualRepay:pnOrNull(c[17]),
+      repayNote:c[18]||'',
     };
-  }).filter(function(r){return r.startDate});
+  }).filter(function(r){return r.date});
   weeklyRowsMap={};
-  weeklyRows.forEach(function(r){weeklyRowsMap[r.startDate]=r});
-  console.log('[진단] 주차별 데이터 파싱 결과 (F12 콘솔에서 확인):');
+  weeklyRows.forEach(function(r){weeklyRowsMap[r.date]=r});
+  console.log('[진단] 일별 데이터 파싱 결과 (F12 콘솔에서 확인):');
   console.table(weeklyRows.map(function(r){
-    return{주차시작:r.startDate,
+    return{일자:r.date,
            통합매출실적:r.combinedRevenue,통합정산:r.combinedSettlement,
            자사네이버실적:r.ownNaverRevenue,자사네이버정산:r.ownNaverSettlement,
            광고비실적:r.combinedAd,광고충전:r.combinedAdCharge,
@@ -936,6 +936,45 @@ function parseWeeklyCSV(text){
            예상변동비:r.expectedVariable,실제변동비:r.actualVariable,
            예상상환비:r.expectedRepay,실제상환비:r.actualRepay};
   }));
+}
+
+// 일별 행을 기존 주차별 화면에서 사용할 수 있도록 금~목 7일 단위로 집계한다.
+// 매출·정산·광고비·광고충전은 입력된 일자의 평균, 비용 예상/실제는 해당 기간 합계로 처리한다.
+function getAggregatedWeekRow(range){
+  if(!range||isNaN(range.start)||isNaN(range.end))return null;
+  var dayRows=[];
+  var d=new Date(range.start.getFullYear(),range.start.getMonth(),range.start.getDate());
+  while(d<=range.end){
+    var r=weeklyRowsMap[fmtDateISO(d)];
+    if(r)dayRows.push(r);
+    d.setDate(d.getDate()+1);
+  }
+  if(!dayRows.length)return null;
+  function avg(key){
+    var sum=0,count=0;
+    dayRows.forEach(function(r){var v=r[key];if(v!==null&&v!==undefined&&!isNaN(v)){sum+=v;count++;}});
+    return count?sum/count:null;
+  }
+  function sum(key){
+    var total=0,count=0;
+    dayRows.forEach(function(r){var v=r[key];if(v!==null&&v!==undefined&&!isNaN(v)){total+=v;count++;}});
+    return count?total:null;
+  }
+  function notes(key){
+    var list=[];
+    dayRows.forEach(function(r){var v=String(r[key]||'').trim();if(v&&list.indexOf(v)===-1)list.push(v);});
+    return list.join(' · ');
+  }
+  return{
+    combinedRevenue:avg('combinedRevenue'),combinedSettlement:avg('combinedSettlement'),
+    ownNaverRevenue:avg('ownNaverRevenue'),ownNaverSettlement:avg('ownNaverSettlement'),
+    combinedAd:avg('combinedAd'),combinedAdCharge:avg('combinedAdCharge'),
+    expectedOrder:sum('expectedOrder'),actualOrder:sum('actualOrder'),orderNote:notes('orderNote'),
+    expectedFixed:sum('expectedFixed'),actualFixed:sum('actualFixed'),fixedNote:notes('fixedNote'),
+    expectedVariable:sum('expectedVariable'),actualVariable:sum('actualVariable'),variableNote:notes('variableNote'),
+    expectedRepay:sum('expectedRepay'),actualRepay:sum('actualRepay'),repayNote:notes('repayNote'),
+    dayCount:dayRows.length
+  };
 }
 
 function normalizeDate(v){
@@ -1411,7 +1450,7 @@ function renderProfitLineChart(elId,vals25,vals26){
 }
 
 // 주차 정의가 월요일~일요일에서 금요일~목요일로 변경되어, 요일 계산식 대신
-// 실제 스프레드시트에 기재된 주차 시작일/종료일을 그대로 표로 고정해서 사용함
+// 스프레드시트는 일별 데이터를 사용하고, 대시보드의 주차 구간(금~목)은 아래 정의를 사용함
 var WEEK_DEFS = [
   {week:31,start:'2026-07-24',end:'2026-07-30'},
   {week:32,start:'2026-07-31',end:'2026-08-06'},
@@ -1849,15 +1888,15 @@ function buildExactCheckCard(label,expectedVal,actualVal,note,category,weekIndex
 function renderWeeklyCheckCards(rows,weekIndex){
   var range=getWeekRange(weekIndex,DASHBOARD_YEAR);
   var exp=getWeeklyExpected(rows,range);
-  var act=weeklyRowsMap[fmtDateISO(range.start)];
-  console.log('[진단] 이번에 표시 중인 주차:',weekIndex,'/ 시작일 키:',fmtDateISO(range.start));
-  console.log('[진단] 해당 주차의 시트 행을 찾았는가?',!!act);
+  var act=getAggregatedWeekRow(range);
+  console.log('[진단] 이번에 표시 중인 주차:',weekIndex,'/ 기간:',fmtDateISO(range.start)+'~'+fmtDateISO(range.end));
+  console.log('[진단] 해당 주차의 일별 데이터를 집계했는가?',!!act);
   if(act){
     console.log('[진단] 고정비 예상/실제:',act.expectedFixed,'/',act.actualFixed);
     console.log('[진단] 변동비 예상/실제:',act.expectedVariable,'/',act.actualVariable);
     console.log('[진단] 상환비 예상/실제:',act.expectedRepay,'/',act.actualRepay);
   }else{
-    console.log('[진단] weeklyRowsMap에 이 날짜의 행이 없습니다. 키 목록:',Object.keys(weeklyRowsMap));
+    console.log('[진단] 해당 주차 기간에 일별 데이터가 없습니다. 입력된 일자 키 목록:',Object.keys(weeklyRowsMap));
   }
 
   var htmlRevenue='';
@@ -1924,13 +1963,16 @@ function weeklyExactTriplet(exp,act,note,divider,category,weekNum){
 function getMaxWeekInSheetData(){
   var maxW=0;
   Object.keys(weeklyRowsMap).forEach(function(dateKey){
-    var idx=WEEK_START_TO_INDEX[dateKey];
-    if(idx&&idx>maxW)maxW=idx;
+    var d=parseISODateLocal(dateKey);
+    WEEK_INDEX_LIST.forEach(function(idx){
+      var def=WEEK_DEFS_MAP[idx];
+      if(d>=def.start&&d<=def.end&&idx>maxW)maxW=idx;
+    });
   });
   return maxW;
 }
 
-// ===== 이번 달 주차별 점검 현황(스코어카드) =====
+// ===== 달력 기준 이번 달 주차별 점검 현황(금~목 보고주차, 목요일이 속한 달 기준) =====
 var scorecardMode='actual';
 function setScorecardMode(mode){
   scorecardMode=(mode==='settlement')?'settlement':'actual';
@@ -1977,8 +2019,10 @@ function getMonthWeeksSoFar(curAs,totalWeeks){
   WEEK_INDEX_LIST.forEach(function(w){
     if(w>totalWeeks)return;
     var range=getWeekRange(w,DASHBOARD_YEAR);
-    var as=assignMonthForWeek(range);
-    if(as.year===curAs.year&&as.monthIndex0===curAs.monthIndex0){
+    if(!range||isNaN(range.end))return;
+    // 월별 점검 현황은 '보고 주차의 목요일(종료일)'이 속한 달에 귀속한다.
+    // 예: 7/31~8/6은 8월 1주차로 표시한다.
+    if(range.end.getFullYear()===curAs.year&&range.end.getMonth()===curAs.monthIndex0){
       list.push({globalWeek:w,range:range});
     }
   });
@@ -1991,13 +2035,13 @@ function renderWeeklyScorecard(rows){
   if(st)st.classList.toggle('active',scorecardMode==='settlement');
   var labelEl=document.getElementById('weeklyScorecardLabel');
   if(!labelEl)return;
-  var curWeekIdx=getCurrentWeekIndex(DASHBOARD_YEAR);
-  var curRange=getWeekRange(curWeekIdx,DASHBOARD_YEAR);
-  var curAs=assignMonthForWeek(curRange);
+  var today=new Date();
+  today.setHours(0,0,0,0);
+  var curAs={year:today.getFullYear(),monthIndex0:today.getMonth()};
   var monthLabel=curAs.year+'년 '+(curAs.monthIndex0+1)+'월';
   labelEl.textContent=monthLabel+' 주차별 점검 현황';
 
-  // 완료된 주차까지만 표시하고, 매주 금요일에 직전 주차를 한 주 추가
+  // 완료된 주차까지만 표시하고, 매주 금요일에 전주 금~이번주 목 보고주차를 한 주 추가
   var visibleWeeks=getScorecardVisibleWeekCount();
   var monthWeeks=getMonthWeeksSoFar(curAs,visibleWeeks);
 
@@ -2021,7 +2065,7 @@ function renderWeeklyScorecard(rows){
 
   var bodyHtml=monthWeeks.map(function(mw,idx){
     var exp=getWeeklyExpected(rows,mw.range);
-    var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
+    var act=getAggregatedWeekRow(mw.range);
     var cells=activeCols.map(function(c){
       var actualVal=act?act[c.key]:null;
       var expectedVal=c.type==='daily'?(exp?exp[c.expKey]:null):(act?act[c.expKey2]:null);
@@ -2039,7 +2083,7 @@ function renderWeeklyScorecard(rows){
     var sumAct=0,sumExp=0,count=0,notes=[];
     monthWeeks.forEach(function(mw){
       var exp=getWeeklyExpected(rows,mw.range);
-      var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
+      var act=getAggregatedWeekRow(mw.range);
       var actualVal=act?act[col.key]:null;
       var expectedVal=col.type==='daily'?(exp?exp[col.expKey]:null):(act?act[col.expKey2]:null);
       if(actualVal!==null&&actualVal!==undefined&&expectedVal!==null&&expectedVal!==undefined){
@@ -2095,65 +2139,50 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   for(var i=0;i<rows.length;i++){if(rows[i].month===mk){planRow=rows[i];break;}}
   if(!planRow){projEl.innerHTML='<div class="kpi-sub">이 달 계획 데이터가 없습니다.</div>';return;}
 
-  var sumRev=0,sumAd=0,revCnt=0,adCnt=0;
-  monthWeeks.forEach(function(mw){
-    var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
-    if(act&&act.combinedRevenue!==null&&act.combinedRevenue!==undefined){sumRev+=act.combinedRevenue;revCnt++;}
-    if(act&&act.combinedAd!==null&&act.combinedAd!==undefined){sumAd+=act.combinedAd;adCnt++;}
-  });
-  if(!revCnt||!adCnt){
-    projEl.innerHTML='<div class="kpi-card"><div class="kpi-label">'+monthLabel+' 실적 추세 반영 영업이익 전망</div><div class="kpi-value" style="color:var(--text-muted)">데이터 없음</div><div class="kpi-sub">현재까지 통합 매출·광고비 실적이 충분하지 않습니다.</div></div>';
-    return;
-  }
-
-  var avgDailyRev=sumRev/revCnt,avgDailyAd=sumAd/adCnt;
+  var today=new Date();
+  today.setHours(0,0,0,0);
+  var monthStart=new Date(curAs.year,curAs.monthIndex0,1);
+  var monthEnd=new Date(curAs.year,curAs.monthIndex0,daysInMonth(curAs.year,curAs.monthIndex0));
   var dim=daysInMonth(curAs.year,curAs.monthIndex0);
-  var projectedRevenue=avgDailyRev*dim;
-  var projectedAd=avgDailyAd*dim;
-  var visibleMax=getScorecardVisibleWeekCount();
-  var allMonthWeeks=[];
-  WEEK_INDEX_LIST.forEach(function(w){
-    var range=getWeekRange(w,DASHBOARD_YEAR),as=assignMonthForWeek(range);
-    if(as.year===curAs.year&&as.monthIndex0===curAs.monthIndex0)allMonthWeeks.push({globalWeek:w,range:range});
-  });
+  var expectedDailyRevenue=planRow.revenueAdj/dim;
+  var expectedDailyAd=planRow.ad/dim;
 
-  function projectedWeeklyCost(actualKey,expectedKey){
-    var total=0;
-    allMonthWeeks.forEach(function(mw){
-      var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
-      if(mw.globalWeek<=visibleMax){
-        // 완료된 주차는 실제 집행액, 아직 완료되지 않은 주차는 예상 집행액 사용
-        total+=(act&&act[actualKey]!==null&&act[actualKey]!==undefined)?act[actualKey]:0;
-      }else{
-        total+=(act&&act[expectedKey]!==null&&act[expectedKey]!==undefined)?act[expectedKey]:0;
-      }
-    });
-    return total;
+  var projectedRevenue=0,projectedAd=0;
+  var projectedOrder=0,projectedFixed=0,projectedVariable=0,projectedRepay=0;
+  var actualDayCount=0,expectedDayCount=0,missingPastDays=[];
+
+  function valOrZero(v){return(v!==null&&v!==undefined&&!isNaN(v))?Number(v):0;}
+
+  for(var d=new Date(monthStart);d<=monthEnd;d.setDate(d.getDate()+1)){
+    var key=fmtDateISO(d);
+    var day=weeklyRowsMap[key]||null;
+    var isPast=d<today; // 오늘은 아직 완료되지 않은 날짜로 보고 예상 사용. 금요일 보고 시 실제는 목요일까지 반영됨.
+    if(isPast){
+      actualDayCount++;
+      if(!day)missingPastDays.push(key);
+      projectedRevenue+=day?valOrZero(day.combinedRevenue):0;
+      projectedAd+=day?valOrZero(day.combinedAd):0;
+      projectedOrder+=day?valOrZero(day.actualOrder):0;
+      projectedFixed+=day?valOrZero(day.actualFixed):0;
+      projectedVariable+=day?valOrZero(day.actualVariable):0;
+      projectedRepay+=day?valOrZero(day.actualRepay):0;
+    }else{
+      expectedDayCount++;
+      projectedRevenue+=expectedDailyRevenue;
+      projectedAd+=expectedDailyAd;
+      projectedOrder+=day?valOrZero(day.expectedOrder):0;
+      projectedFixed+=day?valOrZero(day.expectedFixed):0;
+      projectedVariable+=day?valOrZero(day.expectedVariable):0;
+      projectedRepay+=day?valOrZero(day.expectedRepay):0;
+    }
   }
 
-  var projectedOrder=projectedWeeklyCost('actualOrder','expectedOrder');
-  var projectedFixed=projectedWeeklyCost('actualFixed','expectedFixed');
-  var projectedVariable=projectedWeeklyCost('actualVariable','expectedVariable');
-  var projectedRepay=projectedWeeklyCost('actualRepay','expectedRepay');
   var projectedProfit=projectedRevenue-(projectedAd+projectedOrder+projectedFixed+projectedVariable+projectedRepay);
   var plannedProfit=planRow.profit;
   var diff=projectedProfit-plannedProfit;
   var good=diff>=0;
   var color=good?'var(--green)':'var(--red)';
 
-  function pctDiff(actual,expected){return expected?((actual-expected)/Math.abs(expected))*100:0;}
-  function evalRevenue(v,p){
-    var x=pctDiff(v,p),delta=v-p;
-    if(delta<0)return{good:false,text:'예상보다 '+Math.abs(x).toFixed(1)+'% 줄었습니다. ('+fmtKorean(Math.abs(delta),false)+' 감소)'};
-    if(delta>0)return{good:true,text:'예상보다 '+Math.abs(x).toFixed(1)+'% 늘었습니다. ('+fmtKorean(Math.abs(delta),false)+' 증가)'};
-    return{good:true,text:'예상했던 수준대로입니다. (차이 없음)'};
-  }
-  function evalExpense(v,p,label){
-    var x=pctDiff(v,p),delta=v-p;
-    if(delta>0)return{good:false,text:'예상보다 '+Math.abs(x).toFixed(1)+'% 늘었습니다. ('+fmtKorean(Math.abs(delta),false)+' 증가)'};
-    if(delta<0)return{good:true,text:'예상보다 '+Math.abs(x).toFixed(1)+'% 줄었습니다. ('+fmtKorean(Math.abs(delta),false)+' 감소)'};
-    return{good:true,text:'예상했던 수준입니다. (차이 없음)'};
-  }
   var assessments=[
     {name:'매출',forecast:projectedRevenue,expected:planRow.revenueAdj,isRevenue:true},
     {name:'광고비',forecast:projectedAd,expected:planRow.ad,isRevenue:false},
@@ -2167,7 +2196,6 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     var expected=Number(a.expected)||0, forecast=Number(a.forecast)||0;
     var delta=forecast-expected;
     var pct=expected?Math.abs(delta/expected*100):0;
-    // 매출은 증가/달성이 양호, 비용은 감소/동일이 양호
     var itemGood=a.isRevenue ? forecast>=expected : forecast<=expected;
     var maxVal=Math.max(Math.abs(expected),Math.abs(forecast),1);
     var expH=Math.max(4,Math.round(Math.abs(expected)/maxVal*138));
@@ -2176,14 +2204,18 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     var deltaWord=delta>0?'증가':(delta<0?'감소':'차이 없음');
     var diffText=delta===0?'예상과 동일<br>(차이 없음)':('예상보다 '+pct.toFixed(1)+'% '+direction+'<br>('+fmtKorean(Math.abs(delta),false)+' '+deltaWord+')');
     return '<div class="projection-bar-item">'+
-      '<div class="projection-bar-title">'+a.name+'</div>'+
+      '<div class="projection-bar-title">'+a.name+'</div>'+ 
       '<div class="projection-bar-chart">'+
-        '<div class="projection-bar-col"><div class="projection-bar-value">'+fmtKorean(expected,false)+'</div><div class="projection-bar-track"><div class="projection-bar expected" style="height:'+expH+'px"></div></div><div class="projection-bar-label">예상</div></div>'+
-        '<div class="projection-bar-col"><div class="projection-bar-value">'+fmtKorean(forecast,false)+'</div><div class="projection-bar-track"><div class="projection-bar forecast '+(itemGood?'good':'bad')+'" style="height:'+fcH+'px"></div></div><div class="projection-bar-label">전망</div></div>'+
-      '</div>'+
-      '<div class="projection-bar-diff '+(itemGood?'good':'bad')+'">'+diffText+'</div>'+
+        '<div class="projection-bar-col"><div class="projection-bar-value">'+fmtKorean(expected,false)+'</div><div class="projection-bar-track"><div class="projection-bar expected" style="height:'+expH+'px"></div></div><div class="projection-bar-label">예상</div></div>'+ 
+        '<div class="projection-bar-col"><div class="projection-bar-value">'+fmtKorean(forecast,false)+'</div><div class="projection-bar-track"><div class="projection-bar forecast '+(itemGood?'good':'bad')+'" style="height:'+fcH+'px"></div></div><div class="projection-bar-label">전망</div></div>'+ 
+      '</div>'+ 
+      '<div class="projection-bar-diff '+(itemGood?'good':'bad')+'">'+diffText+'</div>'+ 
     '</div>';
   }
+
+  var missingNote=missingPastDays.length
+    ?'<div class="kpi-sub" style="color:var(--yellow);margin-top:6px">※ 지난 날짜 중 일별 데이터 미입력 '+missingPastDays.length+'일은 실제 0으로 계산: '+missingPastDays.slice(0,5).join(', ')+(missingPastDays.length>5?' 외':'')+'</div>'
+    :'';
 
   projEl.innerHTML='<div class="kpi-card projection-main-card">'+
     '<div class="kpi-label">'+monthLabel+' 실적 추세 반영 영업이익 전망</div>'+ 
@@ -2191,19 +2223,19 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     '<div class="kpi-sub">원래 계획 '+fmtKorean(plannedProfit,true)+' · 차이 '+fmtKorean(diff,true)+'</div>'+ 
     '<div class="kpi-sub" style="color:'+(good?'var(--green)':'var(--red)')+';font-weight:800;margin-top:4px">'+(good?'✓ 계획 달성·초과 전망':'⚠ 계획 미달 전망')+'</div>'+ 
     '<div class="kpi-sub projection-equation" style="margin-top:12px;line-height:1.8"><div style="font-weight:800">매출 '+fmtKorean(projectedRevenue,false)+'</div><div style="margin-top:2px">− 광고비 '+fmtKorean(projectedAd,false)+' − 발주비 '+fmtKorean(projectedOrder,false)+' − 고정비 '+fmtKorean(projectedFixed,false)+' − 변동비 '+fmtKorean(projectedVariable,false)+' − 상환비 '+fmtKorean(projectedRepay,false)+'</div></div>'+ 
-    '<div class="kpi-sub projection-footnote" style="margin-top:8px">매출·광고비: 1~'+monthWeeks.length+'주차 실적 일평균을 월말까지 유지 가정 · 비용: 완료된 주차는 실제, 아직 완료되지 않은 주차는 예상 금액 반영</div>'+ 
+    '<div class="kpi-sub projection-footnote" style="margin-top:8px">'+monthLabel+' 달력 기준만 사용 · 지난 날짜 '+actualDayCount+'일: 일별 데이터의 실제값 · 오늘 포함 남은 날짜 '+expectedDayCount+'일: 매출데이터의 월 계획 일할값(매출·광고비) + 일별 데이터의 예상비용</div>'+ 
+    missingNote+
   '</div>'+ 
   '<div class="kpi-card projection-assessment-card"><div class="kpi-label">항목별 평가 · 예상 vs 전망</div><div class="projection-bars-grid">'+assessments.map(assessmentBarHtml).join('')+'</div></div>';
-
 }
 
 function renderWeeklyTable(rows,totalWeeks){
-  var lastWeek=Math.max(totalWeeks,getMaxWeekInSheetData());
+  var lastWeek=totalWeeks; // 전체 주차 요약은 보고가 완료된 주차까지만 표시
   var body='';
   for(var w=WEEK_START_INDEX;w<=lastWeek;w++){
     var range=getWeekRange(w,DASHBOARD_YEAR);
     var exp=getWeeklyExpected(rows,range);
-    var act=weeklyRowsMap[fmtDateISO(range.start)];
+    var act=getAggregatedWeekRow(range);
     body+='<tr>'+
       '<td>'+w+'주차</td>'+
       '<td style="color:var(--text-sub)">'+fmtDateShort(range.start)+'~'+fmtDateShort(range.end)+'</td>'+
