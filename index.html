@@ -74,7 +74,8 @@
     .page-title{font-size:20px;font-weight:600}
     .page-sub{font-size:12px;color:var(--text-muted);margin-top:4px}
     .period-badge{padding:4px 12px;border-radius:20px;background:var(--bg-card2);border:1px solid var(--border);font-size:12px;color:var(--text-sub);font-family:'DM Mono',monospace}
-    #weeklyRangeBadge{padding:9px 18px;font-size:16px;font-weight:800;color:var(--text);border:1px solid var(--accent);box-shadow:0 0 0 2px rgba(99,102,241,.10);letter-spacing:-.2px}
+    #weeklyRangeBadge,#weeklyScorecardRangeBadge{padding:10px 19px;font-size:17px;font-weight:800;color:var(--text);border:1px solid var(--accent);box-shadow:0 0 0 2px rgba(99,102,241,.10);letter-spacing:-.25px}
+    #weeklyScorecardRangeBadge{display:inline-flex;align-items:center;white-space:nowrap}
 
     /* CHART */
     .chart-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px}
@@ -617,7 +618,7 @@
       <header class="page-header">
         <div>
           <h1 class="page-title">주차별 점검</h1>
-          <p class="page-sub">매주 금요일 오후 2시 보고 · 전주 금요일~이번 주 목요일 실적을 점검합니다 (주차는 금~목 기준 · 매주 금요일 자동 갱신)</p>
+          <p class="page-sub">매주 금요일 오후 2시 보고 · 전주 금요일~이번 주 목요일을 한 주로 보되, 월을 넘는 주차는 해당 월의 날짜만 사용합니다 (예: 7/31~8/6 → 8월에서는 8/1~8/6)</p>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <span class="period-badge" id="weeklyRangeBadge">&#8212;</span>
@@ -625,14 +626,17 @@
       </header>
 
       <div>
-        <div class="target-label" style="margin-bottom:8px">이번 점검 대상: 전주 금요일~이번 주 목요일 <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">매출·광고비는 일평균 실적 vs 예상(달성률), 발주비·고정비·변동비·상환비는 예상=실제 일치 여부</span></div>
+        <div class="target-label" style="margin-bottom:8px">이번 점검 대상: 전주 금요일~이번 주 목요일 · 월 경계에서는 해당 월 데이터만 반영 <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">매출·광고비는 일평균 실적 vs 예상(달성률), 발주비·고정비·변동비·상환비는 예상=실제 일치 여부</span></div>
         <div class="ratio-grid" id="weeklyCheckGridRevenue"></div>
         <div class="ratio-grid" id="weeklyCheckGridAdOrder" style="margin-top:12px"></div>
         <div class="ratio-grid" id="weeklyCheckGridCost" style="margin-top:12px"></div>
       </div>
 
       <div class="table-card">
-        <div class="table-section-label chart-section-title-big" id="weeklyScorecardLabel">이번 달 주차별 점검 현황</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px">
+          <div class="table-section-label chart-section-title-big" id="weeklyScorecardLabel" style="margin-bottom:0">이번 달 주차별 점검 현황</div>
+          <span class="period-badge" id="weeklyScorecardRangeBadge">—</span>
+        </div>
         <div class="scorecard-mode-row" aria-label="점검 기준 선택">
           <button type="button" class="scorecard-mode-btn active" id="scorecardModeActualBtn" onclick="setScorecardMode('actual')">실적 기준</button>
           <button type="button" class="scorecard-mode-btn" id="scorecardModeSettlementBtn" onclick="setScorecardMode('settlement')">정산 · 충전 기준</button>
@@ -985,6 +989,30 @@ function getAggregatedWeekRow(range){
     expectedRepay:sum('expectedRepay'),actualRepay:sum('actualRepay'),repayNote:notes('repayNote'),
     dayCount:dayRows.length
   };
+}
+
+// 금~목 주차가 월을 넘는 경우, 해당 주차가 귀속되는 월(목요일 종료일의 월) 데이터만 사용한다.
+// 예: 7/31~8/6 -> 8월에서는 8/1~8/6만 사용하고 7/31은 제외.
+function getMonthClippedWeekRange(range){
+  if(!range||isNaN(range.start)||isNaN(range.end))return range;
+  var y=range.end.getFullYear(),m=range.end.getMonth();
+  var monthStart=new Date(y,m,1);
+  var monthEnd=new Date(y,m,daysInMonth(y,m));
+  var start=range.start<monthStart?monthStart:range.start;
+  var end=range.end>monthEnd?monthEnd:range.end;
+  return{start:new Date(start.getFullYear(),start.getMonth(),start.getDate()),end:new Date(end.getFullYear(),end.getMonth(),end.getDate())};
+}
+function getExcludedDatesText(fullRange,usedRange){
+  if(!fullRange||!usedRange)return'';
+  var list=[];
+  for(var d=new Date(fullRange.start);d<=fullRange.end;d.setDate(d.getDate()+1)){
+    if(d<usedRange.start||d>usedRange.end)list.push(fmtDateShort(d));
+  }
+  return list.length?list.join(', ')+' 제외':'';
+}
+function formatUsedWeekRange(fullRange,usedRange){
+  var excluded=getExcludedDatesText(fullRange,usedRange);
+  return fmtDateShort(usedRange.start)+'~'+fmtDateShort(usedRange.end)+(excluded?' · '+excluded:'');
 }
 
 function normalizeDate(v){
@@ -1751,7 +1779,8 @@ function renderWeeklyTab(){
 
   var currentWeek=totalWeeks; // 자동: 오늘 기준 직전(가장 최근 완료된) 주차
   var range=getWeekRange(currentWeek,DASHBOARD_YEAR);
-  document.getElementById('weeklyRangeBadge').textContent=currentWeek+'주차 ('+fmtDateShort(range.start)+'~'+fmtDateShort(range.end)+') · 매주 금요일 자동 갱신';
+  var usedRange=getMonthClippedWeekRange(range);
+  document.getElementById('weeklyRangeBadge').textContent=currentWeek+'주차 ('+formatUsedWeekRange(range,usedRange)+') · 매주 금요일 자동 갱신';
 
   renderWeeklyCheckCards(rows,currentWeek);
   renderWeeklyScorecard(rows);
@@ -1896,10 +1925,11 @@ function buildExactCheckCard(label,expectedVal,actualVal,note,category,weekIndex
 }
 
 function renderWeeklyCheckCards(rows,weekIndex){
-  var range=getWeekRange(weekIndex,DASHBOARD_YEAR);
+  var fullRange=getWeekRange(weekIndex,DASHBOARD_YEAR);
+  var range=getMonthClippedWeekRange(fullRange);
   var exp=getWeeklyExpected(rows,range);
   var act=getAggregatedWeekRow(range);
-  console.log('[진단] 이번에 표시 중인 주차:',weekIndex,'/ 기간:',fmtDateISO(range.start)+'~'+fmtDateISO(range.end));
+  console.log('[진단] 이번에 표시 중인 주차:',weekIndex,'/ 원래 기간:',fmtDateISO(fullRange.start)+'~'+fmtDateISO(fullRange.end),'/ 실제 사용 기간:',fmtDateISO(range.start)+'~'+fmtDateISO(range.end));
   console.log('[진단] 해당 주차의 일별 데이터를 집계했는가?',!!act);
   if(act){
     console.log('[진단] 고정비 예상/실제:',act.expectedFixed,'/',act.actualFixed);
@@ -2033,7 +2063,7 @@ function getMonthWeeksSoFar(curAs,totalWeeks){
     // 월별 점검 현황은 '보고 주차의 목요일(종료일)'이 속한 달에 귀속한다.
     // 예: 7/31~8/6은 8월 1주차로 표시한다.
     if(range.end.getFullYear()===curAs.year&&range.end.getMonth()===curAs.monthIndex0){
-      list.push({globalWeek:w,range:range});
+      list.push({globalWeek:w,fullRange:range,range:getMonthClippedWeekRange(range)});
     }
   });
   return list;
@@ -2060,12 +2090,14 @@ function renderWeeklyScorecard(rows){
   var cumGrid=document.getElementById('weeklyScorecardCumGrid');
   var cumPeriod=document.getElementById('weeklyScorecardCumPeriod');
   var projGrid=document.getElementById('weeklyScorecardProjectionGrid');
+  var scoreRangeBadge=document.getElementById('weeklyScorecardRangeBadge');
 
   if(!monthWeeks.length){
     theadEl.innerHTML='<th>주차</th>';
     tbodyEl.innerHTML='<tr><td style="color:var(--text-muted)">'+monthLabel+'에 표시할 주차가 아직 없습니다.</td></tr>';
     cumGrid.innerHTML='';
     if(cumPeriod)cumPeriod.textContent='';
+    if(scoreRangeBadge)scoreRangeBadge.textContent='반영 데이터 없음';
     projGrid.innerHTML='';
     return;
   }
@@ -2081,12 +2113,20 @@ function renderWeeklyScorecard(rows){
       var expectedVal=c.type==='daily'?(exp?exp[c.expKey]:null):(act?act[c.expKey2]:null);
       return scorecardCell(scorecardPass(actualVal,expectedVal,c.goodGe));
     }).join('');
-    return'<tr><td>'+(idx+1)+'주차</td>'+cells+'</tr>';
+    var periodText=formatUsedWeekRange(mw.fullRange,mw.range);
+    return'<tr><td>'+(idx+1)+'주차 <span style="display:block;font-size:10px;color:var(--text-muted);margin-top:3px">'+periodText+'</span></td>'+cells+'</tr>';
   }).join('');
   tbodyEl.innerHTML=bodyHtml;
 
+  var firstUsed=monthWeeks[0].range.start,lastUsed=monthWeeks[monthWeeks.length-1].range.end;
+  var firstExcluded=getExcludedDatesText(monthWeeks[0].fullRange,monthWeeks[0].range);
+  var lastExcluded=getExcludedDatesText(monthWeeks[monthWeeks.length-1].fullRange,monthWeeks[monthWeeks.length-1].range);
+  var exclusions=[];
+  [firstExcluded,lastExcluded].forEach(function(x){if(x&&exclusions.indexOf(x)===-1)exclusions.push(x);});
+  if(scoreRangeBadge)scoreRangeBadge.textContent=fmtDateShort(firstUsed)+'~'+fmtDateShort(lastUsed)+' 데이터 반영'+(exclusions.length?' · '+exclusions.join(' · '):'');
+
   if(cumPeriod){
-    cumPeriod.textContent='· 1~'+monthWeeks.length+'주차 누적 ('+monthWeeks[0].globalWeek+'~'+monthWeeks[monthWeeks.length-1].globalWeek+'주차)';
+    cumPeriod.textContent='· '+fmtDateShort(firstUsed)+'~'+fmtDateShort(lastUsed)+' 기준 ('+monthWeeks[0].globalWeek+'~'+monthWeeks[monthWeeks.length-1].globalWeek+'주차)';
   }
 
   function calcCumCard(col){
@@ -2305,12 +2345,13 @@ function renderWeeklyTable(rows,totalWeeks){
   var lastWeek=totalWeeks; // 전체 주차 요약은 보고가 완료된 주차까지만 표시
   var body='';
   for(var w=WEEK_START_INDEX;w<=lastWeek;w++){
-    var range=getWeekRange(w,DASHBOARD_YEAR);
+    var fullRange=getWeekRange(w,DASHBOARD_YEAR);
+    var range=getMonthClippedWeekRange(fullRange);
     var exp=getWeeklyExpected(rows,range);
     var act=getAggregatedWeekRow(range);
     body+='<tr>'+
       '<td>'+w+'주차</td>'+
-      '<td style="color:var(--text-sub)">'+fmtDateShort(range.start)+'~'+fmtDateShort(range.end)+'</td>'+
+      '<td style="color:var(--text-sub)">'+formatUsedWeekRange(fullRange,range)+'</td>'+
       weeklyTripleCells(exp.ownNaver,act?act.ownNaverRevenue:null,act?act.ownNaverSettlement:null,true,true)+
       weeklyTripleCells(exp.combined,act?act.combinedRevenue:null,act?act.combinedSettlement:null,true,true)+
       weeklyTripleCells(exp.ad,act?act.combinedAd:null,act?act.combinedAdCharge:null,false,true)+
