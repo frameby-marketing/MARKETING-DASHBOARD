@@ -1,6 +1,3 @@
-<script src="https://frameby-marketing.github.io/Dashboard_Hub/nav.js"></script>
-
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -510,7 +507,7 @@
             <table class="guide-table">
               <thead><tr><th>열</th><th>내용</th><th>예시</th><th>비고</th></tr></thead>
               <tbody>
-                <tr><td>A열</td><td>주차 시작일 (월요일)</td><td>2026-07-27</td><td>YYYY-MM-DD, 행 2부터 매주 한 줄씩 추가</td></tr>
+                <tr><td>A열</td><td>주차 시작일 (금요일)</td><td>2026-07-24</td><td>YYYY-MM-DD, 행 2부터 매주 한 줄씩 추가</td></tr>
                 <tr><td>B열</td><td>주차 종료일 (일요일)</td><td>2026-08-01</td><td>참고용 표시 · 계산에는 미사용</td></tr>
                 <tr><td>C열</td><td>통합일평균매출 (원)</td><td>3,611,497</td><td>모든 채널 합산 일평균 매출 실적(실시간)</td></tr>
                 <tr><td>D열</td><td>통합일평균정산 (원)</td><td>3,550,000</td><td>모든 채널 합산 일평균 정산 매출 (지난주 정산 확정분)</td></tr>
@@ -536,7 +533,7 @@
           <div class="settings-note">&#x203B; 매출·광고비는 이제 예상·실적(실시간)·정산(또는 충전) 3가지를 함께 비교합니다. 실시간 매출과 실제 정산 매출 사이에는 정산 주기 때문에 차이가 날 수 있어 두 지표를 나란히 볼 수 있도록 했습니다.</div>
           <div class="guide-steps">
             <div class="guide-step"><span class="step-num">1</span><span>같은 스프레드시트에 시트 하나 추가 → 이름을 <code>주차별 데이터</code>로 지정</span></div>
-            <div class="guide-step"><span class="step-num">2</span><span>2행에 이미 입력해두신 첫 주(7/27~8/1) 데이터가 있고, 그 아래로 매주 월요일 미팅 전 한 줄씩 추가하시면 됩니다</span></div>
+            <div class="guide-step"><span class="step-num">2</span><span>2행에 이미 입력해두신 첫 주(7/24~7/30, 금~목 기준) 데이터가 있고, 그 아래로 매주 한 줄씩 추가하시면 됩니다</span></div>
             <div class="guide-step"><span class="step-num">3</span><span>발주비·고정비·변동비·상환비는 그 주에 계획된 게 있을 때만 예상 칸에 금액을 넣고, 실제 집행 여부를 실제 칸에 기재 — 둘 다 0이면 '계획 없음, 실제로도 없음'으로 정상 처리됩니다</span></div>
           </div>
           <div class="settings-note">&#x203B; 매출·광고비 예상치는 이 시트에 입력할 필요가 없습니다. 대시보드가 '매출데이터' 시트의 월별 계획값을 그 주가 걸쳐있는 달의 일수 비중으로 가중평균해 자동으로 일평균 기대값을 계산합니다 (한 주가 두 달에 걸쳐있으면 각 달의 일수만큼 반영).</div>
@@ -549,7 +546,7 @@
       <header class="page-header">
         <div>
           <h1 class="page-title">주차별 점검</h1>
-          <p class="page-sub">매주 월요일 오후 2시 미팅 · 지난주가 계획대로 흘러갔는지 확인합니다 (매주 월요일 자동으로 직전 주차로 갱신)</p>
+          <p class="page-sub">매주 월요일 오후 2시 미팅 · 지난주가 계획대로 흘러갔는지 확인합니다 (주차는 금~목 기준 · 매주 금요일 자동으로 직전 주차로 갱신)</p>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <span class="period-badge" id="weeklyRangeBadge">&#8212;</span>
@@ -564,7 +561,7 @@
       </div>
 
       <div class="table-card">
-        <div class="table-section-label chart-section-title-big">전체 주차 요약 <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">단위: 만원(비용) · 만원/일(매출·광고비) · 31주차(26-07-27)부터 · 회의 때 이 표만 보면 됩니다</span></div>
+        <div class="table-section-label chart-section-title-big">전체 주차 요약 <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">단위: 만원(비용) · 만원/일(매출·광고비) · 31주차(26-07-24, 금~목 기준)부터 · 회의 때 이 표만 보면 됩니다</span></div>
         <div class="table-wrap">
           <table id="weeklyTable">
             <thead>
@@ -647,7 +644,7 @@ var weeklyRows = [];
 var weeklyRowsMap = {};
 var selectedWeekIndex = null;
 var DASHBOARD_YEAR = 2026;
-var WEEK_START_INDEX = 31; // 주차별 데이터 기록이 31주차(26-07-27)부터 시작되므로 그 이전 주차는 표시하지 않음
+var WEEK_START_INDEX = 31; // 주차별 데이터 기록이 31주차(26-07-24, 금~목 기준)부터 시작되므로 그 이전 주차는 표시하지 않음
 
 var SCENARIO_OPTIONS = [-20,-15,-10,-5,0,5,10,15,20];
 var FUTURE_MONTHS    = ['26-06','26-07','26-08','26-09','26-10','26-11','26-12'];
@@ -1334,23 +1331,64 @@ function renderProfitLineChart(elId,vals25,vals26){
   el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">'+svg+'</svg>';
 }
 
-function getWeek1Monday(year){
-  var jan1=new Date(year,0,1);
-  var day=jan1.getDay();
-  var offset=(day===0)?-6:(1-day);
-  return new Date(year,0,1+offset);
+// 주차 정의가 월요일~일요일에서 금요일~목요일로 변경되어, 요일 계산식 대신
+// 실제 스프레드시트에 기재된 주차 시작일/종료일을 그대로 표로 고정해서 사용함
+var WEEK_DEFS = [
+  {week:31,start:'2026-07-24',end:'2026-07-30'},
+  {week:32,start:'2026-07-31',end:'2026-08-06'},
+  {week:33,start:'2026-08-07',end:'2026-08-13'},
+  {week:34,start:'2026-08-14',end:'2026-08-20'},
+  {week:35,start:'2026-08-21',end:'2026-08-27'},
+  {week:36,start:'2026-08-28',end:'2026-09-03'},
+  {week:37,start:'2026-09-04',end:'2026-09-10'},
+  {week:38,start:'2026-09-11',end:'2026-09-17'},
+  {week:39,start:'2026-09-18',end:'2026-09-24'},
+  {week:40,start:'2026-09-25',end:'2026-10-01'},
+  {week:41,start:'2026-10-02',end:'2026-10-08'},
+  {week:42,start:'2026-10-09',end:'2026-10-15'},
+  {week:43,start:'2026-10-16',end:'2026-10-22'},
+  {week:44,start:'2026-10-23',end:'2026-10-29'},
+  {week:45,start:'2026-10-30',end:'2026-11-05'},
+  {week:46,start:'2026-11-06',end:'2026-11-12'},
+  {week:47,start:'2026-11-13',end:'2026-11-19'},
+  {week:48,start:'2026-11-20',end:'2026-11-26'},
+  {week:49,start:'2026-11-27',end:'2026-12-03'},
+  {week:50,start:'2026-12-04',end:'2026-12-10'},
+  {week:51,start:'2026-12-11',end:'2026-12-17'},
+  {week:52,start:'2026-12-18',end:'2026-12-24'},
+  {week:53,start:'2026-12-25',end:'2026-12-31'},
+];
+function parseISODateLocal(s){
+  var p=s.split('-').map(Number);
+  return new Date(p[0],p[1]-1,p[2]);
 }
+var WEEK_DEFS_MAP={},WEEK_START_TO_INDEX={},WEEK_INDEX_LIST=[];
+WEEK_DEFS.forEach(function(w){
+  var startDate=parseISODateLocal(w.start),endDate=parseISODateLocal(w.end);
+  WEEK_DEFS_MAP[w.week]={start:startDate,end:endDate};
+  WEEK_START_TO_INDEX[w.start]=w.week;
+  WEEK_INDEX_LIST.push(w.week);
+});
+WEEK_INDEX_LIST.sort(function(a,b){return a-b});
+
 function getWeekRange(weekIndex,year){
-  var w1=getWeek1Monday(year);
-  var start=new Date(w1.getFullYear(),w1.getMonth(),w1.getDate()+(weekIndex-1)*7);
-  var end=new Date(start.getFullYear(),start.getMonth(),start.getDate()+6);
-  return {start:start,end:end};
+  var def=WEEK_DEFS_MAP[weekIndex];
+  if(!def)return{start:new Date(NaN),end:new Date(NaN)};
+  return{start:def.start,end:def.end};
 }
 function getCurrentWeekIndex(year){
-  var w1=getWeek1Monday(year);
-  var now=new Date();
-  var diffDays=Math.floor((now-w1)/86400000);
-  return Math.floor(diffDays/7)+1;
+  var today=new Date();
+  today.setHours(0,0,0,0);
+  for(var i=0;i<WEEK_INDEX_LIST.length;i++){
+    var w=WEEK_INDEX_LIST[i];
+    var def=WEEK_DEFS_MAP[w];
+    if(today>=def.start&&today<=def.end)return w;
+  }
+  if(!WEEK_INDEX_LIST.length)return WEEK_START_INDEX;
+  var firstDef=WEEK_DEFS_MAP[WEEK_INDEX_LIST[0]];
+  if(today<firstDef.start)return WEEK_INDEX_LIST[0]; // 아직 표에 정의된 첫 주차 전 — 지난주(reviewable=0) 처리됨
+  var lastW=WEEK_INDEX_LIST[WEEK_INDEX_LIST.length-1];
+  return lastW+1; // 표에 정의된 마지막 주차 이후 — 모든 정의된 주차를 지난주로 취급
 }
 function getReviewableWeekCount(){
   return Math.max(0,getCurrentWeekIndex(DASHBOARD_YEAR)-1);
@@ -1569,7 +1607,7 @@ function renderWeeklyTab(){
 
   if(totalWeeks<WEEK_START_INDEX){
     document.getElementById('weeklyRangeBadge').textContent='점검 가능한 주차 없음 (31주차부터 시작)';
-    elCheck.innerHTML='<div class="kpi-sub" style="padding:6px 0">31주차(2026-07-27)가 끝나는 다음 월요일부터 점검이 시작됩니다.</div>';
+    elCheck.innerHTML='<div class="kpi-sub" style="padding:6px 0">31주차(2026-07-24)가 끝나는 다음 금요일부터 점검이 시작됩니다.</div>';
     document.getElementById('weeklyCheckGridAdOrder').innerHTML='';
     document.getElementById('weeklyCheckGridCost').innerHTML='';
     document.getElementById('weeklyTableBody').innerHTML='';
@@ -1578,7 +1616,7 @@ function renderWeeklyTab(){
 
   var currentWeek=totalWeeks; // 자동: 오늘 기준 직전(가장 최근 완료된) 주차
   var range=getWeekRange(currentWeek,DASHBOARD_YEAR);
-  document.getElementById('weeklyRangeBadge').textContent=currentWeek+'주차 ('+fmtDateShort(range.start)+'~'+fmtDateShort(range.end)+') · 매주 월요일 자동 갱신';
+  document.getElementById('weeklyRangeBadge').textContent=currentWeek+'주차 ('+fmtDateShort(range.start)+'~'+fmtDateShort(range.end)+') · 매주 금요일 자동 갱신';
 
   renderWeeklyCheckCards(rows,currentWeek);
   renderWeeklyTable(rows,totalWeeks);
@@ -1809,14 +1847,10 @@ function weeklyExactTriplet(exp,act,note,divider,category,weekNum){
 }
 
 function getMaxWeekInSheetData(){
-  var w1=getWeek1Monday(DASHBOARD_YEAR);
   var maxW=0;
   Object.keys(weeklyRowsMap).forEach(function(dateKey){
-    var parts=dateKey.split('-').map(Number);
-    var d=new Date(parts[0],parts[1]-1,parts[2]);
-    var diffDays=Math.floor((d-w1)/86400000);
-    var idx=Math.floor(diffDays/7)+1;
-    if(idx>maxW)maxW=idx;
+    var idx=WEEK_START_TO_INDEX[dateKey];
+    if(idx&&idx>maxW)maxW=idx;
   });
   return maxW;
 }
