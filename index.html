@@ -160,12 +160,27 @@
     .cum-row{display:grid;gap:12px;margin-top:12px}
     .cum-row.cols-2{grid-template-columns:repeat(2,1fr)}
     .cum-row.cols-3{grid-template-columns:repeat(3,1fr)}
+    .cum-card .kpi-label{font-size:16px!important;font-weight:700;color:#fff!important;text-transform:none;letter-spacing:0}
+    .cum-card.is-good{border-left:4px solid var(--green);text-align:left}
+    .cum-card.is-bad{border-right:4px solid var(--red);text-align:right}
+    .cum-card.is-good .kpi-label,.cum-card.is-good .kpi-value,.cum-card.is-good .kpi-sub{text-align:left}
+    .cum-card.is-bad .kpi-label,.cum-card.is-bad .kpi-value,.cum-card.is-bad .kpi-sub{text-align:right}
+    .cum-card-note{margin-top:9px;padding:8px 10px;border-radius:7px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);font-size:12px;line-height:1.55;color:#fff;font-family:'Pretendard',sans-serif}
+    .cum-card-note strong{color:var(--red);margin-right:5px}
     .projection-two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
     .projection-two-col .kpi-card{height:100%}
+    .projection-main-card .kpi-label{font-size:16px!important;color:#fff!important;font-weight:700;text-transform:none;letter-spacing:0}
+    .projection-main-card .kpi-value{font-size:52px!important;line-height:1.08;margin:10px 0 12px}
+    .projection-main-card .kpi-sub{font-size:20px!important;color:#fff!important;line-height:1.7!important}
+    .projection-main-card .projection-footnote{font-size:14px!important;color:#fff!important;opacity:.78}
     .assessment-list{display:flex;flex-direction:column;gap:9px;margin-top:6px}
     .assessment-item{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:9px 10px;background:var(--bg-card2);border-radius:7px;border:1px solid var(--border)}
-    .assessment-name{font-size:12px;font-weight:700;white-space:nowrap}
-    .assessment-text{font-size:12px;color:var(--text-sub);text-align:right;line-height:1.45}
+    .assessment-item.good{border-left:4px solid var(--green)}
+    .assessment-item.bad{border-left:4px solid var(--red)}
+    .assessment-item.good .assessment-name,.assessment-item.good .assessment-text{color:var(--green)}
+    .assessment-item.bad .assessment-name,.assessment-item.bad .assessment-text{color:var(--red)}
+    .assessment-name{font-size:13px;font-weight:700;white-space:nowrap}
+    .assessment-text{font-size:13px;text-align:right;line-height:1.45}
     .ratio-tab{padding:10px 22px;border-radius:22px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .15s}
     .ratio-tab:hover{border-color:var(--accent);color:var(--text)}
     .ratio-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;box-shadow:0 2px 8px var(--accent-glow, rgba(99,102,241,.35))}
@@ -1423,15 +1438,11 @@ function getCurrentWeekIndex(year){
 function getReviewableWeekCount(){
   return Math.max(0,getCurrentWeekIndex(DASHBOARD_YEAR)-1);
 }
-// 월간 스코어카드는 매주 금요일(새 주차 시작일)부터 현재 주차까지 즉시 포함한다.
-// 예: 2026-08-07(금)부터 8월 2주차(33주차)가 누적 현황에 표시된다.
+// 월간 스코어카드는 '완료된 주차'까지만 표시한다.
+// 금~목 한 주가 끝난 뒤 다음 금요일이 되면 직전 주차가 한 칸 추가된다.
+// 예: 2026-08-10(월)에는 8월 1주차까지만, 2026-08-14(금)부터 2주차까지 표시.
 function getScorecardVisibleWeekCount(){
-  var today=new Date();
-  today.setHours(0,0,0,0);
-  var current=getCurrentWeekIndex(DASHBOARD_YEAR);
-  var def=WEEK_DEFS_MAP[current];
-  if(def&&today>=def.start)return current;
-  return Math.max(0,current-1);
+  return getReviewableWeekCount();
 }
 function fmtDateISO(d){return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())}
 function fmtDateShort(d){return(d.getMonth()+1)+'/'+d.getDate()}
@@ -1905,10 +1916,10 @@ var SCORECARD_COLS=[
   {key:'combinedSettlement',expKey:'combined',label:'매출(통합)<br>정산',cumLabel:'매출(통합) 정산',goodGe:true,type:'daily'},
   {key:'combinedAd',expKey:'ad',label:'광고비<br>실적',cumLabel:'광고비 실적',goodGe:false,type:'daily'},
   {key:'combinedAdCharge',expKey:'ad',label:'광고비<br>충전',cumLabel:'광고비 충전',goodGe:false,type:'daily'},
-  {key:'actualOrder',expKey2:'expectedOrder',label:'발주비',cumLabel:'발주비',goodGe:false,type:'exact'},
-  {key:'actualFixed',expKey2:'expectedFixed',label:'고정비',cumLabel:'고정비',goodGe:false,type:'exact'},
-  {key:'actualVariable',expKey2:'expectedVariable',label:'변동비',cumLabel:'변동비',goodGe:false,type:'exact'},
-  {key:'actualRepay',expKey2:'expectedRepay',label:'상환비',cumLabel:'상환비',goodGe:false,type:'exact'},
+  {key:'actualOrder',expKey2:'expectedOrder',label:'발주비',cumLabel:'발주비',goodGe:false,type:'exact',noteKey:'orderNote'},
+  {key:'actualFixed',expKey2:'expectedFixed',label:'고정비',cumLabel:'고정비',goodGe:false,type:'exact',noteKey:'fixedNote'},
+  {key:'actualVariable',expKey2:'expectedVariable',label:'변동비',cumLabel:'변동비',goodGe:false,type:'exact',noteKey:'variableNote'},
+  {key:'actualRepay',expKey2:'expectedRepay',label:'상환비',cumLabel:'상환비',goodGe:false,type:'exact',noteKey:'repayNote'},
 ];
 
 function scorecardPass(actual,expected,goodGe){
@@ -1942,7 +1953,7 @@ function renderWeeklyScorecard(rows){
   var monthLabel=curAs.year+'년 '+(curAs.monthIndex0+1)+'월';
   labelEl.textContent=monthLabel+' 주차별 점검 현황';
 
-  // 금요일이 되면 그날 시작한 현재 주차까지 월간 현황/누적에 포함
+  // 완료된 주차까지만 표시하고, 매주 금요일에 직전 주차를 한 주 추가
   var visibleWeeks=getScorecardVisibleWeekCount();
   var monthWeeks=getMonthWeeksSoFar(curAs,visibleWeeks);
 
@@ -1980,7 +1991,7 @@ function renderWeeklyScorecard(rows){
   }
 
   function calcCumCard(col){
-    var sumAct=0,sumExp=0,count=0;
+    var sumAct=0,sumExp=0,count=0,notes=[];
     monthWeeks.forEach(function(mw){
       var exp=getWeeklyExpected(rows,mw.range);
       var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
@@ -1989,8 +2000,12 @@ function renderWeeklyScorecard(rows){
       if(actualVal!==null&&actualVal!==undefined&&expectedVal!==null&&expectedVal!==undefined){
         sumAct+=actualVal;sumExp+=expectedVal;count++;
       }
+      if(col.noteKey&&act&&act[col.noteKey]){
+        var note=String(act[col.noteKey]).trim();
+        if(note&&notes.indexOf(note)===-1)notes.push(note);
+      }
     });
-    if(!count)return'<div class="kpi-card"><div class="kpi-label">'+col.cumLabel+'</div><div class="kpi-value" style="color:var(--text-muted)">—</div><div class="kpi-sub">데이터 없음</div></div>';
+    if(!count)return{good:null,html:'<div class="kpi-card cum-card"><div class="kpi-label">'+col.cumLabel+'</div><div class="kpi-value" style="color:var(--text-muted)">—</div><div class="kpi-sub">데이터 없음</div></div>'};
     var actualBase=col.type==='daily'?sumAct/count:sumAct;
     var expectedBase=col.type==='daily'?sumExp/count:sumExp;
     var diff=actualBase-expectedBase;
@@ -1998,13 +2013,16 @@ function renderWeeklyScorecard(rows){
     var color=good?'var(--green)':'var(--red)';
     var unit=col.type==='daily'?'만원/일':'만원';
     var compareText=diff===0?'예상과 동일':('예상대비 '+Math.abs(diff).toFixed(0)+unit+' '+(diff>0?'초과':'절감'));
-    return'<div class="kpi-card"><div class="kpi-label">'+col.cumLabel+'</div><div class="kpi-value" style="color:'+color+'">'+(diff>=0?'+':'')+fmt(diff)+unit+'</div><div class="kpi-sub">'+compareText+'</div></div>';
+    var noteHtml=(!good&&notes.length)?'<div class="cum-card-note"><strong>특이사항</strong>'+notes.join(' · ')+'</div>':'';
+    return{good:good,html:'<div class="kpi-card cum-card '+(good?'is-good':'is-bad')+'"><div class="kpi-label">'+col.cumLabel+'</div><div class="kpi-value" style="color:'+color+'">'+(diff>=0?'+':'')+fmt(diff)+unit+'</div><div class="kpi-sub">'+compareText+'</div>'+noteHtml+'</div>'};
   }
   function findCol(key){for(var i=0;i<SCORECARD_COLS.length;i++)if(SCORECARD_COLS[i].key===key)return SCORECARD_COLS[i];return null;}
   function cumSection(title,keys){
+    // 카드 순서는 매출 → 광고비 → 발주비 → 고정비 → 변동비 → 상환비로 고정.
+    // 각 카드 내부 정렬은 초록(양호)=좌측, 빨강(점검 필요)=우측으로 표시한다.
     var groups=[keys.slice(0,2),keys.slice(2,4),keys.slice(4)];
     return'<div class="cum-section"><div class="cum-section-title">'+title+'</div>'+groups.map(function(g){
-      return'<div class="cum-row cols-'+g.length+'">'+g.map(function(k){return calcCumCard(findCol(k));}).join('')+'</div>';
+      return'<div class="cum-row cols-'+g.length+'">'+g.map(function(k){return calcCumCard(findCol(k)).html;}).join('')+'</div>';
     }).join('')+'</div>';
   }
   cumGrid.innerHTML=
@@ -2049,7 +2067,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     allMonthWeeks.forEach(function(mw){
       var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
       if(mw.globalWeek<=visibleMax){
-        // 금요일 기준 이미 시작된 주차는 현재까지 입력된 실제 집행액 사용
+        // 완료된 주차는 실제 집행액, 아직 완료되지 않은 주차는 예상 집행액 사용
         total+=(act&&act[actualKey]!==null&&act[actualKey]!==undefined)?act[actualKey]:0;
       }else{
         total+=(act&&act[expectedKey]!==null&&act[expectedKey]!==undefined)?act[expectedKey]:0;
@@ -2069,26 +2087,26 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   var color=good?'var(--green)':'var(--red)';
 
   function pctDiff(actual,expected){return expected?((actual-expected)/Math.abs(expected))*100:0;}
-  function evalRevenue(v,p){var x=pctDiff(v,p);if(x>=5)return'예상보다 '+Math.abs(x).toFixed(1)+'% 높습니다.';if(x<=-5)return'예상보다 '+Math.abs(x).toFixed(1)+'% 낮습니다.';return'예상했던 수준대로입니다.';}
-  function evalCost(v,p){var x=pctDiff(v,p);if(x>=10)return'예상보다 '+Math.abs(x).toFixed(1)+'% 크게 늘었습니다.';if(x>=3)return'예상보다 '+Math.abs(x).toFixed(1)+'% 늘었습니다.';if(x<=-10)return'예상보다 '+Math.abs(x).toFixed(1)+'% 크게 줄었습니다.';if(x<=-3)return'예상보다 '+Math.abs(x).toFixed(1)+'% 줄었습니다.';return'예상했던 수준입니다.';}
+  function evalRevenue(v,p){var x=pctDiff(v,p);if(x>=5)return{good:true,text:'예상보다 '+Math.abs(x).toFixed(1)+'% 높습니다.'};if(x<=-5)return{good:false,text:'예상보다 '+Math.abs(x).toFixed(1)+'% 낮습니다.'};return{good:true,text:'예상했던 수준대로입니다.'};}
+  function evalExpense(v,p,label){var x=pctDiff(v,p);var good=v<=p;if(x>=10)return{good:false,text:'예상보다 '+Math.abs(x).toFixed(1)+'% 크게 늘었습니다.'};if(x>0)return{good:false,text:'예상보다 '+Math.abs(x).toFixed(1)+'% 늘었습니다.'};if(x<=-10)return{good:true,text:'예상보다 '+Math.abs(x).toFixed(1)+'% 크게 줄었습니다.'};if(x<0)return{good:true,text:'예상보다 '+Math.abs(x).toFixed(1)+'% 줄었습니다.'};return{good:true,text:'예상했던 수준입니다.'};}
   var assessments=[
     ['매출',evalRevenue(projectedRevenue,planRow.revenueAdj)],
-    ['광고비',evalCost(projectedAd,planRow.ad)],
-    ['발주비',evalCost(projectedOrder,planRow.order)],
-    ['고정비',evalCost(projectedFixed,planRow.fixed)],
-    ['변동비',evalCost(projectedVariable,planRow.variable)],
-    ['상환비',evalCost(projectedRepay,planRow.repay)]
+    ['광고비',evalExpense(projectedAd,planRow.ad,'광고비')],
+    ['발주비',evalExpense(projectedOrder,planRow.order,'발주비')],
+    ['고정비',evalExpense(projectedFixed,planRow.fixed,'고정비')],
+    ['변동비',evalExpense(projectedVariable,planRow.variable,'변동비')],
+    ['상환비',evalExpense(projectedRepay,planRow.repay,'상환비')]
   ];
 
-  projEl.innerHTML='<div class="kpi-card">'+
+  projEl.innerHTML='<div class="kpi-card projection-main-card">'+
     '<div class="kpi-label">'+monthLabel+' 실적 추세 반영 영업이익 전망</div>'+ 
     '<div class="kpi-value" style="color:'+color+'">'+fmtKorean(projectedProfit,true)+'</div>'+ 
     '<div class="kpi-sub">원래 계획 '+fmtKorean(plannedProfit,true)+' · 차이 '+fmtKorean(diff,true)+'</div>'+ 
     '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+(good?'✓ 계획 이상 전망':'⚠ 계획 미달 전망')+'</div>'+ 
     '<div class="kpi-sub" style="margin-top:10px;line-height:1.65">매출 '+fmtKorean(projectedRevenue,false)+' · 광고비 '+fmtKorean(projectedAd,false)+'<br>발주비 '+fmtKorean(projectedOrder,false)+' · 고정비 '+fmtKorean(projectedFixed,false)+' · 변동비 '+fmtKorean(projectedVariable,false)+' · 상환비 '+fmtKorean(projectedRepay,false)+'</div>'+ 
-    '<div class="kpi-sub" style="margin-top:8px;font-size:11px;color:var(--text-muted)">매출·광고비: 1~'+monthWeeks.length+'주차 실적 일평균을 월말까지 유지 가정 · 비용: 시작된 주차는 실제, 아직 시작하지 않은 주차는 예상 금액 반영</div>'+ 
+    '<div class="kpi-sub projection-footnote" style="margin-top:8px">매출·광고비: 1~'+monthWeeks.length+'주차 실적 일평균을 월말까지 유지 가정 · 비용: 완료된 주차는 실제, 아직 완료되지 않은 주차는 예상 금액 반영</div>'+ 
   '</div>'+ 
-  '<div class="kpi-card"><div class="kpi-label">항목별 평가</div><div class="assessment-list">'+assessments.map(function(a){return'<div class="assessment-item"><span class="assessment-name">'+a[0]+'</span><span class="assessment-text">'+a[1]+'</span></div>';}).join('')+'</div></div>';
+  '<div class="kpi-card"><div class="kpi-label">항목별 평가</div><div class="assessment-list">'+assessments.map(function(a){return'<div class="assessment-item '+(a[1].good?'good':'bad')+'"><span class="assessment-name">'+a[0]+'</span><span class="assessment-text">'+a[1].text+'</span></div>';}).join('')+'</div></div>';
 }
 
 function renderWeeklyTable(rows,totalWeeks){
