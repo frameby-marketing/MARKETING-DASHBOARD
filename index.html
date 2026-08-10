@@ -220,14 +220,16 @@
     .assessment-name{font-size:13px;font-weight:700;white-space:nowrap}
     .assessment-text{font-size:13px;text-align:right;line-height:1.45}
     .projection-eval-list{display:flex;flex-direction:column;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
-    .projection-eval-row{display:grid;grid-template-columns:90px minmax(0,1fr);gap:14px;align-items:start;padding:11px 13px;border-radius:8px;background:var(--bg-card2);border:1px solid var(--border);font-size:13px;line-height:1.55}
+    .projection-eval-row{display:grid;grid-template-columns:110px minmax(0,1fr);gap:16px;align-items:start;padding:14px 16px;border-radius:8px;background:var(--bg-card2);border:1px solid var(--border);font-size:14px;line-height:1.6}
     .projection-eval-row.good{border-left:4px solid var(--green)}
     .projection-eval-row.bad{border-left:4px solid var(--red)}
-    .projection-eval-name{font-weight:800;white-space:nowrap}
-    .projection-eval-row.good .projection-eval-name,.projection-eval-row.good .projection-eval-text{color:var(--green)}
-    .projection-eval-row.bad .projection-eval-name,.projection-eval-row.bad .projection-eval-text{color:var(--red)}
+    .projection-eval-name{font-size:18px;font-weight:800;line-height:1.4;white-space:nowrap}
+    .projection-eval-row.good .projection-eval-name,.projection-eval-row.good .projection-eval-change{color:var(--green)}
+    .projection-eval-row.bad .projection-eval-name,.projection-eval-row.bad .projection-eval-change{color:var(--red)}
     .projection-eval-text{font-weight:600}
-    .projection-eval-reason{color:var(--text-sub);font-weight:500;margin-left:5px}
+    .projection-eval-change{display:block;font-size:17px;font-weight:800;line-height:1.45}
+    .projection-eval-reason{display:block;color:#fff!important;font-size:15px;font-weight:500;line-height:1.65;margin:7px 0 0 0}
+    html.light .projection-eval-reason{color:var(--text)!important}
     @media(max-width:700px){.projection-eval-row{grid-template-columns:1fr;gap:4px}}
     .ratio-tab{padding:10px 22px;border-radius:22px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .15s}
     .ratio-tab:hover{border-color:var(--accent);color:var(--text)}
@@ -656,9 +658,8 @@
         </div>
         <div class="target-label" style="margin-top:18px;margin-bottom:8px">이번 달 누적 예상대비 실적 <span id="weeklyScorecardCumPeriod" style="font-size:11px;font-weight:600;color:var(--accent);margin-left:8px"></span><span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">매출·광고비는 일평균 기준 평균 차이, 비용 항목은 누적 총액 차이</span></div>
         <div id="weeklyScorecardCumGrid"></div>
-        <div class="target-label" style="margin-top:22px;margin-bottom:8px;font-size:20px;font-weight:800">실적 추세 반영 이번 달 영업이익 전망</div>
-        <div class="projection-mode-panel" aria-label="영업이익 전망 매출·광고비 기준 선택">
-          <div class="projection-mode-label">매출 · 광고비 기준</div>
+        <div class="projection-mode-panel" aria-label="영업이익 전망 매출·광고비 기준 선택" style="margin-top:22px">
+          <div class="projection-mode-label" style="font-size:20px;font-weight:800">실적 추세 반영 이번 달 영업이익 전망</div>
           <div class="projection-mode-buttons">
             <button type="button" class="scorecard-mode-btn active" id="projectionModeActualBtn" onclick="setProjectionMode('actual')">실적 기준</button>
             <button type="button" class="scorecard-mode-btn" id="projectionModeSettlementBtn" onclick="setProjectionMode('settlement')">정산 · 충전 기준</button>
@@ -2405,7 +2406,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
       if(!monthNotes[key].length&&Math.abs(delta)>=0.000001)reason+=' 별도 특이사항은 입력되지 않았습니다.';
     }
     var changeText=same?'예상과 동일':('예상 대비 '+fmtSignedKorean(delta)+' ('+(delta>0?'증가':'감소')+')');
-    return '<div class="projection-eval-row '+(evalGood?'good':'bad')+'"><div class="projection-eval-name">'+a.name+'</div><div class="projection-eval-text">'+changeText+'<span class="projection-eval-reason">· '+reason+'</span></div></div>';
+    return '<div class="projection-eval-row '+(evalGood?'good':'bad')+'"><div class="projection-eval-name">'+a.name+'</div><div class="projection-eval-text"><span class="projection-eval-change">'+changeText+'</span><span class="projection-eval-reason">'+reason+'</span></div></div>';
   }
   var evaluationListHtml='<div class="projection-eval-list">'+assessments.map(evalRowHtml).join('')+'</div>';
 
