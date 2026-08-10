@@ -2274,7 +2274,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   var projectedOrder=0,projectedFixed=0,projectedVariable=0,projectedRepay=0;
   var settlementRevenueSum=0,settlementRevenueCount=0,chargeAdSum=0,chargeAdCount=0;
   var actualDayCount=0,expectedDayCount=0,missingPastDays=[];
-  // 평가용: 지나간 날짜의 실제값이 당시 예상값과 얼마나 달랐는지 별도로 계산한다.
+  // 평가용: 지난 기간의 실제값이 당시 예상값과 얼마나 달랐는지 별도로 계산한다.
   var pastRevenueSum=0,pastRevenueCount=0,pastAdSum=0,pastAdCount=0;
   var pastCostActual={order:0,fixed:0,variable:0,repay:0};
   var pastCostExpected={order:0,fixed:0,variable:0,repay:0};
@@ -2379,29 +2379,48 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     var evalGood=a.isRevenue?delta>=-0.000001:delta<=0.000001;
     var reason='';
     if(a.name==='매출'){
-      var avg=avgOrNull(pastRevenueSum,pastRevenueCount);
-      if(avg===null)reason=projectionMode==='settlement'?'해당 월의 정산 매출 데이터가 없어 원인 평가가 어렵습니다.':'완료된 보고기간의 실제 매출 데이터가 없어 원인 평가가 어렵습니다.';
+      var avg=projectionMode==='settlement'
+        ?(settlementRevenueCount?settlementRevenueSum/dim:null)
+        :avgOrNull(pastRevenueSum,pastRevenueCount);
+      if(avg===null)reason=projectionMode==='settlement'?'해당 월 정산 예정 매출 데이터가 없어 원인 평가가 어렵습니다.':'지난 기간의 실제 매출 데이터가 없어 원인 평가가 어렵습니다.';
       else{
         var dailyDelta=avg-expectedDailyRevenue;
-        if(Math.abs(dailyDelta)<0.5)reason=(projectionMode==='settlement'?'정산':'실제 발생')+' 일평균 매출이 예상 일평균 '+fmtKorean(expectedDailyRevenue,false)+'과 거의 동일해 전망 차이가 없습니다.';
-        else reason=(projectionMode==='settlement'?'해당 월 입력분 '+pastRevenueCount+'일 정산 일평균 매출 ':'완료된 보고기간 '+pastRevenueCount+'일 실제 일평균 매출 ')+fmtKorean(avg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyRevenue,false)+'보다 '+fmtKorean(Math.abs(dailyDelta),false)+' '+(dailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다.';
+        if(Math.abs(dailyDelta)<0.5){
+          reason=projectionMode==='settlement'
+            ?'해당 월 정산 예정 매출 총액을 '+dim+'일로 나눈 일평균 '+fmtKorean(avg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyRevenue,false)+'과 거의 동일해 전망 차이가 없습니다.'
+            :'지난 '+pastRevenueCount+'일 실제 일평균 매출 '+fmtKorean(avg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyRevenue,false)+'과 거의 동일해 전망 차이가 없습니다.';
+        }else{
+          reason=projectionMode==='settlement'
+            ?'해당 월 정산 예정 매출 총액 '+fmtKorean(settlementRevenueSum,false)+'을 '+dim+'일로 나눈 일평균 '+fmtKorean(avg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyRevenue,false)+'보다 '+fmtKorean(Math.abs(dailyDelta),false)+' '+(dailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다.'
+            :'지난 '+pastRevenueCount+'일 실제 일평균 매출 '+fmtKorean(avg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyRevenue,false)+'보다 '+fmtKorean(Math.abs(dailyDelta),false)+' '+(dailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다.';
+        }
       }
     }else if(a.name==='광고비'){
-      var adAvg=avgOrNull(pastAdSum,pastAdCount);
-      if(adAvg===null)reason=projectionMode==='settlement'?'해당 월의 광고 충전 데이터가 없어 원인 평가가 어렵습니다.':'완료된 보고기간의 실제 광고비 데이터가 없어 원인 평가가 어렵습니다.';
+      var adAvg=projectionMode==='settlement'
+        ?(chargeAdCount?chargeAdSum/dim:null)
+        :avgOrNull(pastAdSum,pastAdCount);
+      if(adAvg===null)reason=projectionMode==='settlement'?'해당 월 예상 충전 광고비 데이터가 없어 원인 평가가 어렵습니다.':'지난 기간의 실제 광고비 데이터가 없어 원인 평가가 어렵습니다.';
       else{
         var adDailyDelta=adAvg-expectedDailyAd;
-        if(Math.abs(adDailyDelta)<0.5)reason=(projectionMode==='settlement'?'광고 충전':'실제 발생')+' 일평균이 예상 일평균 '+fmtKorean(expectedDailyAd,false)+'과 거의 동일해 전망 차이가 없습니다.';
-        else reason=(projectionMode==='settlement'?'해당 월 입력분 '+pastAdCount+'일 광고 충전 일평균 ':'완료된 보고기간 '+pastAdCount+'일 실제 광고비 일평균 ')+fmtKorean(adAvg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyAd,false)+'보다 '+fmtKorean(Math.abs(adDailyDelta),false)+' '+(adDailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다.'+(projectionMode==='settlement'?' ※ 충전 데이터에는 메타·쿠팡 광고비가 제외되어 있습니다.':'');
+        if(Math.abs(adDailyDelta)<0.5){
+          reason=projectionMode==='settlement'
+            ?'해당 월 예상 충전 광고비 총액을 '+dim+'일로 나눈 일평균 '+fmtKorean(adAvg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyAd,false)+'과 거의 동일해 전망 차이가 없습니다. ※ 충전 데이터에는 메타·쿠팡 광고비가 제외되어 있습니다.'
+            :'지난 '+pastAdCount+'일 실제 광고비 일평균 '+fmtKorean(adAvg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyAd,false)+'과 거의 동일해 전망 차이가 없습니다.';
+        }else{
+          reason=projectionMode==='settlement'
+            ?'해당 월 예상 충전 광고비 총액 '+fmtKorean(chargeAdSum,false)+'을 '+dim+'일로 나눈 일평균 '+fmtKorean(adAvg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyAd,false)+'보다 '+fmtKorean(Math.abs(adDailyDelta),false)+' '+(adDailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다. ※ 충전 데이터에는 메타·쿠팡 광고비가 제외되어 있습니다.'
+            :'지난 '+pastAdCount+'일 실제 광고비 일평균 '+fmtKorean(adAvg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyAd,false)+'보다 '+fmtKorean(Math.abs(adDailyDelta),false)+' '+(adDailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다.';
+        }
       }
     }else{
       var key=a.name==='발주비'?'order':a.name==='고정비'?'fixed':a.name==='변동비'?'variable':'repay';
       var pastDelta=pastCostActual[key]-pastCostExpected[key];
       var noteText=monthNotes[key].length?' 특이사항: '+monthNotes[key].join(' · '):'';
+      var costLabel=a.name==='발주비'?'발주':a.name==='고정비'?'고정비':a.name==='변동비'?'변동비':'상환비';
       if(Math.abs(pastDelta)<0.000001){
-        reason='지나간 날짜의 실제 집행액이 입력된 예상 집행액과 동일하며, 남은 날짜는 예상값을 그대로 반영했습니다.'+noteText;
+        reason='지난 실제 '+costLabel+' 집행액이 입력된 예상 집행액과 동일하며, 남은 기간은 예상값을 그대로 반영했습니다.'+noteText;
       }else{
-        reason='지나간 날짜의 실제 집행액 '+fmtKorean(pastCostActual[key],false)+'이 해당 기간 예상 '+fmtKorean(pastCostExpected[key],false)+'보다 '+fmtKorean(Math.abs(pastDelta),false)+' '+(pastDelta>0?'많았습니다.':'적었습니다.')+noteText;
+        reason='지난 실제 '+costLabel+' 집행액 '+fmtKorean(pastCostActual[key],false)+'이 해당 기간 예상 '+fmtKorean(pastCostExpected[key],false)+'보다 '+fmtKorean(Math.abs(pastDelta),false)+' '+(pastDelta>0?'많았습니다.':'적었습니다.')+noteText;
       }
       if(!monthNotes[key].length&&Math.abs(delta)>=0.000001)reason+=' 별도 특이사항은 입력되지 않았습니다.';
     }
@@ -2411,7 +2430,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   var evaluationListHtml='<div class="projection-eval-list">'+assessments.map(evalRowHtml).join('')+'</div>';
 
   var missingNote=missingPastDays.length
-    ?'<div class="kpi-sub" style="color:var(--yellow);margin-top:6px">※ 지난 날짜 중 일별 데이터 미입력 '+missingPastDays.length+'일은 실제 0으로 계산: '+missingPastDays.slice(0,5).join(', ')+(missingPastDays.length>5?' 외':'')+'</div>'
+    ?'<div class="kpi-sub" style="color:var(--yellow);margin-top:6px">※ 지난 기간 중 일별 데이터 미입력 '+missingPastDays.length+'일은 실제 0으로 계산: '+missingPastDays.slice(0,5).join(', ')+(missingPastDays.length>5?' 외':'')+'</div>'
     :'';
 
   projEl.innerHTML='<div class="kpi-card projection-main-card">'+
@@ -2422,7 +2441,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     '<div class="kpi-sub projection-equation" style="margin-top:12px;line-height:1.8"><div style="font-weight:800">매출 '+fmtKorean(projectedRevenue,false)+'</div><div style="margin-top:2px">− 광고비 '+fmtKorean(projectedAd,false)+' − 발주비 '+fmtKorean(projectedOrder,false)+' − 고정비 '+fmtKorean(projectedFixed,false)+' − 변동비 '+fmtKorean(projectedVariable,false)+' − 상환비 '+fmtKorean(projectedRepay,false)+'</div></div>'+ 
     '<div class="kpi-sub projection-footnote" style="margin-top:8px">'+(projectionMode==='settlement'
       ?monthLabel+' 달력 기준만 사용 · 매출: 일별 데이터 통합 일평균 매출 정산 '+settlementRevenueCount+'일 입력분 합산 · 광고비: 통합 일평균 광고 충전 '+chargeAdCount+'일 입력분 합산 · 비용 4개 항목은 실적 기준과 동일'
-      :monthLabel+' 달력 기준만 사용 · 마지막 완료 보고일 '+(actualDayCount?fmtDateShort(actualCutoff):'없음')+'까지 '+actualDayCount+'일: 일별 데이터의 실제값 · 이후 '+expectedDayCount+'일: 매출데이터의 월 계획 일할값(매출·광고비) + 일별 데이터의 예상비용')+'</div>'+ 
+      :monthLabel+' 달력 기준만 사용 · 지난 '+actualDayCount+'일 ('+(actualDayCount?fmtDateShort(monthStart)+'~'+fmtDateShort(actualCutoff):'해당 없음')+'): 일별 데이터의 실제값 · 이후 '+expectedDayCount+'일: 매출데이터의 월 계획 일할값(매출·광고비) + 일별 데이터의 예상비용')+'</div>'+ 
     (projectionMode==='settlement'?'<div class="kpi-sub" style="color:var(--red);font-weight:900;margin-top:6px">※ 광고 충전 데이터에는 메타·쿠팡 광고비가 제외되어 있습니다.</div>':'')+
     missingNote+
   '</div>'+ 
