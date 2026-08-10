@@ -2174,7 +2174,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     var fcH=Math.max(4,Math.round(Math.abs(forecast)/maxVal*138));
     var direction=delta>0?'늘었습니다':(delta<0?'줄었습니다':'동일합니다');
     var deltaWord=delta>0?'증가':(delta<0?'감소':'차이 없음');
-    var diffText=delta===0?'예상과 동일 (차이 없음)':('예상보다 '+pct.toFixed(1)+'% '+direction+' ('+fmtKorean(Math.abs(delta),false)+' '+deltaWord+')');
+    var diffText=delta===0?'예상과 동일<br>(차이 없음)':('예상보다 '+pct.toFixed(1)+'% '+direction+'<br>('+fmtKorean(Math.abs(delta),false)+' '+deltaWord+')');
     return '<div class="projection-bar-item">'+
       '<div class="projection-bar-title">'+a.name+'</div>'+
       '<div class="projection-bar-chart">'+
