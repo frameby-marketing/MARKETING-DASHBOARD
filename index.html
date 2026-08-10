@@ -1,3 +1,4 @@
+<script src="https://frameby-marketing.github.io/Dashboard_Hub/nav.js"></script>
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -152,6 +153,8 @@
     .ratio-tab-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
     #weeklyTable td,#weeklyTable th{border-right:1px solid var(--border);text-align:center}
     #weeklyTable td:first-child,#weeklyTable th:first-child{text-align:center}
+    #weeklyScorecardTable td,#weeklyScorecardTable th{text-align:center;border-right:1px solid var(--border)}
+    #weeklyScorecardTable td:first-child,#weeklyScorecardTable th:first-child{color:var(--text);font-family:'Pretendard',sans-serif}
     .ratio-tab{padding:10px 22px;border-radius:22px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .15s}
     .ratio-tab:hover{border-color:var(--accent);color:var(--text)}
     .ratio-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;box-shadow:0 2px 8px var(--accent-glow, rgba(99,102,241,.35))}
@@ -558,6 +561,21 @@
         <div class="ratio-grid" id="weeklyCheckGridRevenue"></div>
         <div class="ratio-grid" id="weeklyCheckGridAdOrder" style="margin-top:12px"></div>
         <div class="ratio-grid" id="weeklyCheckGridCost" style="margin-top:12px"></div>
+      </div>
+
+      <div class="table-card">
+        <div class="table-section-label chart-section-title-big" id="weeklyScorecardLabel">이번 달 주차별 점검 현황</div>
+        <div class="chart-section-sub">매출·광고비는 실적/정산(충전) 둘 다, 발주비·고정비·변동비·상환비는 예상 이하 집행 여부를 주차별로 표시 — 초록 O는 통과, 빨강 X는 점검 필요</div>
+        <div class="table-wrap">
+          <table id="weeklyScorecardTable">
+            <thead><tr id="weeklyScorecardHead"></tr></thead>
+            <tbody id="weeklyScorecardBody"></tbody>
+          </table>
+        </div>
+        <div class="target-label" style="margin-top:18px;margin-bottom:8px">이번 달 누적 예상대비 실적 <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">매출·광고비는 일평균 기준 평균 차이, 비용 항목은 누적 총액 차이</span></div>
+        <div class="ratio-grid" id="weeklyScorecardCumGrid" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))"></div>
+        <div class="target-label" style="margin-top:18px;margin-bottom:8px">실적 추세 반영 이번 달 영업이익 전망</div>
+        <div class="kpi-grid" id="weeklyScorecardProjectionGrid" style="grid-template-columns:1fr"></div>
       </div>
 
       <div class="table-card">
@@ -1611,6 +1629,7 @@ function renderWeeklyTab(){
     document.getElementById('weeklyCheckGridAdOrder').innerHTML='';
     document.getElementById('weeklyCheckGridCost').innerHTML='';
     document.getElementById('weeklyTableBody').innerHTML='';
+    renderWeeklyScorecard(rows);
     return;
   }
 
@@ -1619,6 +1638,7 @@ function renderWeeklyTab(){
   document.getElementById('weeklyRangeBadge').textContent=currentWeek+'주차 ('+fmtDateShort(range.start)+'~'+fmtDateShort(range.end)+') · 매주 금요일 자동 갱신';
 
   renderWeeklyCheckCards(rows,currentWeek);
+  renderWeeklyScorecard(rows);
   renderWeeklyTable(rows,totalWeeks);
 }
 
@@ -1853,6 +1873,155 @@ function getMaxWeekInSheetData(){
     if(idx&&idx>maxW)maxW=idx;
   });
   return maxW;
+}
+
+// ===== 이번 달 주차별 점검 현황(스코어카드) =====
+var SCORECARD_COLS=[
+  {key:'ownNaverRevenue',expKey:'ownNaver',label:'매출(자사+네이버)<br>실적',cumLabel:'매출(자사+네이버) 실적',goodGe:true,type:'daily'},
+  {key:'ownNaverSettlement',expKey:'ownNaver',label:'매출(자사+네이버)<br>정산',cumLabel:'매출(자사+네이버) 정산',goodGe:true,type:'daily'},
+  {key:'combinedRevenue',expKey:'combined',label:'매출(통합)<br>실적',cumLabel:'매출(통합) 실적',goodGe:true,type:'daily'},
+  {key:'combinedSettlement',expKey:'combined',label:'매출(통합)<br>정산',cumLabel:'매출(통합) 정산',goodGe:true,type:'daily'},
+  {key:'combinedAd',expKey:'ad',label:'광고비<br>실적',cumLabel:'광고비 실적',goodGe:false,type:'daily'},
+  {key:'combinedAdCharge',expKey:'ad',label:'광고비<br>충전',cumLabel:'광고비 충전',goodGe:false,type:'daily'},
+  {key:'actualOrder',expKey2:'expectedOrder',label:'발주비',cumLabel:'발주비',goodGe:false,type:'exact'},
+  {key:'actualFixed',expKey2:'expectedFixed',label:'고정비',cumLabel:'고정비',goodGe:false,type:'exact'},
+  {key:'actualVariable',expKey2:'expectedVariable',label:'변동비',cumLabel:'변동비',goodGe:false,type:'exact'},
+  {key:'actualRepay',expKey2:'expectedRepay',label:'상환비',cumLabel:'상환비',goodGe:false,type:'exact'},
+];
+
+function scorecardPass(actual,expected,goodGe){
+  if(actual===null||actual===undefined||expected===null||expected===undefined)return null;
+  return goodGe?(actual>=expected):(actual<=expected);
+}
+function scorecardCell(pass){
+  if(pass===null)return'<td style="color:var(--text-muted)">&#8212;</td>';
+  return pass?'<td style="color:var(--green);font-weight:800;font-size:15px">O</td>':'<td style="color:var(--red);font-weight:800;font-size:15px">X</td>';
+}
+
+function getMonthWeeksSoFar(curAs,totalWeeks){
+  var list=[];
+  WEEK_INDEX_LIST.forEach(function(w){
+    if(w>totalWeeks)return;
+    var range=getWeekRange(w,DASHBOARD_YEAR);
+    var as=assignMonthForWeek(range);
+    if(as.year===curAs.year&&as.monthIndex0===curAs.monthIndex0){
+      list.push({globalWeek:w,range:range});
+    }
+  });
+  return list;
+}
+
+function renderWeeklyScorecard(rows){
+  var labelEl=document.getElementById('weeklyScorecardLabel');
+  if(!labelEl)return;
+  var curWeekIdx=getCurrentWeekIndex(DASHBOARD_YEAR);
+  var curRange=getWeekRange(curWeekIdx,DASHBOARD_YEAR);
+  var curAs=assignMonthForWeek(curRange);
+  var monthLabel=curAs.year+'년 '+(curAs.monthIndex0+1)+'월';
+  labelEl.textContent=monthLabel+' 주차별 점검 현황';
+
+  var totalWeeks=getReviewableWeekCount();
+  var monthWeeks=getMonthWeeksSoFar(curAs,totalWeeks);
+
+  var theadEl=document.getElementById('weeklyScorecardHead');
+  var tbodyEl=document.getElementById('weeklyScorecardBody');
+  var cumGrid=document.getElementById('weeklyScorecardCumGrid');
+  var projGrid=document.getElementById('weeklyScorecardProjectionGrid');
+
+  if(!monthWeeks.length){
+    theadEl.innerHTML='<th>주차</th>';
+    tbodyEl.innerHTML='<tr><td style="color:var(--text-muted)">'+monthLabel+'에 완료된 주차가 아직 없습니다.</td></tr>';
+    cumGrid.innerHTML='';
+    projGrid.innerHTML='';
+    return;
+  }
+
+  theadEl.innerHTML='<th>주차</th>'+SCORECARD_COLS.map(function(c){return'<th>'+c.label+'</th>'}).join('');
+
+  var cumActual={},cumExpected={},cumCount={};
+  SCORECARD_COLS.forEach(function(c){cumActual[c.cumLabel]=0;cumExpected[c.cumLabel]=0;cumCount[c.cumLabel]=0;});
+
+  var bodyHtml=monthWeeks.map(function(mw,idx){
+    var exp=getWeeklyExpected(rows,mw.range);
+    var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
+    var cells=SCORECARD_COLS.map(function(c){
+      var actualVal=act?act[c.key]:null;
+      var expectedVal=c.type==='daily'?(exp?exp[c.expKey]:null):(act?act[c.expKey2]:null);
+      if(actualVal!==null&&actualVal!==undefined&&expectedVal!==null&&expectedVal!==undefined){
+        cumActual[c.cumLabel]+=actualVal;
+        cumExpected[c.cumLabel]+=expectedVal;
+        cumCount[c.cumLabel]++;
+      }
+      return scorecardCell(scorecardPass(actualVal,expectedVal,c.goodGe));
+    }).join('');
+    return'<tr><td>'+(idx+1)+'주차</td>'+cells+'</tr>';
+  }).join('');
+  tbodyEl.innerHTML=bodyHtml;
+
+  cumGrid.innerHTML=SCORECARD_COLS.map(function(c){
+    if(!cumCount[c.cumLabel]){
+      return'<div class="kpi-card"><div class="kpi-label">'+c.cumLabel+'</div><div class="kpi-value" style="color:var(--text-muted)">&#8212;</div><div class="kpi-sub">데이터 없음</div></div>';
+    }
+    var diff,unit,sub;
+    if(c.type==='daily'){
+      diff=(cumActual[c.cumLabel]/cumCount[c.cumLabel])-(cumExpected[c.cumLabel]/cumCount[c.cumLabel]);
+      unit='만원/일';
+      sub='주간 평균 일평균 기준';
+    }else{
+      diff=cumActual[c.cumLabel]-cumExpected[c.cumLabel];
+      unit='만원';
+      sub='누적 총액 기준';
+    }
+    var good=c.goodGe?diff>=0:diff<=0;
+    var color=good?'var(--green)':'var(--red)';
+    return'<div class="kpi-card"><div class="kpi-label">'+c.cumLabel+'</div>'+
+      '<div class="kpi-value" style="color:'+color+'">'+(diff>=0?'+':'')+fmt(diff)+unit+'</div>'+
+      '<div class="kpi-sub">'+sub+' · 예상대비 '+(diff>=0?'초과':'미달')+'</div></div>';
+  }).join('');
+
+  renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel);
+}
+
+function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
+  var projEl=document.getElementById('weeklyScorecardProjectionGrid');
+  if(!projEl)return;
+  var mk=monthKeyFromYM(curAs.year,curAs.monthIndex0);
+  var planRow=null;
+  for(var i=0;i<rows.length;i++){if(rows[i].month===mk){planRow=rows[i];break;}}
+  if(!planRow){projEl.innerHTML='<div class="kpi-sub">이 달 계획 데이터가 없습니다.</div>';return;}
+
+  var sumRev=0,sumAd=0,cnt=0;
+  monthWeeks.forEach(function(mw){
+    var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
+    if(act&&act.combinedRevenue!==null&&act.combinedRevenue!==undefined&&act.combinedAd!==null&&act.combinedAd!==undefined){
+      sumRev+=act.combinedRevenue;
+      sumAd+=act.combinedAd;
+      cnt++;
+    }
+  });
+
+  if(!cnt){
+    projEl.innerHTML='<div class="kpi-card"><div class="kpi-label">'+monthLabel+' 실적 추세 반영 영업이익 전망</div><div class="kpi-value" style="color:var(--text-muted)">데이터 없음</div><div class="kpi-sub">아직 통합 매출·광고비 실적이 입력된 주차가 없습니다.</div></div>';
+    return;
+  }
+
+  var avgDailyRev=sumRev/cnt,avgDailyAd=sumAd/cnt;
+  var dim=daysInMonth(curAs.year,curAs.monthIndex0);
+  var projectedRevenue=avgDailyRev*dim;
+  var projectedAd=avgDailyAd*dim;
+  var projectedProfit=projectedRevenue-(projectedAd+planRow.fixed+planRow.order+planRow.variable+planRow.repay);
+  var plannedProfit=planRow.profit;
+  var diff=projectedProfit-plannedProfit;
+  var good=diff>=0;
+  var color=good?'var(--green)':'var(--red)';
+
+  projEl.innerHTML='<div class="kpi-card">'+
+    '<div class="kpi-label">'+monthLabel+' 실적 추세 반영 영업이익 전망</div>'+
+    '<div class="kpi-value" style="color:'+color+'">'+fmtKorean(projectedProfit,true)+'</div>'+
+    '<div class="kpi-sub">원래 계획 '+fmtKorean(plannedProfit,true)+' · 차이 '+(diff>=0?'+':'')+fmtKorean(diff,true)+'</div>'+
+    '<div class="kpi-sub" style="color:'+color+';font-weight:600;margin-top:4px">'+(good?'&#10003; 계획대로(또는 그 이상) 갈 가능성':'&#9888; 계획 미달 우려')+'</div>'+
+    '<div class="kpi-sub" style="margin-top:6px;font-size:11px;color:var(--text-muted)">매출·광고비는 지금까지 실적 일평균('+cnt+'주 기준)을 이 달 끝까지 유지한다고 가정, 발주비·고정비·변동비·상환비는 계획대로 집행된다고 가정</div>'+
+  '</div>';
 }
 
 function renderWeeklyTable(rows,totalWeeks){
