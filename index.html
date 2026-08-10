@@ -168,8 +168,8 @@
     .cum-card.is-bad{border-right:4px solid var(--red);text-align:right}
     .cum-card.is-good .kpi-label,.cum-card.is-good .kpi-value,.cum-card.is-good .kpi-sub{text-align:left}
     .cum-card.is-bad .kpi-label,.cum-card.is-bad .kpi-value,.cum-card.is-bad .kpi-sub{text-align:right}
-    .cum-card-note{margin-top:9px;padding:8px 10px;border-radius:7px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);font-size:12px;line-height:1.55;color:#fff;font-family:'Pretendard',sans-serif}
-    .cum-card-note strong{color:var(--red);margin-right:5px}
+    .cum-card-note{margin-top:10px;padding:10px 12px;border-radius:7px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);font-size:15px;line-height:1.65;color:#fff;font-family:'Pretendard',sans-serif}
+    .cum-card-note strong{color:var(--red);margin-right:7px;font-size:15px;font-weight:800}
     .scorecard-mode-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 14px}
     .scorecard-mode-btn{padding:9px 18px;border-radius:22px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s}
     .scorecard-mode-btn:hover{border-color:var(--accent);color:var(--text)}
@@ -1960,7 +1960,7 @@ function buildExactCheckCard(label,expectedVal,actualVal,note,category,weekIndex
       statusText='비교 데이터 없음';
     }
   }
-  var noteBox=note?'<div class="kpi-sub check-note-box"><strong>특이사항</strong> '+note+'</div>':'';
+  var noteBox=''; // 상단 주차별 점검에서는 특이사항을 별도 표시하지 않음
   var detailLink=category?'<div class="check-detail-link" onclick="openDetailModal('+weekIndex+',\''+category+'\')">자세히 보기 &#8250;</div>':'';
   return'<div class="kpi-card"><div class="kpi-label">'+label+'</div>'+
     '<div class="kpi-value" style="color:'+color+'">'+statusText+'</div>'+
