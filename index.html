@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>매출 &amp; 영업이익 시뮬레이션</title>
-  <!-- BUILD: 2026-08-10 rev-weekly-friday-current-cumulative-projection -->
+  <!-- BUILD: 2026-08-10 rev-weekly-actual-past-expected-future-projection -->
   <script>console.log('[진단] 대시보드 빌드: 2026-08-10 rev-weekly-friday-current-cumulative-projection — 이 로그가 안 보이면 캐시된 구버전 파일을 보고 있는 것입니다.');</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -2095,27 +2095,45 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   for(var i=0;i<rows.length;i++){if(rows[i].month===mk){planRow=rows[i];break;}}
   if(!planRow){projEl.innerHTML='<div class="kpi-sub">이 달 계획 데이터가 없습니다.</div>';return;}
 
-  var sumRev=0,sumAd=0,revCnt=0,adCnt=0;
-  monthWeeks.forEach(function(mw){
-    var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
-    if(act&&act.combinedRevenue!==null&&act.combinedRevenue!==undefined){sumRev+=act.combinedRevenue;revCnt++;}
-    if(act&&act.combinedAd!==null&&act.combinedAd!==undefined){sumAd+=act.combinedAd;adCnt++;}
-  });
-  if(!revCnt||!adCnt){
-    projEl.innerHTML='<div class="kpi-card"><div class="kpi-label">'+monthLabel+' 실적 추세 반영 영업이익 전망</div><div class="kpi-value" style="color:var(--text-muted)">데이터 없음</div><div class="kpi-sub">현재까지 통합 매출·광고비 실적이 충분하지 않습니다.</div></div>';
-    return;
-  }
-
-  var avgDailyRev=sumRev/revCnt,avgDailyAd=sumAd/adCnt;
-  var dim=daysInMonth(curAs.year,curAs.monthIndex0);
-  var projectedRevenue=avgDailyRev*dim;
-  var projectedAd=avgDailyAd*dim;
   var visibleMax=getScorecardVisibleWeekCount();
   var allMonthWeeks=[];
   WEEK_INDEX_LIST.forEach(function(w){
-    var range=getWeekRange(w,DASHBOARD_YEAR),as=assignMonthForWeek(range);
-    if(as.year===curAs.year&&as.monthIndex0===curAs.monthIndex0)allMonthWeeks.push({globalWeek:w,range:range});
+    var range=getWeekRange(w,DASHBOARD_YEAR);
+    var monthStart=new Date(curAs.year,curAs.monthIndex0,1);
+    var monthEnd=new Date(curAs.year,curAs.monthIndex0+1,0);
+    var overlapStart=new Date(Math.max(range.start.getTime(),monthStart.getTime()));
+    var overlapEnd=new Date(Math.min(range.end.getTime(),monthEnd.getTime()));
+    if(overlapStart<=overlapEnd){
+      var overlapDays=Math.round((overlapEnd-overlapStart)/86400000)+1;
+      allMonthWeeks.push({globalWeek:w,range:range,daysInMonth:overlapDays});
+    }
   });
+
+  function projectedWeeklyDaily(actualKey,expectedKey){
+    var total=0,hasAny=false;
+    allMonthWeeks.forEach(function(mw){
+      var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
+      var exp=getWeeklyExpected(rows,mw.range);
+      var daily=null;
+      if(mw.globalWeek<=visibleMax){
+        daily=(act&&act[actualKey]!==null&&act[actualKey]!==undefined)?act[actualKey]:null;
+      }else{
+        daily=(exp&&exp[expectedKey]!==null&&exp[expectedKey]!==undefined)?exp[expectedKey]:null;
+      }
+      if(daily!==null){
+        total+=daily*mw.daysInMonth;
+        hasAny=true;
+      }
+    });
+    return hasAny?total:null;
+  }
+
+  var projectedRevenue=projectedWeeklyDaily('combinedRevenue','combined');
+  var projectedAd=projectedWeeklyDaily('combinedAd','ad');
+  if(projectedRevenue===null||projectedAd===null){
+    projEl.innerHTML='<div class="kpi-card"><div class="kpi-label">'+monthLabel+' 실적 추세 반영 영업이익 전망</div><div class="kpi-value" style="color:var(--text-muted)">데이터 없음</div><div class="kpi-sub">주차별 통합 매출·광고비 실적 또는 예상 데이터가 충분하지 않습니다.</div></div>';
+    return;
+  }
 
   function projectedWeeklyCost(actualKey,expectedKey){
     var total=0;
@@ -2224,7 +2242,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     '<div class="kpi-sub" style="color:'+(good?'var(--green)':'var(--red)')+';font-weight:800;margin-top:4px">'+(good?'✓ 계획 달성·초과 전망':'⚠ 계획 미달 전망')+'</div>'+ 
     '<div class="kpi-sub projection-cause" style="margin-top:8px;line-height:1.65;color:var(--text-sub)">'+buildProjectionCauseSummary()+'</div>'+
     '<div class="kpi-sub projection-equation" style="margin-top:12px;line-height:1.8"><div style="font-weight:800">매출 '+fmtKorean(projectedRevenue,false)+'</div><div style="margin-top:2px">− 광고비 '+fmtKorean(projectedAd,false)+' − 발주비 '+fmtKorean(projectedOrder,false)+' − 고정비 '+fmtKorean(projectedFixed,false)+' − 변동비 '+fmtKorean(projectedVariable,false)+' − 상환비 '+fmtKorean(projectedRepay,false)+'</div></div>'+ 
-    '<div class="kpi-sub projection-footnote" style="margin-top:8px">매출·광고비: 1~'+monthWeeks.length+'주차 실적 일평균을 월말까지 유지 가정 · 비용: 완료된 주차는 실제, 아직 완료되지 않은 주차는 예상 금액 반영</div>'+ 
+    '<div class="kpi-sub projection-footnote" style="margin-top:8px">매출·광고비: 완료된 주차는 실제 일평균, 아직 오지 않은 주차는 예상 일평균을 해당 월 포함 일수만큼 반영 · 발주비·고정비·변동비·상환비: 완료된 주차는 실제, 아직 오지 않은 주차는 예상 금액 반영</div>'+ 
   '</div>'+ 
   '<div class="kpi-card projection-assessment-card"><div class="kpi-label">항목별 평가 · 예상 vs 전망</div><div class="projection-bars-grid">'+assessments.map(assessmentBarHtml).join('')+'</div></div>';
 
