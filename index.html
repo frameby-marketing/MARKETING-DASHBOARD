@@ -167,6 +167,18 @@
     .cum-card.is-bad .kpi-label,.cum-card.is-bad .kpi-value,.cum-card.is-bad .kpi-sub{text-align:right}
     .cum-card-note{margin-top:9px;padding:8px 10px;border-radius:7px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.25);font-size:12px;line-height:1.55;color:#fff;font-family:'Pretendard',sans-serif}
     .cum-card-note strong{color:var(--red);margin-right:5px}
+    .scorecard-mode-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:10px 0 14px}
+    .scorecard-mode-btn{padding:9px 18px;border-radius:22px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;transition:all .15s}
+    .scorecard-mode-btn:hover{border-color:var(--accent);color:var(--text)}
+    .scorecard-mode-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(99,102,241,.28)}
+    .cum-status-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+    .cum-status-col{display:flex;flex-direction:column;gap:12px;min-width:0}
+    .cum-status-col-title{font-size:12px;font-weight:700;color:var(--text-muted);padding:0 2px 2px}
+    .cum-status-col.good .cum-status-col-title{color:var(--green);text-align:left}
+    .cum-status-col.bad .cum-status-col-title{color:var(--red);text-align:right}
+    .cum-status-grid .cum-card{width:100%;min-height:146px;display:flex;flex-direction:column;justify-content:center}
+    .cum-status-grid .cum-card-note{margin-top:9px}
+    @media(max-width:700px){.cum-status-grid{grid-template-columns:1fr}.cum-status-col.bad .cum-status-col-title{text-align:left}.cum-card.is-bad,.cum-card.is-bad .kpi-label,.cum-card.is-bad .kpi-value,.cum-card.is-bad .kpi-sub{text-align:left!important}.cum-card.is-bad{border-right:1px solid var(--border);border-left:4px solid var(--red)}}
     .projection-two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:stretch}
     .projection-two-col .kpi-card{height:100%}
     .projection-main-card .kpi-label{font-size:16px!important;color:#fff!important;font-weight:700;text-transform:none;letter-spacing:0}
@@ -592,7 +604,11 @@
 
       <div class="table-card">
         <div class="table-section-label chart-section-title-big" id="weeklyScorecardLabel">이번 달 주차별 점검 현황</div>
-        <div class="chart-section-sub">매출·광고비는 실적/정산(충전) 둘 다, 발주비·고정비·변동비·상환비는 예상 이하 집행 여부를 주차별로 표시 — 초록 O는 통과, 빨강 X는 점검 필요</div>
+        <div class="scorecard-mode-row" aria-label="점검 기준 선택">
+          <button type="button" class="scorecard-mode-btn active" id="scorecardModeActualBtn" onclick="setScorecardMode('actual')">실적 기준</button>
+          <button type="button" class="scorecard-mode-btn" id="scorecardModeSettlementBtn" onclick="setScorecardMode('settlement')">정산 · 충전 기준</button>
+        </div>
+        <div class="chart-section-sub" id="weeklyScorecardModeHelp">실적 기준 · 매출·광고비는 실적, 비용은 실제 집행액을 예상과 비교합니다. 초록 O는 통과, 빨강 X는 점검 필요</div>
         <div class="table-wrap">
           <table id="weeklyScorecardTable">
             <thead><tr id="weeklyScorecardHead"></tr></thead>
@@ -1909,6 +1925,25 @@ function getMaxWeekInSheetData(){
 }
 
 // ===== 이번 달 주차별 점검 현황(스코어카드) =====
+var scorecardMode='actual';
+function setScorecardMode(mode){
+  scorecardMode=(mode==='settlement')?'settlement':'actual';
+  var a=document.getElementById('scorecardModeActualBtn');
+  var st=document.getElementById('scorecardModeSettlementBtn');
+  if(a)a.classList.toggle('active',scorecardMode==='actual');
+  if(st)st.classList.toggle('active',scorecardMode==='settlement');
+  var help=document.getElementById('weeklyScorecardModeHelp');
+  if(help)help.textContent=scorecardMode==='actual'
+    ?'실적 기준 · 매출·광고비는 실적, 비용은 실제 집행액을 예상과 비교합니다. 초록 O는 통과, 빨강 X는 점검 필요'
+    :'정산 · 충전 기준 · 매출은 정산, 광고비는 충전, 비용은 실제 집행액을 예상과 비교합니다. 초록 O는 통과, 빨강 X는 점검 필요';
+  if(typeof renderWeeklyScorecard==='function')renderWeeklyScorecard(calcRows());
+}
+function getActiveScorecardCols(){
+  var keys=scorecardMode==='settlement'
+    ?['ownNaverSettlement','combinedSettlement','combinedAdCharge','actualOrder','actualFixed','actualVariable','actualRepay']
+    :['ownNaverRevenue','combinedRevenue','combinedAd','actualOrder','actualFixed','actualVariable','actualRepay'];
+  return keys.map(function(k){for(var i=0;i<SCORECARD_COLS.length;i++)if(SCORECARD_COLS[i].key===k)return SCORECARD_COLS[i];return null;}).filter(Boolean);
+}
 var SCORECARD_COLS=[
   {key:'ownNaverRevenue',expKey:'ownNaver',label:'매출(자사+네이버)<br>실적',cumLabel:'매출(자사+네이버) 실적',goodGe:true,type:'daily'},
   {key:'ownNaverSettlement',expKey:'ownNaver',label:'매출(자사+네이버)<br>정산',cumLabel:'매출(자사+네이버) 정산',goodGe:true,type:'daily'},
@@ -1945,6 +1980,9 @@ function getMonthWeeksSoFar(curAs,totalWeeks){
 }
 
 function renderWeeklyScorecard(rows){
+  var a=document.getElementById('scorecardModeActualBtn'),st=document.getElementById('scorecardModeSettlementBtn');
+  if(a)a.classList.toggle('active',scorecardMode==='actual');
+  if(st)st.classList.toggle('active',scorecardMode==='settlement');
   var labelEl=document.getElementById('weeklyScorecardLabel');
   if(!labelEl)return;
   var curWeekIdx=getCurrentWeekIndex(DASHBOARD_YEAR);
@@ -1972,12 +2010,13 @@ function renderWeeklyScorecard(rows){
     return;
   }
 
-  theadEl.innerHTML='<th>주차</th>'+SCORECARD_COLS.map(function(c){return'<th>'+c.label+'</th>'}).join('');
+  var activeCols=getActiveScorecardCols();
+  theadEl.innerHTML='<th>주차</th>'+activeCols.map(function(c){return'<th>'+c.label+'</th>'}).join('');
 
   var bodyHtml=monthWeeks.map(function(mw,idx){
     var exp=getWeeklyExpected(rows,mw.range);
     var act=weeklyRowsMap[fmtDateISO(mw.range.start)];
-    var cells=SCORECARD_COLS.map(function(c){
+    var cells=activeCols.map(function(c){
       var actualVal=act?act[c.key]:null;
       var expectedVal=c.type==='daily'?(exp?exp[c.expKey]:null):(act?act[c.expKey2]:null);
       return scorecardCell(scorecardPass(actualVal,expectedVal,c.goodGe));
@@ -2018,16 +2057,26 @@ function renderWeeklyScorecard(rows){
   }
   function findCol(key){for(var i=0;i<SCORECARD_COLS.length;i++)if(SCORECARD_COLS[i].key===key)return SCORECARD_COLS[i];return null;}
   function cumSection(title,keys){
-    // 카드 순서는 매출 → 광고비 → 발주비 → 고정비 → 변동비 → 상환비로 고정.
-    // 각 카드 내부 정렬은 초록(양호)=좌측, 빨강(점검 필요)=우측으로 표시한다.
-    var groups=[keys.slice(0,2),keys.slice(2,4),keys.slice(4)];
-    return'<div class="cum-section"><div class="cum-section-title">'+title+'</div>'+groups.map(function(g){
-      return'<div class="cum-row cols-'+g.length+'">'+g.map(function(k){return calcCumCard(findCol(k)).html;}).join('')+'</div>';
-    }).join('')+'</div>';
+    // 선택된 기준의 카드만 표시하며, 양호(초록)는 왼쪽 / 점검필요(빨강)는 오른쪽에 세로 배치한다.
+    var cards=keys.map(function(k){return calcCumCard(findCol(k));});
+    var goodCards=[],badCards=[];
+    cards.forEach(function(card){
+      if(card.good===false)badCards.push(card.html);
+      else goodCards.push(card.html); // 데이터 없음은 기본 좌측에 둔다.
+    });
+    var emptyGood=goodCards.length?'':'<div class="kpi-card cum-card"><div class="kpi-sub" style="color:var(--text-muted)">양호 항목 없음</div></div>';
+    var emptyBad=badCards.length?'':'<div class="kpi-card cum-card"><div class="kpi-sub" style="color:var(--text-muted);text-align:right">점검 필요 항목 없음</div></div>';
+    return'<div class="cum-section"><div class="cum-section-title">'+title+'</div>'+
+      '<div class="cum-status-grid">'+
+        '<div class="cum-status-col good"><div class="cum-status-col-title">양호 · 예상 범위</div>'+goodCards.join('')+emptyGood+'</div>'+
+        '<div class="cum-status-col bad"><div class="cum-status-col-title">점검 필요 · 예상 이탈</div>'+badCards.join('')+emptyBad+'</div>'+
+      '</div></div>';
   }
-  cumGrid.innerHTML=
-    cumSection('실적 기준', ['ownNaverRevenue','combinedRevenue','combinedAd','actualOrder','actualFixed','actualVariable','actualRepay'])+
-    cumSection('정산 · 충전 기준', ['ownNaverSettlement','combinedSettlement','combinedAdCharge','actualOrder','actualFixed','actualVariable','actualRepay']);
+  var activeCumKeys=scorecardMode==='settlement'
+    ?['ownNaverSettlement','combinedSettlement','combinedAdCharge','actualOrder','actualFixed','actualVariable','actualRepay']
+    :['ownNaverRevenue','combinedRevenue','combinedAd','actualOrder','actualFixed','actualVariable','actualRepay'];
+  cumGrid.innerHTML=cumSection(scorecardMode==='settlement'?'정산 · 충전 기준':'실적 기준',activeCumKeys);
+
 
   renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel);
 }
