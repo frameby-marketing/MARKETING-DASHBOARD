@@ -212,6 +212,16 @@
     .assessment-item.bad .assessment-name,.assessment-item.bad .assessment-text{color:var(--red)}
     .assessment-name{font-size:13px;font-weight:700;white-space:nowrap}
     .assessment-text{font-size:13px;text-align:right;line-height:1.45}
+    .projection-eval-list{display:flex;flex-direction:column;gap:8px;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)}
+    .projection-eval-row{display:grid;grid-template-columns:90px minmax(0,1fr);gap:14px;align-items:start;padding:11px 13px;border-radius:8px;background:var(--bg-card2);border:1px solid var(--border);font-size:13px;line-height:1.55}
+    .projection-eval-row.good{border-left:4px solid var(--green)}
+    .projection-eval-row.bad{border-left:4px solid var(--red)}
+    .projection-eval-name{font-weight:800;white-space:nowrap}
+    .projection-eval-row.good .projection-eval-name,.projection-eval-row.good .projection-eval-text{color:var(--green)}
+    .projection-eval-row.bad .projection-eval-name,.projection-eval-row.bad .projection-eval-text{color:var(--red)}
+    .projection-eval-text{font-weight:600}
+    .projection-eval-reason{color:var(--text-sub);font-weight:500;margin-left:5px}
+    @media(max-width:700px){.projection-eval-row{grid-template-columns:1fr;gap:4px}}
     .ratio-tab{padding:10px 22px;border-radius:22px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font-size:14px;font-weight:500;font-family:inherit;cursor:pointer;transition:all .15s}
     .ratio-tab:hover{border-color:var(--accent);color:var(--text)}
     .ratio-tab.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700;box-shadow:0 2px 8px var(--accent-glow, rgba(99,102,241,.35))}
@@ -2150,6 +2160,11 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   var projectedRevenue=0,projectedAd=0;
   var projectedOrder=0,projectedFixed=0,projectedVariable=0,projectedRepay=0;
   var actualDayCount=0,expectedDayCount=0,missingPastDays=[];
+  // 평가용: 지나간 날짜의 실제값이 당시 예상값과 얼마나 달랐는지 별도로 계산한다.
+  var pastRevenueSum=0,pastRevenueCount=0,pastAdSum=0,pastAdCount=0;
+  var pastCostActual={order:0,fixed:0,variable:0,repay:0};
+  var pastCostExpected={order:0,fixed:0,variable:0,repay:0};
+  var monthNotes={order:[],fixed:[],variable:[],repay:[]};
 
   function valOrZero(v){return(v!==null&&v!==undefined&&!isNaN(v))?Number(v):0;}
 
@@ -2157,6 +2172,12 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     var key=fmtDateISO(d);
     var day=weeklyRowsMap[key]||null;
     var isPast=d<today; // 오늘은 아직 완료되지 않은 날짜로 보고 예상 사용. 금요일 보고 시 실제는 목요일까지 반영됨.
+    if(day){
+      [['order','orderNote'],['fixed','fixedNote'],['variable','variableNote'],['repay','repayNote']].forEach(function(pair){
+        var note=String(day[pair[1]]||'').trim();
+        if(note&&monthNotes[pair[0]].indexOf(note)===-1)monthNotes[pair[0]].push(note);
+      });
+    }
     if(isPast){
       actualDayCount++;
       if(!day)missingPastDays.push(key);
@@ -2166,6 +2187,14 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
       projectedFixed+=day?valOrZero(day.actualFixed):0;
       projectedVariable+=day?valOrZero(day.actualVariable):0;
       projectedRepay+=day?valOrZero(day.actualRepay):0;
+      if(day&&day.combinedRevenue!==null&&day.combinedRevenue!==undefined&&!isNaN(day.combinedRevenue)){pastRevenueSum+=Number(day.combinedRevenue);pastRevenueCount++;}
+      if(day&&day.combinedAd!==null&&day.combinedAd!==undefined&&!isNaN(day.combinedAd)){pastAdSum+=Number(day.combinedAd);pastAdCount++;}
+      if(day){
+        pastCostActual.order+=valOrZero(day.actualOrder); pastCostExpected.order+=valOrZero(day.expectedOrder);
+        pastCostActual.fixed+=valOrZero(day.actualFixed); pastCostExpected.fixed+=valOrZero(day.expectedFixed);
+        pastCostActual.variable+=valOrZero(day.actualVariable); pastCostExpected.variable+=valOrZero(day.expectedVariable);
+        pastCostActual.repay+=valOrZero(day.actualRepay); pastCostExpected.repay+=valOrZero(day.expectedRepay);
+      }
     }else{
       expectedDayCount++;
       projectedRevenue+=expectedDailyRevenue;
@@ -2196,7 +2225,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     var expected=Number(a.expected)||0, forecast=Number(a.forecast)||0;
     var delta=forecast-expected;
     var pct=expected?Math.abs(delta/expected*100):0;
-    var itemGood=a.isRevenue ? forecast>=expected : forecast<=expected;
+    var itemGood=Math.abs(delta)<0.000001; // 예상과 다르면 방향과 무관하게 '예상 이탈'로 표시
     var maxVal=Math.max(Math.abs(expected),Math.abs(forecast),1);
     var expH=Math.max(4,Math.round(Math.abs(expected)/maxVal*138));
     var fcH=Math.max(4,Math.round(Math.abs(forecast)/maxVal*138));
@@ -2213,6 +2242,49 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     '</div>';
   }
 
+  function fmtSignedKorean(v){
+    var n=Number(v)||0;
+    if(Math.abs(n)<0.000001)return '0원';
+    return (n>0?'+':'−')+fmtKorean(Math.abs(n),false);
+  }
+  function avgOrNull(sum,count){return count?sum/count:null;}
+  function evalRowHtml(a){
+    var expected=Number(a.expected)||0,forecast=Number(a.forecast)||0;
+    var delta=forecast-expected;
+    var same=Math.abs(delta)<0.000001;
+    var reason='';
+    if(a.name==='매출'){
+      var avg=avgOrNull(pastRevenueSum,pastRevenueCount);
+      if(avg===null)reason='지난 날짜의 실제 매출 데이터가 없어 원인 평가가 어렵습니다.';
+      else{
+        var dailyDelta=avg-expectedDailyRevenue;
+        if(Math.abs(dailyDelta)<0.5)reason='실제 발생한 일평균 매출이 예상 일평균 '+fmtKorean(expectedDailyRevenue,false)+'과 거의 동일해 전망 차이가 없습니다.';
+        else reason='지난 '+pastRevenueCount+'일 실제 일평균 매출 '+fmtKorean(avg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyRevenue,false)+'보다 '+fmtKorean(Math.abs(dailyDelta),false)+' '+(dailyDelta>0?'높아':'낮아')+' 누적 전망이 '+(delta>0?'상향':'하향')+'됐습니다.';
+      }
+    }else if(a.name==='광고비'){
+      var adAvg=avgOrNull(pastAdSum,pastAdCount);
+      if(adAvg===null)reason='지난 날짜의 실제 광고비 데이터가 없어 원인 평가가 어렵습니다.';
+      else{
+        var adDailyDelta=adAvg-expectedDailyAd;
+        if(Math.abs(adDailyDelta)<0.5)reason='실제 발생한 일평균 광고비가 예상 일평균 '+fmtKorean(expectedDailyAd,false)+'과 거의 동일해 전망 차이가 없습니다.';
+        else reason='지난 '+pastAdCount+'일 실제 일평균 광고비 '+fmtKorean(adAvg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyAd,false)+'보다 '+fmtKorean(Math.abs(adDailyDelta),false)+' '+(adDailyDelta>0?'높아':'낮아')+' 누적 전망이 '+(delta>0?'상향':'하향')+'됐습니다.';
+      }
+    }else{
+      var key=a.name==='발주비'?'order':a.name==='고정비'?'fixed':a.name==='변동비'?'variable':'repay';
+      var pastDelta=pastCostActual[key]-pastCostExpected[key];
+      var noteText=monthNotes[key].length?' 특이사항: '+monthNotes[key].join(' · '):'';
+      if(Math.abs(pastDelta)<0.000001){
+        reason='지나간 날짜의 실제 집행액이 입력된 예상 집행액과 동일하며, 남은 날짜는 예상값을 그대로 반영했습니다.'+noteText;
+      }else{
+        reason='지나간 날짜의 실제 집행액 '+fmtKorean(pastCostActual[key],false)+'이 해당 기간 예상 '+fmtKorean(pastCostExpected[key],false)+'보다 '+fmtKorean(Math.abs(pastDelta),false)+' '+(pastDelta>0?'많았습니다.':'적었습니다.')+noteText;
+      }
+      if(!monthNotes[key].length&&Math.abs(delta)>=0.000001)reason+=' 별도 특이사항은 입력되지 않았습니다.';
+    }
+    var changeText=same?'예상과 동일':('예상 대비 '+fmtSignedKorean(delta)+' ('+(delta>0?'증가':'감소')+')');
+    return '<div class="projection-eval-row '+(same?'good':'bad')+'"><div class="projection-eval-name">'+a.name+'</div><div class="projection-eval-text">'+changeText+'<span class="projection-eval-reason">· '+reason+'</span></div></div>';
+  }
+  var evaluationListHtml='<div class="projection-eval-list">'+assessments.map(evalRowHtml).join('')+'</div>';
+
   var missingNote=missingPastDays.length
     ?'<div class="kpi-sub" style="color:var(--yellow);margin-top:6px">※ 지난 날짜 중 일별 데이터 미입력 '+missingPastDays.length+'일은 실제 0으로 계산: '+missingPastDays.slice(0,5).join(', ')+(missingPastDays.length>5?' 외':'')+'</div>'
     :'';
@@ -2226,7 +2298,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     '<div class="kpi-sub projection-footnote" style="margin-top:8px">'+monthLabel+' 달력 기준만 사용 · 지난 날짜 '+actualDayCount+'일: 일별 데이터의 실제값 · 오늘 포함 남은 날짜 '+expectedDayCount+'일: 매출데이터의 월 계획 일할값(매출·광고비) + 일별 데이터의 예상비용</div>'+ 
     missingNote+
   '</div>'+ 
-  '<div class="kpi-card projection-assessment-card"><div class="kpi-label">항목별 평가 · 예상 vs 전망</div><div class="projection-bars-grid">'+assessments.map(assessmentBarHtml).join('')+'</div></div>';
+  '<div class="kpi-card projection-assessment-card"><div class="kpi-label">항목별 평가 · 예상 vs 전망</div><div class="projection-bars-grid">'+assessments.map(assessmentBarHtml).join('')+'</div>'+evaluationListHtml+'</div>';
 }
 
 function renderWeeklyTable(rows,totalWeeks){
