@@ -2476,12 +2476,11 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     }else{
       var key=a.name==='발주비'?'order':a.name==='고정비'?'fixed':a.name==='변동비'?'variable':'repay';
       var pastDelta=pastCostActual[key]-pastCostExpected[key];
-      var noteText=monthNotes[key].length?' 특이사항: '+monthNotes[key].join(' · '):'';
       var costLabel=a.name==='발주비'?'발주':a.name==='고정비'?'고정비':a.name==='변동비'?'변동비':'상환비';
       if(Math.abs(pastDelta)<0.000001){
-        reason='지난 실제 '+costLabel+' 집행액이 입력된 예상 집행액과 동일하며, 남은 기간은 예상값을 그대로 반영했습니다.'+noteText;
+        reason='지난 실제 '+costLabel+' 집행액이 입력된 예상 집행액과 동일하며, 남은 기간은 예상값을 그대로 반영했습니다.';
       }else{
-        reason='지난 실제 '+costLabel+' 집행액 '+fmtKorean(pastCostActual[key],false)+'이 해당 기간 예상 '+fmtKorean(pastCostExpected[key],false)+'보다 '+fmtKorean(Math.abs(pastDelta),false)+' '+(pastDelta>0?'많았습니다.':'적었습니다.')+noteText;
+        reason='지난 실제 '+costLabel+' 집행액 '+fmtKorean(pastCostActual[key],false)+'이 해당 기간 예상 '+fmtKorean(pastCostExpected[key],false)+'보다 '+fmtKorean(Math.abs(pastDelta),false)+' '+(pastDelta>0?'많았습니다.':'적었습니다.');
       }
       if(!monthNotes[key].length&&Math.abs(delta)>=0.000001)reason+=' 별도 특이사항은 입력되지 않았습니다.';
       if(monthNotes[key].length){
