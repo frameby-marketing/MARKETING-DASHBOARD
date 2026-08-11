@@ -2437,6 +2437,10 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     return (n>0?'+':'−')+fmtKorean(Math.abs(n),false);
   }
   function avgOrNull(sum,count){return count?sum/count:null;}
+  function fmtReasonMoney(v){
+    var value=fmtKorean(v,false);
+    return value==='—'?value:value+'원';
+  }
   function evalRowHtml(a){
     var expected=Number(a.expected)||0,forecast=Number(a.forecast)||0;
     var delta=forecast-expected;
@@ -2452,12 +2456,12 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
         var dailyDelta=avg-expectedDailyRevenue;
         if(Math.abs(dailyDelta)<0.5){
           reason=projectionMode==='settlement'
-            ?'해당 월 정산 예정 매출 총액을 '+dim+'일로 나눈 일평균 '+fmtKorean(avg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyRevenue,false)+'과 거의 동일해 전망 차이가 없습니다.'
-            :'지난 '+pastRevenueCount+'일 실제 일평균 매출 '+fmtKorean(avg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyRevenue,false)+'과 거의 동일해 전망 차이가 없습니다.';
+            ?'해당 월 정산 예정 매출 총액을 '+dim+'일로 나눈 일평균 '+fmtReasonMoney(avg)+'이 예상 일평균 '+fmtReasonMoney(expectedDailyRevenue)+'과 거의 동일해 전망 차이가 없습니다.'
+            :'지난 '+pastRevenueCount+'일 실제 일평균 매출 '+fmtReasonMoney(avg)+'이 예상 일평균 '+fmtReasonMoney(expectedDailyRevenue)+'과 거의 동일해 전망 차이가 없습니다.';
         }else{
           reason=projectionMode==='settlement'
-            ?'해당 월 정산 예정 매출 총액 '+fmtKorean(settlementRevenueSum,false)+'을 '+dim+'일로 나눈 일평균 '+fmtKorean(avg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyRevenue,false)+'보다 '+fmtKorean(Math.abs(dailyDelta),false)+' '+(dailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다.'
-            :'지난 '+pastRevenueCount+'일 실제 일평균 매출 '+fmtKorean(avg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyRevenue,false)+'보다 '+fmtKorean(Math.abs(dailyDelta),false)+' '+(dailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다.';
+            ?'해당 월 정산 예정 매출 총액 '+fmtReasonMoney(settlementRevenueSum)+'을 '+dim+'일로 나눈 일평균 '+fmtReasonMoney(avg)+'이 예상 일평균 '+fmtReasonMoney(expectedDailyRevenue)+'보다 '+fmtReasonMoney(Math.abs(dailyDelta))+' '+(dailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다.'
+            :'지난 '+pastRevenueCount+'일 실제 일평균 매출 '+fmtReasonMoney(avg)+'이 예상 일평균 '+fmtReasonMoney(expectedDailyRevenue)+'보다 '+fmtReasonMoney(Math.abs(dailyDelta))+' '+(dailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다.';
         }
       }
     }else if(a.name==='광고비'){
@@ -2469,12 +2473,12 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
         var adDailyDelta=adAvg-expectedDailyAd;
         if(Math.abs(adDailyDelta)<0.5){
           reason=projectionMode==='settlement'
-            ?'해당 월 예상 충전 광고비 총액을 '+dim+'일로 나눈 일평균 '+fmtKorean(adAvg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyAd,false)+'과 거의 동일해 전망 차이가 없습니다. ※ 충전 데이터에는 쿠팡 광고비가 제외되어 있습니다.'
-            :'지난 '+pastAdCount+'일 실제 광고비 일평균 '+fmtKorean(adAvg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyAd,false)+'과 거의 동일해 전망 차이가 없습니다.';
+            ?'해당 월 예상 충전 광고비 총액을 '+dim+'일로 나눈 일평균 '+fmtReasonMoney(adAvg)+'이 예상 일평균 '+fmtReasonMoney(expectedDailyAd)+'과 거의 동일해 전망 차이가 없습니다. ※ 충전 데이터에는 쿠팡 광고비가 제외되어 있습니다.'
+            :'지난 '+pastAdCount+'일 실제 광고비 일평균 '+fmtReasonMoney(adAvg)+'이 예상 일평균 '+fmtReasonMoney(expectedDailyAd)+'과 거의 동일해 전망 차이가 없습니다.';
         }else{
           reason=projectionMode==='settlement'
-            ?'해당 월 예상 충전 광고비 총액 '+fmtKorean(chargeAdSum,false)+'을 '+dim+'일로 나눈 일평균 '+fmtKorean(adAvg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyAd,false)+'보다 '+fmtKorean(Math.abs(adDailyDelta),false)+' '+(adDailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다. ※ 충전 데이터에는 쿠팡 광고비가 제외되어 있습니다.'
-            :'지난 '+pastAdCount+'일 실제 광고비 일평균 '+fmtKorean(adAvg,false)+'이 예상 일평균 '+fmtKorean(expectedDailyAd,false)+'보다 '+fmtKorean(Math.abs(adDailyDelta),false)+' '+(adDailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다.';
+            ?'해당 월 예상 충전 광고비 총액 '+fmtReasonMoney(chargeAdSum)+'을 '+dim+'일로 나눈 일평균 '+fmtReasonMoney(adAvg)+'이 예상 일평균 '+fmtReasonMoney(expectedDailyAd)+'보다 '+fmtReasonMoney(Math.abs(adDailyDelta))+' '+(adDailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다. ※ 충전 데이터에는 쿠팡 광고비가 제외되어 있습니다.'
+            :'지난 '+pastAdCount+'일 실제 광고비 일평균 '+fmtReasonMoney(adAvg)+'이 예상 일평균 '+fmtReasonMoney(expectedDailyAd)+'보다 '+fmtReasonMoney(Math.abs(adDailyDelta))+' '+(adDailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다.';
         }
       }
     }else{
@@ -2484,7 +2488,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
       if(Math.abs(pastDelta)<0.000001){
         reason='지난 실제 '+costLabel+' 집행액이 입력된 예상 집행액과 동일하며, 남은 기간은 예상값을 그대로 반영했습니다.';
       }else{
-        reason='지난 실제 '+costLabel+' 집행액 '+fmtKorean(pastCostActual[key],false)+'이 해당 기간 예상 '+fmtKorean(pastCostExpected[key],false)+'보다 '+fmtKorean(Math.abs(pastDelta),false)+' '+(pastDelta>0?'많았습니다.':'적었습니다.');
+        reason='지난 실제 '+costLabel+' 집행액 '+fmtReasonMoney(pastCostActual[key])+'이 해당 기간 예상 '+fmtReasonMoney(pastCostExpected[key])+'보다 '+fmtReasonMoney(Math.abs(pastDelta))+' '+(pastDelta>0?'많았습니다.':'적었습니다.');
       }
       if(!monthNotes[key].length&&Math.abs(delta)>=0.000001)reason+=' 별도 특이사항은 입력되지 않았습니다.';
       if(monthNotes[key].length){
