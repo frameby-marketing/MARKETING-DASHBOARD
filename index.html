@@ -698,7 +698,7 @@
       </div>
 
       <div class="table-card">
-        <div class="table-section-label chart-section-title-big">전체 주차 요약 <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">단위: 만원(비용) · 만원/일(매출·광고비) · 31주차(26-07-24, 금~목 기준)부터 · 회의 때 이 표만 보면 됩니다</span></div>
+        <div class="table-section-label chart-section-title-big">전체 주차 요약 <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">단위: 백만원(비용) · 백만원/일(매출·광고비) · 31주차(26-07-24, 금~목 기준)부터 · 회의 때 이 표만 보면 됩니다</span></div>
         <div class="table-wrap">
           <table id="weeklyTable">
             <thead>
@@ -1927,7 +1927,7 @@ function buildCheckMiniBar3(expectedVal,actualVal,settleVal,lowerIsBetter,settle
       var h=Math.max(2,(Math.abs(val)/maxV)*chartH);
       var y=mTop+chartH-h;
       s+='<rect x="'+x+'" y="'+y.toFixed(1)+'" width="'+barW+'" height="'+h.toFixed(1)+'" fill="'+color+'" rx="3" opacity="'+(color==='#8b909c'?'0.55':'0.9')+'"/>';
-      s+='<text x="'+(x+barW/2)+'" y="'+(y-5).toFixed(1)+'" text-anchor="middle" fill="'+color+'" font-size="8" font-weight="700" font-family="DM Mono,monospace">'+fmt(val)+'</text>';
+      s+='<text x="'+(x+barW/2)+'" y="'+(y-5).toFixed(1)+'" text-anchor="middle" fill="'+color+'" font-size="8" font-weight="700" font-family="DM Mono,monospace">'+fmtMillion(val)+'</text>';
     }
     s+='<text x="'+(x+barW/2)+'" y="'+(mTop+chartH+14).toFixed(1)+'" text-anchor="middle" fill="var(--text-muted)" font-size="7" font-family="Pretendard,sans-serif">'+labelText+'</text>';
     return s;
@@ -1957,7 +1957,7 @@ function buildDailyCheckCard(label,actualVal,expectedVal,goodGe){
       statusText=warnIcon()+(goodGe?'예상&#8201;미달':'예상&#8201;초과')+pctSuffix(pct);
     }
     var diff=actualVal-expectedVal;
-    subText=diff>=0?'예상대비 실적 '+fmt(diff)+'만원/일 초과':'예상대비 실적 '+fmt(-diff)+'만원/일 미달';
+    subText=diff>=0?'예상대비 실적 '+fmtMillion(diff)+'백만원/일 초과':'예상대비 실적 '+fmtMillion(-diff)+'백만원/일 미달';
   }
   return'<div class="kpi-card"><div class="kpi-label">'+label+'</div>'+ 
     '<div class="kpi-value" style="color:'+color+'">'+statusText+'</div>'+ 
@@ -1983,7 +1983,7 @@ function buildExactCheckCard(label,expectedVal,actualVal,note,category,weekIndex
         pctText=pctSuffix(pct);
       }
       statusText=over?(warnIcon()+'예상&#8201;초과'+pctText):(checkIcon()+'계획대로&#8201;집행'+pctText);
-      subText=diff===0?'예상과 정확히 일치':(over?'예상대비 '+fmt(diff)+'만원 초과':'예상대비 '+fmt(-diff)+'만원 미달');
+      subText=diff===0?'예상과 정확히 일치':(over?'예상대비 '+fmtMillion(diff)+'백만원 초과':'예상대비 '+fmtMillion(-diff)+'백만원 미달');
     }else{
       color='var(--text-muted)';
       statusText='비교 데이터 없음';
@@ -2042,7 +2042,7 @@ function weeklyPctCell(actVal,expVal,goodGe,divider){
 
 function weeklyTripleCells(expVal,actVal,settleVal,goodGe,divider){
   var b=divider?'border-right:2px solid var(--border-light);':'';
-  function fc(v){return(v===null||v===undefined)?'&#8212;':fmt(v);}
+  function fc(v){return(v===null||v===undefined)?'&#8212;':fmtMillion(v);}
   function colorFor(v){
     if(expVal===null||expVal===undefined||v===null||v===undefined||v===expVal)return'';
     var isHigher=v>expVal;
@@ -2071,8 +2071,8 @@ function weeklyExactTriplet(exp,act,note,divider,category,weekNum){
   var b=divider?'border-right:2px solid var(--border-light);':'';
   var noteCellClass=(category&&note)?' weekly-note-clickable':'';
   var noteCellClick=(category&&note)?' onclick="openDetailModal('+weekNum+',\''+category+'\')"':'';
-  return'<td>'+(exp===null||exp===undefined?'&#8212;':fmt(exp))+'</td>'+
-    '<td'+(color?' style="color:'+color+'"':'')+'>'+(act===null||act===undefined?'&#8212;':fmt(act))+'</td>'+
+  return'<td>'+(exp===null||exp===undefined?'&#8212;':fmtMillion(exp))+'</td>'+
+    '<td'+(color?' style="color:'+color+'"':'')+'>'+(act===null||act===undefined?'&#8212;':fmtMillion(act))+'</td>'+
     '<td class="'+noteCellClass+'" style="'+b+'color:var(--text-muted);font-family:\'Pretendard\',sans-serif;font-size:11px"'+noteCellClick+'>'+(note||'')+'</td>';
 }
 
@@ -2113,10 +2113,10 @@ function costNoteDetailsHtml(note,expected,actual,title){
   var roundingDifferenceWon=hasNumbers?Math.round(mismatchAbs*10000):0;
   var rows=parsed.items.map(function(x){
     var cls=x.amount>0?'var(--red)':(x.amount<0?'var(--green)':'var(--text-sub)');
-    return'<div class="cost-note-row"><strong>'+escapeCostNoteHtml(x.name)+'</strong><span class="cost-note-amount" style="color:'+cls+'">'+(x.amount>=0?'+':'')+fmt(x.amount)+'만원</span></div>';
+    return'<div class="cost-note-row"><strong>'+escapeCostNoteHtml(x.name)+'</strong><span class="cost-note-amount" style="color:'+cls+'">'+(x.amount>=0?'+':'')+fmtMillion(x.amount)+'백만원</span></div>';
   }).join('');
   var calc=hasNumbers
-    ?'<div class="cost-note-calc"><div class="cost-compare-row"><span class="cost-compare-label">실제 '+escapeCostNoteHtml(title)+' − 예상 '+escapeCostNoteHtml(title)+'</span><span class="cost-compare-value">'+(actualDelta>=0?'+':'')+fmt(actualDelta)+'만원</span></div><div class="cost-compare-row"><span class="cost-compare-label">특이사항 합계</span><span class="cost-compare-value">'+(parsed.total>=0?'+':'')+fmt(parsed.total)+'만원</span></div><div class="cost-note-check '+(matched?'ok':'bad')+'">'+(matched?(roundingDifferenceWon>0?'✓ 일치 처리 · 원 단위 금액과 만원 단위 특이사항의 절사·반올림으로 발생한 '+roundingDifferenceWon.toLocaleString('ko-KR')+'원 차이는 제외했습니다.':'✓ 일치 · 실제·예상 차이와 특이사항 합계가 맞습니다.'):'⚠ 불일치 · 두 금액이 '+fmt(mismatchAbs)+'만원 차이 납니다.')+'</div></div>'
+    ?'<div class="cost-note-calc"><div class="cost-compare-row"><span class="cost-compare-label">실제 '+escapeCostNoteHtml(title)+' − 예상 '+escapeCostNoteHtml(title)+'</span><span class="cost-compare-value">'+(actualDelta>=0?'+':'')+fmtMillion(actualDelta)+'백만원</span></div><div class="cost-compare-row"><span class="cost-compare-label">특이사항 합계</span><span class="cost-compare-value">'+(parsed.total>=0?'+':'')+fmtMillion(parsed.total)+'백만원</span></div><div class="cost-note-check '+(matched?'ok':'bad')+'">'+(matched?(roundingDifferenceWon>0?'✓ 일치 처리 · 원 단위 금액과 만원 단위 특이사항의 절사·반올림으로 발생한 '+roundingDifferenceWon.toLocaleString('ko-KR')+'원 차이는 제외했습니다.':'✓ 일치 · 실제·예상 차이와 특이사항 합계가 맞습니다.'):'⚠ 불일치 · 두 금액이 '+fmtMillion(mismatchAbs)+'백만원 차이 납니다.')+'</div></div>'
     :'<div class="cost-note-calc"><div class="cost-note-check bad">⚠ 예상 또는 실제 금액이 없어 합계 검증이 어렵습니다.</div></div>';
   var invalid=parsed.invalid.length?'<div class="cost-note-invalid">형식 확인 필요: '+parsed.invalid.map(escapeCostNoteHtml).join(', ')+'<br>권장 형식: 항목명(+500), 항목명(-120)</div>':'';
   return'<details class="cost-note-details"><summary>특이사항 자세히 보기</summary><div class="cost-note-body">'+(rows||'<div class="cost-note-invalid">계산 가능한 항목이 없습니다.</div>')+calc+invalid+'</div></details>';
@@ -2157,7 +2157,7 @@ function setScorecardMode(mode){
   var help=document.getElementById('weeklyScorecardModeHelp');
   if(help)help.textContent=scorecardMode==='actual'
     ?'실적 기준 · 매출·광고비는 실적, 비용은 실제 집행액을 예상과 비교합니다. 초록 O는 통과, 빨강 X는 점검 필요'
-    :'정산 · 충전 기준 · 매출은 정산 일평균, 광고비 충전은 해당 기간 누적 충전액을 예상 누적액과 비교합니다. 광고비 충전 단위는 만원(기간 합계)입니다. 초록 O는 통과, 빨강 X는 점검 필요';
+    :'정산 · 충전 기준 · 매출은 정산 일평균, 광고비 충전은 해당 기간 누적 충전액을 예상 누적액과 비교합니다. 광고비 충전 단위는 백만원(기간 합계)입니다. 초록 O는 통과, 빨강 X는 점검 필요';
   if(typeof renderWeeklyScorecard==='function')renderWeeklyScorecard(calcRows());
 }
 function getActiveScorecardCols(){
@@ -2302,16 +2302,16 @@ function renderWeeklyScorecard(rows){
     var diff=actualBase-expectedBase;
     var good=col.goodGe?diff>=0:diff<=0;
     var color=good?'var(--green)':'var(--red)';
-    var unit=col.type==='daily'?'만원/일':'만원';
+    var unit=col.type==='daily'?'백만원/일':'백만원';
     var compareText=diff===0
       ?(col.type==='charge'?'예상 누적액과 동일':'예상과 동일')
       :(col.type==='charge'
-        ?'예상 누적대비 '+Math.abs(diff).toFixed(0)+unit+' '+(diff>0?'초과 충전':'미충전')
-        :'예상대비 '+Math.abs(diff).toFixed(0)+unit+' '+(diff>0?'초과':'절감'));
+        ?'예상 누적대비 '+fmtMillion(Math.abs(diff))+unit+' '+(diff>0?'초과 충전':'미충전')
+        :'예상대비 '+fmtMillion(Math.abs(diff))+unit+' '+(diff>0?'초과':'절감'));
     var noteHtml=(col.type==='exact'&&notes.length)
       ?costNoteDetailsHtml(notes.join(' · '),expectedBase,actualBase,col.cumLabel)
       :'';
-    return{good:good,html:'<div class="kpi-card cum-card '+(good?'is-good':'is-bad')+'"><div class="kpi-label">'+col.cumLabel+'</div><div class="kpi-value" style="color:'+color+'">'+(diff>=0?'+':'')+fmt(diff)+unit+'</div><div class="kpi-sub">'+compareText+'</div>'+noteHtml+'</div>'};
+    return{good:good,html:'<div class="kpi-card cum-card '+(good?'is-good':'is-bad')+'"><div class="kpi-label">'+col.cumLabel+'</div><div class="kpi-value" style="color:'+color+'">'+(diff>=0?'+':'')+fmtMillion(diff)+unit+'</div><div class="kpi-sub">'+compareText+'</div>'+noteHtml+'</div>'};
   }
   function findCol(key){for(var i=0;i<SCORECARD_COLS.length;i++)if(SCORECARD_COLS[i].key===key)return SCORECARD_COLS[i];return null;}
   function cumSection(title,keys){
@@ -2444,12 +2444,12 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     var fcH=Math.max(4,Math.round(Math.abs(forecast)/maxVal*138));
     var direction=delta>0?'늘었습니다':(delta<0?'줄었습니다':'동일합니다');
     var deltaWord=delta>0?'증가':(delta<0?'감소':'차이 없음');
-    var diffText=delta===0?'예상과 동일<br>(차이 없음)':('예상보다 '+pct.toFixed(1)+'% '+direction+'<br>('+fmtKorean(Math.abs(delta),false)+' '+deltaWord+')');
+    var diffText=delta===0?'예상과 동일<br>(차이 없음)':('예상보다 '+pct.toFixed(1)+'% '+direction+'<br>('+fmtWeeklyMoney(Math.abs(delta),false)+' '+deltaWord+')');
     return '<div class="projection-bar-item">'+
       '<div class="projection-bar-title">'+a.name+'</div>'+ 
       '<div class="projection-bar-chart">'+
-        '<div class="projection-bar-col"><div class="projection-bar-value">'+fmtKorean(expected,false)+'</div><div class="projection-bar-track"><div class="projection-bar expected" style="height:'+expH+'px"></div></div><div class="projection-bar-label">예상</div></div>'+ 
-        '<div class="projection-bar-col"><div class="projection-bar-value">'+fmtKorean(forecast,false)+'</div><div class="projection-bar-track"><div class="projection-bar forecast '+(itemGood?'good':'bad')+'" style="height:'+fcH+'px"></div></div><div class="projection-bar-label">전망</div></div>'+ 
+        '<div class="projection-bar-col"><div class="projection-bar-value">'+fmtWeeklyMoney(expected,false)+'</div><div class="projection-bar-track"><div class="projection-bar expected" style="height:'+expH+'px"></div></div><div class="projection-bar-label">예상</div></div>'+ 
+        '<div class="projection-bar-col"><div class="projection-bar-value">'+fmtWeeklyMoney(forecast,false)+'</div><div class="projection-bar-track"><div class="projection-bar forecast '+(itemGood?'good':'bad')+'" style="height:'+fcH+'px"></div></div><div class="projection-bar-label">전망</div></div>'+ 
       '</div>'+ 
       '<div class="projection-bar-diff '+(itemGood?'good':'bad')+'">'+diffText+'</div>'+ 
     '</div>';
@@ -2457,13 +2457,12 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
 
   function fmtSignedKorean(v){
     var n=Number(v)||0;
-    if(Math.abs(n)<0.000001)return '0원';
-    return (n>0?'+':'−')+fmtKorean(Math.abs(n),false);
+    if(Math.abs(n)<0.000001)return '0백만원';
+    return (n>0?'+':'−')+fmtWeeklyMoney(Math.abs(n),false);
   }
   function avgOrNull(sum,count){return count?sum/count:null;}
   function fmtReasonMoney(v){
-    var value=fmtKorean(v,false);
-    return value==='—'?value:value+'원';
+    return fmtWeeklyMoney(v,false);
   }
   function evalRowHtml(a){
     var expected=Number(a.expected)||0,forecast=Number(a.forecast)||0;
@@ -2530,10 +2529,10 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
 
   projEl.innerHTML='<div class="kpi-card projection-main-card">'+
     '<div class="kpi-label">'+monthLabel+' '+(projectionMode==='settlement'?'정산 · 충전 기준':'실적 기준')+' 영업이익 전망</div>'+ 
-    '<div class="kpi-value" style="color:'+color+'">'+fmtKorean(projectedProfit,true)+'</div>'+ 
-    '<div class="kpi-sub">원래 계획 '+fmtKorean(plannedProfit,true)+' · 차이 '+fmtKorean(diff,true)+'</div>'+ 
+    '<div class="kpi-value" style="color:'+color+'">'+fmtWeeklyMoney(projectedProfit,true)+'</div>'+ 
+    '<div class="kpi-sub">원래 계획 '+fmtWeeklyMoney(plannedProfit,true)+' · 차이 '+fmtWeeklyMoney(diff,true)+'</div>'+ 
     '<div class="kpi-sub" style="color:'+(good?'var(--green)':'var(--red)')+';font-weight:800;margin-top:4px">'+(good?'✓ 계획 달성·초과 전망':'⚠ 계획 미달 전망')+'</div>'+ 
-    '<div class="kpi-sub projection-equation" style="margin-top:12px;line-height:1.8"><div style="font-weight:800">매출 '+fmtKorean(projectedRevenue,false)+'</div><div style="margin-top:2px">− 광고비 '+fmtKorean(projectedAd,false)+' − 발주비 '+fmtKorean(projectedOrder,false)+' − 고정비 '+fmtKorean(projectedFixed,false)+' − 변동비 '+fmtKorean(projectedVariable,false)+' − 상환비 '+fmtKorean(projectedRepay,false)+'</div></div>'+ 
+    '<div class="kpi-sub projection-equation" style="margin-top:12px;line-height:1.8"><div style="font-weight:800">매출 '+fmtWeeklyMoney(projectedRevenue,false)+'</div><div style="margin-top:2px">− 광고비 '+fmtWeeklyMoney(projectedAd,false)+' − 발주비 '+fmtWeeklyMoney(projectedOrder,false)+' − 고정비 '+fmtWeeklyMoney(projectedFixed,false)+' − 변동비 '+fmtWeeklyMoney(projectedVariable,false)+' − 상환비 '+fmtWeeklyMoney(projectedRepay,false)+'</div></div>'+ 
     '<div class="kpi-sub projection-footnote" style="margin-top:8px">'+(projectionMode==='settlement'
       ?monthLabel+' 달력 기준만 사용 · 매출: 일별 데이터 통합 일평균 매출 정산 '+settlementRevenueCount+'일 입력분 합산 · 광고비: 통합 일평균 광고 충전 '+chargeAdCount+'일 입력분 합산 · 비용 4개 항목은 실적 기준과 동일'
       :monthLabel+' 달력 기준만 사용 · 지난 '+actualDayCount+'일 ('+(actualDayCount?fmtDateShort(monthStart)+'~'+fmtDateShort(actualCutoff):'해당 없음')+'): 일별 데이터의 실제값 · 이후 '+expectedDayCount+'일: 매출데이터의 월 계획 일할값(매출·광고비) + 일별 데이터의 예상비용')+'</div>'+ 
@@ -2589,15 +2588,15 @@ function renderMonthTrend(rows){
     return'<div class="kpi-card"><div class="kpi-label">'+label+'</div><div class="kpi-value '+cls+'">'+value+'</div></div>';
   }
   elR.innerHTML=
-    card('일평균 매출 (자사+네이버)',fmt(row.dailyAvg)+'만원/일','blue')+
-    card('일평균 매출 (통합)',fmt(row.revenueAdj/dim)+'만원/일','blue');
+    card('일평균 매출 (자사+네이버)',fmtMillion(row.dailyAvg)+'백만원/일','blue')+
+    card('일평균 매출 (통합)',fmtMillion(row.revenueAdj/dim)+'백만원/일','blue');
   elA.innerHTML=
-    card('일평균 광고비 (통합)',fmt(row.ad/dim)+'만원/일','yellow')+
-    card('발주비 (월 전체 계획)',fmt(row.order)+'만원','yellow');
+    card('일평균 광고비 (통합)',fmtMillion(row.ad/dim)+'백만원/일','yellow')+
+    card('발주비 (월 전체 계획)',fmtMillion(row.order)+'백만원','yellow');
   elC.innerHTML=
-    card('고정비 (월 전체 계획)',fmt(row.fixed)+'만원','yellow')+
-    card('변동비 (월 전체 계획)',fmt(row.variable)+'만원','yellow')+
-    card('상환비 (월 전체 계획)',fmt(row.repay)+'만원','yellow');
+    card('고정비 (월 전체 계획)',fmtMillion(row.fixed)+'백만원','yellow')+
+    card('변동비 (월 전체 계획)',fmtMillion(row.variable)+'백만원','yellow')+
+    card('상환비 (월 전체 계획)',fmtMillion(row.repay)+'백만원','yellow');
 }
 
 function renderKPI(rows){
@@ -2765,6 +2764,18 @@ function renderAll(){
 function fmt(n){
   if(n===undefined||n===null||isNaN(n))return'—';
   return Math.round(n).toLocaleString('ko-KR');
+}
+// 주차별 점검 탭 전용: 스프레드시트의 만원 단위 값을 백만원 단위로 표시한다.
+function fmtMillion(n){
+  if(n===undefined||n===null||isNaN(n))return'—';
+  var value=Number(n)/100;
+  return value.toLocaleString('ko-KR',{minimumFractionDigits:0,maximumFractionDigits:2});
+}
+function fmtWeeklyMoney(n,showSign){
+  if(n===undefined||n===null||isNaN(n))return'—';
+  var value=Number(n);
+  var sign=showSign?(value>=0?'+':'-'):(value<0?'-':'');
+  return sign+fmtMillion(Math.abs(value))+'백만원';
 }
 function fmtSign(n){return n>0?'+'+fmt(n):fmt(n)}
 function fmtPct(v){
