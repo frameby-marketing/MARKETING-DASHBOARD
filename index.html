@@ -230,6 +230,15 @@
     .projection-eval-change{display:block;font-size:17px;font-weight:800;line-height:1.45}
     .projection-eval-reason{display:block;color:#fff!important;font-size:15px;font-weight:500;line-height:1.65;margin:7px 0 0 0}
     html.light .projection-eval-reason{color:var(--text)!important}
+    /* 일반모드: 카드 배경이 밝아질 때 다크모드 전용 흰색 글자를 어두운 본문색으로 전환 */
+    html.light .cum-card .kpi-label,
+    html.light .cum-card-note,
+    html.light .projection-assessment-card .kpi-label,
+    html.light .projection-bar-title,
+    html.light .projection-bar-value,
+    html.light .projection-main-card .kpi-label,
+    html.light .projection-main-card .kpi-sub,
+    html.light .projection-main-card .projection-footnote{color:var(--text)!important}
     .cost-note-details{margin-top:12px;border:1px solid var(--border-light);border-radius:9px;background:rgba(99,102,241,.06);overflow:hidden;text-align:left}
     .cost-note-details summary{cursor:pointer;list-style:none;padding:10px 12px;color:var(--accent);font-size:13px;font-weight:800;text-align:left}
     .cost-note-details summary::-webkit-details-marker{display:none}
@@ -2162,7 +2171,7 @@ var SCORECARD_COLS=[
   {key:'combinedRevenue',expKey:'combined',label:'매출(통합)<br>실적',cumLabel:'매출(통합) 실적',goodGe:true,type:'daily'},
   {key:'combinedSettlement',expKey:'combined',label:'매출(통합)<br>정산',cumLabel:'매출(통합) 정산',goodGe:true,type:'daily'},
   {key:'combinedAd',expKey:'ad',label:'광고비<br>실적',cumLabel:'광고비 실적',goodGe:false,type:'daily'},
-  {key:'combinedAdCharge',expKey:'ad',label:'광고비<br>충전',cumLabel:'광고비 충전 (네이버, 구글만 포함)',goodGe:false,type:'daily'},
+  {key:'combinedAdCharge',expKey:'ad',label:'광고비<br>충전',cumLabel:'광고비 충전 (쿠팡 제외)',goodGe:false,type:'daily'},
   {key:'actualOrder',expKey2:'expectedOrder',label:'발주비',cumLabel:'발주비',goodGe:false,type:'exact',noteKey:'orderNote'},
   {key:'actualFixed',expKey2:'expectedFixed',label:'고정비',cumLabel:'고정비',goodGe:false,type:'exact',noteKey:'fixedNote'},
   {key:'actualVariable',expKey2:'expectedVariable',label:'변동비',cumLabel:'변동비',goodGe:false,type:'exact',noteKey:'variableNote'},
