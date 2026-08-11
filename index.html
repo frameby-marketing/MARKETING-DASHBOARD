@@ -684,7 +684,7 @@
             <tbody id="weeklyScorecardBody"></tbody>
           </table>
         </div>
-        <div class="target-label" style="margin-top:18px;margin-bottom:8px">이번 달 누적 예상대비 실적 <span id="weeklyScorecardCumPeriod" style="font-size:11px;font-weight:600;color:var(--accent);margin-left:8px"></span><span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">매출·광고비는 일평균 기준 평균 차이, 비용 항목은 누적 총액 차이</span></div>
+        <div class="target-label" style="margin-top:18px;margin-bottom:8px">이번 달 누적 예상대비 실적 <span id="weeklyScorecardCumPeriod" style="font-size:11px;font-weight:600;color:var(--accent);margin-left:8px"></span><span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:6px">매출·광고비 실적은 일평균 차이, 광고비 충전·비용 항목은 누적 총액 차이</span></div>
         <div id="weeklyScorecardCumGrid"></div>
         <div class="projection-mode-panel" aria-label="영업이익 전망 매출·광고비 기준 선택" style="margin-top:22px">
           <div class="projection-mode-label" style="font-size:20px;font-weight:800">실적 추세 반영 이번 달 영업이익 전망</div>
@@ -996,7 +996,7 @@ function parseWeeklyCSV(text){
 }
 
 // 일별 행을 기존 주차별 화면에서 사용할 수 있도록 금~목 7일 단위로 집계한다.
-// 매출·정산·광고비·광고충전은 입력된 일자의 평균, 비용 예상/실제는 해당 기간 합계로 처리한다.
+// 매출·정산·광고비는 입력된 일자의 평균, 광고충전과 비용 예상/실제는 해당 기간 합계로 처리한다.
 function getAggregatedWeekRow(range){
   if(!range||isNaN(range.start)||isNaN(range.end))return null;
   var dayRows=[];
@@ -1022,10 +1022,11 @@ function getAggregatedWeekRow(range){
     dayRows.forEach(function(r){var v=String(r[key]||'').trim();if(v&&list.indexOf(v)===-1)list.push(v);});
     return list.join(' · ');
   }
+  var adChargeSum=sum('combinedAdCharge');
   return{
     combinedRevenue:avg('combinedRevenue'),combinedSettlement:avg('combinedSettlement'),
     ownNaverRevenue:avg('ownNaverRevenue'),ownNaverSettlement:avg('ownNaverSettlement'),
-    combinedAd:avg('combinedAd'),combinedAdCharge:avg('combinedAdCharge'),
+    combinedAd:avg('combinedAd'),combinedAdCharge:avg('combinedAdCharge'),combinedAdChargeSum:adChargeSum===null?0:adChargeSum,
     expectedOrder:sum('expectedOrder'),actualOrder:sum('actualOrder'),orderNote:notes('orderNote'),
     expectedFixed:sum('expectedFixed'),actualFixed:sum('actualFixed'),fixedNote:notes('fixedNote'),
     expectedVariable:sum('expectedVariable'),actualVariable:sum('actualVariable'),variableNote:notes('variableNote'),
@@ -2156,12 +2157,12 @@ function setScorecardMode(mode){
   var help=document.getElementById('weeklyScorecardModeHelp');
   if(help)help.textContent=scorecardMode==='actual'
     ?'실적 기준 · 매출·광고비는 실적, 비용은 실제 집행액을 예상과 비교합니다. 초록 O는 통과, 빨강 X는 점검 필요'
-    :'정산 · 충전 기준 · 매출은 정산, 광고비는 충전, 비용은 실제 집행액을 예상과 비교합니다. 초록 O는 통과, 빨강 X는 점검 필요';
+    :'정산 · 충전 기준 · 매출은 정산 일평균, 광고비 충전은 해당 기간 누적 충전액을 예상 누적액과 비교합니다. 광고비 충전 단위는 만원(기간 합계)입니다. 초록 O는 통과, 빨강 X는 점검 필요';
   if(typeof renderWeeklyScorecard==='function')renderWeeklyScorecard(calcRows());
 }
 function getActiveScorecardCols(){
   var keys=scorecardMode==='settlement'
-    ?['ownNaverSettlement','combinedSettlement','combinedAdCharge','actualOrder','actualFixed','actualVariable','actualRepay']
+    ?['ownNaverSettlement','combinedSettlement','combinedAdChargeSum','actualOrder','actualFixed','actualVariable','actualRepay']
     :['ownNaverRevenue','combinedRevenue','combinedAd','actualOrder','actualFixed','actualVariable','actualRepay'];
   return keys.map(function(k){for(var i=0;i<SCORECARD_COLS.length;i++)if(SCORECARD_COLS[i].key===k)return SCORECARD_COLS[i];return null;}).filter(Boolean);
 }
@@ -2171,7 +2172,7 @@ var SCORECARD_COLS=[
   {key:'combinedRevenue',expKey:'combined',label:'매출(통합)<br>실적',cumLabel:'매출(통합) 실적',goodGe:true,type:'daily'},
   {key:'combinedSettlement',expKey:'combined',label:'매출(통합)<br>정산',cumLabel:'매출(통합) 정산',goodGe:true,type:'daily'},
   {key:'combinedAd',expKey:'ad',label:'광고비<br>실적',cumLabel:'광고비 실적',goodGe:false,type:'daily'},
-  {key:'combinedAdCharge',expKey:'ad',label:'광고비<br>충전',cumLabel:'광고비 충전 (쿠팡 제외)',goodGe:false,type:'daily'},
+  {key:'combinedAdChargeSum',expKey:'ad',label:'광고비 충전<br>(기간 합계)',cumLabel:'광고비 누적 충전 (쿠팡 제외)',goodGe:false,type:'charge'},
   {key:'actualOrder',expKey2:'expectedOrder',label:'발주비',cumLabel:'발주비',goodGe:false,type:'exact',noteKey:'orderNote'},
   {key:'actualFixed',expKey2:'expectedFixed',label:'고정비',cumLabel:'고정비',goodGe:false,type:'exact',noteKey:'fixedNote'},
   {key:'actualVariable',expKey2:'expectedVariable',label:'변동비',cumLabel:'변동비',goodGe:false,type:'exact',noteKey:'variableNote'},
@@ -2250,7 +2251,11 @@ function renderWeeklyScorecard(rows){
     var act=getAggregatedWeekRow(mw.range);
     var cells=activeCols.map(function(c){
       var actualVal=act?act[c.key]:null;
-      var expectedVal=c.type==='daily'?(exp?exp[c.expKey]:null):(act?act[c.expKey2]:null);
+      var expectedVal=c.type==='daily'
+        ?(exp?exp[c.expKey]:null)
+        :c.type==='charge'
+          ?(exp?exp[c.expKey]*((mw.range.end-mw.range.start)/86400000+1):null)
+          :(act?act[c.expKey2]:null);
       return scorecardCell(scorecardPass(actualVal,expectedVal,c.goodGe));
     }).join('');
     var periodText=formatUsedWeekRangeHtml(mw.fullRange,mw.range);
@@ -2278,7 +2283,11 @@ function renderWeeklyScorecard(rows){
       var exp=getWeeklyExpected(rows,mw.range);
       var act=getAggregatedWeekRow(mw.range);
       var actualVal=act?act[col.key]:null;
-      var expectedVal=col.type==='daily'?(exp?exp[col.expKey]:null):(act?act[col.expKey2]:null);
+      var expectedVal=col.type==='daily'
+        ?(exp?exp[col.expKey]:null)
+        :col.type==='charge'
+          ?(exp?exp[col.expKey]*((mw.range.end-mw.range.start)/86400000+1):null)
+          :(act?act[col.expKey2]:null);
       if(actualVal!==null&&actualVal!==undefined&&expectedVal!==null&&expectedVal!==undefined){
         sumAct+=actualVal;sumExp+=expectedVal;count++;
       }
@@ -2294,7 +2303,11 @@ function renderWeeklyScorecard(rows){
     var good=col.goodGe?diff>=0:diff<=0;
     var color=good?'var(--green)':'var(--red)';
     var unit=col.type==='daily'?'만원/일':'만원';
-    var compareText=diff===0?'예상과 동일':('예상대비 '+Math.abs(diff).toFixed(0)+unit+' '+(diff>0?'초과':'절감'));
+    var compareText=diff===0
+      ?(col.type==='charge'?'예상 누적액과 동일':'예상과 동일')
+      :(col.type==='charge'
+        ?'예상 누적대비 '+Math.abs(diff).toFixed(0)+unit+' '+(diff>0?'초과 충전':'미충전')
+        :'예상대비 '+Math.abs(diff).toFixed(0)+unit+' '+(diff>0?'초과':'절감'));
     var noteHtml=(col.type==='exact'&&notes.length)
       ?costNoteDetailsHtml(notes.join(' · '),expectedBase,actualBase,col.cumLabel)
       :'';
@@ -2318,7 +2331,7 @@ function renderWeeklyScorecard(rows){
       '</div></div>';
   }
   var activeCumKeys=scorecardMode==='settlement'
-    ?['ownNaverSettlement','combinedSettlement','combinedAdCharge','actualOrder','actualFixed','actualVariable','actualRepay']
+    ?['ownNaverSettlement','combinedSettlement','combinedAdChargeSum','actualOrder','actualFixed','actualVariable','actualRepay']
     :['ownNaverRevenue','combinedRevenue','combinedAd','actualOrder','actualFixed','actualVariable','actualRepay'];
   cumGrid.innerHTML=cumSection(scorecardMode==='settlement'?'정산 · 충전 기준':'실적 기준',activeCumKeys);
 
@@ -2789,4 +2802,3 @@ document.addEventListener('visibilitychange',function(){
 </script>
 </body>
 </html>
-
