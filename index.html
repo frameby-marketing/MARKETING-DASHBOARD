@@ -756,18 +756,11 @@
         </div>
       </div>
 
-      <div class="table-card">
-        <div class="table-section-label chart-section-title-big" id="monthTrendLabel">월별 예측 추세</div>
-        <div class="chart-section-sub">지금 진행 중인 주차가 속한 달의 계획입니다 — 매출·광고비는 일평균, 발주비·고정비·변동비·상환비는 그 달 전체 계획 금액</div>
-        <div class="ratio-grid" id="monthTrendGridRevenue"></div>
-        <div class="ratio-grid" id="monthTrendGridAdOrder" style="margin-top:12px"></div>
-        <div class="ratio-grid" id="monthTrendGridCost" style="margin-top:12px"></div>
-      </div>
     </div>
 
   </main>
   <button class="settings-fab" id="settingsFab" onclick="switchTab('settings')" title="설정">
-    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M18.66 5.34l1.41-1.41"/></svg>
+    <svg width="21" height="21" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"/><path d="M19.43 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.57 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06A2 2 0 1 1 7.04 4.2l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1.08 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.12.6.7 1 1.31 1H21a2 2 0 1 1 0 4h-.09c-.61 0-1.19.4-1.48 1Z"/></svg>
   </button>
   <div class="detail-modal-overlay" id="detailModalOverlay" onclick="closeDetailModal()">
     <div class="detail-modal" onclick="event.stopPropagation()">
@@ -954,16 +947,26 @@ var pollTimerId = null;
 
 
 function setTheme(mode){
-  if(mode==='light'){
-    document.documentElement.classList.add('light');
-    document.querySelectorAll('.btn-light-toggle').forEach(function(el){el.classList.add('active')});
-    document.querySelectorAll('.btn-dark-toggle').forEach(function(el){el.classList.remove('active')});
-  }else{
-    document.documentElement.classList.remove('light');
-    document.querySelectorAll('.btn-dark-toggle').forEach(function(el){el.classList.add('active')});
-    document.querySelectorAll('.btn-light-toggle').forEach(function(el){el.classList.remove('active')});
-  }
-  localStorage.setItem('rmv2_theme', mode);
+  var isLight = mode === 'light';
+
+  // 대시보드 자체 테마
+  document.documentElement.classList.toggle('light', isLight);
+
+  // 공용 좌측 사이드바(nav.js)와 테마 동기화
+  // nav.js는 html[data-theme="light|dark"] 변경을 감시합니다.
+  document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
+
+  document.querySelectorAll('.btn-light-toggle').forEach(function(el){
+    el.classList.toggle('active', isLight);
+  });
+  document.querySelectorAll('.btn-dark-toggle').forEach(function(el){
+    el.classList.toggle('active', !isLight);
+  });
+
+  // 기존 대시보드 저장값 유지 + 공용 사이드바 저장키도 함께 동기화
+  localStorage.setItem('rmv2_theme', isLight ? 'light' : 'dark');
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+
   renderAll();
 }
 
