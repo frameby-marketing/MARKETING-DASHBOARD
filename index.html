@@ -397,9 +397,31 @@
       .chart-section-title-big{font-size:16px!important}
       .cum-row.cols-2,.cum-row.cols-3,.projection-two-col{grid-template-columns:1fr}
     }
+
+    /* FULL DASHBOARD GOOGLE AUTH GATE */
+    .dashboard-auth-gate{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:40px 20px;background:var(--bg);}
+    .dashboard-auth-card{max-width:400px;width:100%;text-align:center;background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:38px 30px;box-shadow:0 18px 50px rgba(0,0,0,.22);}
+    .dashboard-auth-icon{font-size:36px;margin-bottom:14px;}
+    .dashboard-auth-card h2{font-size:19px;font-weight:800;margin:0 0 10px;color:var(--text);}
+    .dashboard-auth-card p{font-size:13px;color:var(--text-sub);margin:0 0 22px;line-height:1.65;}
+    .dashboard-login-btn{width:100%;display:flex;align-items:center;justify-content:center;padding:13px 18px;border-radius:12px;border:1px solid #4285F4;background:#4285F4;color:#fff;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .15s ease;}
+    .dashboard-login-btn:hover{opacity:.9}.dashboard-login-btn:disabled{opacity:.6;cursor:not-allowed;}
+    .dashboard-auth-error{display:none;margin-top:14px;font-size:12.5px;line-height:1.55;color:var(--red);}
+    .dashboard-auth-user{display:none;align-items:center;gap:7px;font-size:12px;color:var(--text-sub);max-width:240px;overflow:hidden;}
+    .dashboard-auth-user img{width:22px;height:22px;border-radius:50%;flex-shrink:0}.dashboard-auth-user span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   </style>
 </head>
 <body>
+<div id="dashboardAuthGate" class="dashboard-auth-gate">
+  <div class="dashboard-auth-card">
+    <div class="dashboard-auth-icon">🔒</div>
+    <h2>Google 계정 로그인이 필요합니다</h2>
+    <p>이 대시보드는 초대된 구글 계정에만 공개되어 있습니다. 스프레드시트 접근 권한이 있는 계정으로 로그인해주세요.</p>
+    <button class="dashboard-login-btn" id="dashboardLoginBtn" disabled>로그인 준비 중...</button>
+    <div class="dashboard-auth-error" id="dashboardAuthError"></div>
+  </div>
+</div>
+<div id="dashboardShell" style="display:none;">
 <div class="top-tabs">
   <div class="top-tabs-title">
     <div class="top-tabs-title-text"><span class="icon">&#128200;</span><span>영업이익 · 누적 자금수지 시뮬레이션</span></div>
@@ -420,6 +442,8 @@
         <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
         새로고침
       </button>
+      <div class="dashboard-auth-user" id="dashboardAuthUser"></div>
+      <button class="header-action-btn" id="dashboardLogoutBtn" type="button">로그아웃</button>
     </div>
   </div>
   <div class="top-tabs-row">
@@ -750,6 +774,7 @@
     </div>
   </div>
 </div>
+</div><!-- /dashboardShell -->
 
 <script>
 var rawRows = [];
@@ -803,12 +828,121 @@ var detailCache = {}; // { weekNum: [{category,item,expected,actual,diff,reason}
 
 // 상세내역(고정비/변동비/상환비) 시트 접근용 구글 OAuth 클라이언트 ID
 var DETAIL_OAUTH_CLIENT_ID = '691753741006-9i13kjkk3ci2jv6lr6rupa491j7rlb64.apps.googleusercontent.com';
-var DETAIL_OAUTH_SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly';
+var DETAIL_OAUTH_SCOPE = 'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile';
 var detailTokenClient = null;
 var detailAccessToken = null;
 var pendingDetailRequest = null; // 로그인 후 이어서 열어줄 요청 {weekNum, category}
 var DETAIL_AUTH_EXPIRED = '__DETAIL_AUTH_EXPIRED__';
 var DETAIL_FORBIDDEN = '__DETAIL_FORBIDDEN__';
+
+// 전체 대시보드 접근용 Google OAuth
+var DASHBOARD_ACCESS_TOKEN = null;
+var DASHBOARD_TOKEN_CLIENT = null;
+var DASHBOARD_SILENT_ATTEMPT = false;
+var DASHBOARD_SILENT_TIMEOUT = null;
+
+function showDashboardAuthError(msg){
+  var el=document.getElementById('dashboardAuthError');
+  if(!el)return; el.textContent=msg||''; el.style.display=msg?'block':'none';
+}
+function showDashboardAuthGate(){
+  var gate=document.getElementById('dashboardAuthGate'), shell=document.getElementById('dashboardShell');
+  if(gate)gate.style.display='flex'; if(shell)shell.style.display='none';
+}
+function showDashboardShell(){
+  var gate=document.getElementById('dashboardAuthGate'), shell=document.getElementById('dashboardShell');
+  if(gate)gate.style.display='none'; if(shell)shell.style.display='block';
+}
+async function fetchDashboardUserInfo(token){
+  try{var r=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+token}});if(!r.ok)return null;return await r.json();}catch(e){return null;}
+}
+function renderDashboardAuthUser(user){
+  var el=document.getElementById('dashboardAuthUser'); if(!el)return;
+  if(!user){el.style.display='none';el.innerHTML='';return;}
+  el.style.display='flex';
+  el.innerHTML=(user.picture?'<img src="'+user.picture+'" alt="">':'')+'<span>'+(user.email||user.name||'로그인됨')+'</span>';
+}
+function dashboardAuthErrorText(status){
+  if(status===403)return '이 계정은 스프레드시트 접근 권한이 없습니다. 초대된 Google 계정으로 로그인해주세요.';
+  if(status===401)return '로그인이 만료되었습니다. 다시 로그인해주세요.';
+  return '데이터를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.';
+}
+function initDashboardTokenClient(){
+  if(!window.google||!google.accounts||!google.accounts.oauth2)return false;
+  DASHBOARD_TOKEN_CLIENT=google.accounts.oauth2.initTokenClient({
+    client_id:DETAIL_OAUTH_CLIENT_ID, scope:DETAIL_OAUTH_SCOPE,
+    callback:async function(resp){
+      clearTimeout(DASHBOARD_SILENT_TIMEOUT);
+      var wasSilent=DASHBOARD_SILENT_ATTEMPT; DASHBOARD_SILENT_ATTEMPT=false;
+      var btn=document.getElementById('dashboardLoginBtn');
+      if(resp.error){
+        if(!wasSilent)showDashboardAuthError('로그인이 취소되었거나 실패했습니다. 다시 시도해주세요.');
+        if(btn){btn.disabled=false;btn.textContent='Google 계정으로 로그인';}
+        showDashboardAuthGate(); return;
+      }
+      DASHBOARD_ACCESS_TOKEN=resp.access_token;
+      detailAccessToken=resp.access_token;
+      try{localStorage.setItem('dashboard_sheet_token',JSON.stringify({token:resp.access_token,expiresAt:Date.now()+((resp.expires_in||3300)*1000)}));}catch(e){}
+      await dashboardAfterLogin(wasSilent);
+    }
+  });
+  var btn=document.getElementById('dashboardLoginBtn');if(btn){btn.disabled=false;btn.textContent='Google 계정으로 로그인';}
+  return true;
+}
+function dashboardSilentFallback(){
+  DASHBOARD_SILENT_ATTEMPT=false;clearTimeout(DASHBOARD_SILENT_TIMEOUT);showDashboardAuthGate();
+  var btn=document.getElementById('dashboardLoginBtn');if(btn){btn.disabled=false;btn.textContent='Google 계정으로 로그인';}
+}
+function attemptDashboardSilentLogin(){
+  if(!DASHBOARD_TOKEN_CLIENT){showDashboardAuthGate();return;}
+  DASHBOARD_SILENT_ATTEMPT=true;
+  var btn=document.getElementById('dashboardLoginBtn');if(btn){btn.disabled=true;btn.textContent='자동 로그인 확인 중...';}
+  clearTimeout(DASHBOARD_SILENT_TIMEOUT);DASHBOARD_SILENT_TIMEOUT=setTimeout(function(){if(DASHBOARD_SILENT_ATTEMPT)dashboardSilentFallback();},4000);
+  try{DASHBOARD_TOKEN_CLIENT.requestAccessToken({prompt:''});}catch(e){dashboardSilentFallback();}
+}
+function waitDashboardGoogleThenSilent(){
+  if(initDashboardTokenClient()){attemptDashboardSilentLogin();return;}
+  var iv=setInterval(function(){if(initDashboardTokenClient()){clearInterval(iv);attemptDashboardSilentLogin();}},200);
+}
+function dashboardLoginClick(){
+  showDashboardAuthError('');
+  if(!DASHBOARD_TOKEN_CLIENT){showDashboardAuthError('Google 로그인 준비 중입니다. 잠시 후 다시 시도해주세요.');return;}
+  var btn=document.getElementById('dashboardLoginBtn');if(btn){btn.disabled=true;btn.textContent='로그인 중...';}
+  DASHBOARD_TOKEN_CLIENT.requestAccessToken({prompt:''});
+}
+function dashboardLogout(){
+  if(DASHBOARD_ACCESS_TOKEN&&window.google&&google.accounts&&google.accounts.oauth2){try{google.accounts.oauth2.revoke(DASHBOARD_ACCESS_TOKEN,function(){});}catch(e){}}
+  DASHBOARD_ACCESS_TOKEN=null;detailAccessToken=null;renderDashboardAuthUser(null);
+  try{localStorage.removeItem('dashboard_sheet_token');localStorage.removeItem('detail_sheet_token');}catch(e){}
+  showDashboardAuthGate();
+  var btn=document.getElementById('dashboardLoginBtn');if(btn){btn.disabled=!DASHBOARD_TOKEN_CLIENT;btn.textContent=DASHBOARD_TOKEN_CLIENT?'Google 계정으로 로그인':'로그인 준비 중...';}
+}
+async function dashboardAfterLogin(wasSilent){
+  try{
+    var user=await fetchDashboardUserInfo(DASHBOARD_ACCESS_TOKEN);
+    await fetchSheetData(true);
+    renderDashboardAuthUser(user);showDashboardShell();showDashboardAuthError('');
+  }catch(e){
+    var status=e&&e.status;DASHBOARD_ACCESS_TOKEN=null;detailAccessToken=null;
+    try{localStorage.removeItem('dashboard_sheet_token');}catch(x){}
+    if(!wasSilent&&status===401&&DASHBOARD_TOKEN_CLIENT){attemptDashboardSilentLogin();return;}
+    showDashboardAuthError(dashboardAuthErrorText(status));showDashboardAuthGate();
+    var btn=document.getElementById('dashboardLoginBtn');if(btn){btn.disabled=false;btn.textContent='Google 계정으로 로그인';}
+  }
+}
+function getCachedDashboardToken(){
+  try{var o=JSON.parse(localStorage.getItem('dashboard_sheet_token')||'null');if(o&&o.token&&o.expiresAt>Date.now()+30000)return o.token;}catch(e){}return null;
+}
+function initDashboardAuth(){
+  var login=document.getElementById('dashboardLoginBtn'),logout=document.getElementById('dashboardLogoutBtn');
+  if(login)login.addEventListener('click',dashboardLoginClick);if(logout)logout.addEventListener('click',dashboardLogout);
+  var cached=getCachedDashboardToken();
+  if(cached){DASHBOARD_ACCESS_TOKEN=cached;detailAccessToken=cached;
+    if(!initDashboardTokenClient()){var iv=setInterval(function(){if(initDashboardTokenClient())clearInterval(iv);},200);}
+    dashboardAfterLogin(false);
+  }else{waitDashboardGoogleThenSilent();}
+}
+
 
 var AUTO_REFRESH_MS = 300000; // 실시간 반영을 위한 자동 새로고침 주기(ms) — 5분
 var pollTimerId = null;
@@ -842,43 +976,48 @@ function quoteSheetName(name){
 }
 
 var lastFetchAt = 0;
-async function fetchSheetData(){
+async function fetchSheetValues(sheetName, sheetRange){
+  if(!DASHBOARD_ACCESS_TOKEN){var er=new Error('AUTH_REQUIRED');er.status=401;throw er;}
+  var range=encodeURIComponent(quoteSheetName(sheetName)+'!'+sheetRange);
+  var url='https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+range+'?valueRenderOption=FORMATTED_VALUE';
+  var res=await fetch(url,{headers:{Authorization:'Bearer '+DASHBOARD_ACCESS_TOKEN},cache:'no-store'});
+  if(!res.ok){var er=new Error('HTTP '+res.status);er.status=res.status;throw er;}
+  var json=await res.json();return json.values||[];
+}
+function sheetValuesToCSV(values){
+  return (values||[]).map(function(row){return (row||[]).map(function(v){var x=String(v==null?'':v);return /[",\n\r]/.test(x)?'"'+x.replace(/"/g,'""')+'"':x;}).join(',');}).join('\n');
+}
+
+var lastFetchAt = 0;
+async function fetchSheetData(force){
   var now=Date.now();
-  if(now-lastFetchAt<1000)return; // 여러 이벤트가 거의 동시에 겹쳐 들어오는 것 방지
+  if(!force&&now-lastFetchAt<1000)return;
   lastFetchAt=now;
   setSyncStatus('loading');
-  var range=encodeURIComponent(quoteSheetName(SHEET_NAME)+'!'+SHEET_RANGE);
-  // 캐시 방지용 타임스탬프를 붙여 시트를 수정할 때마다 최신 데이터를 가져오도록 함
-  var url='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&range='+range+'&_ts='+Date.now();
   try{
-    var res=await fetch(url,{cache:'no-store'});
-    if(!res.ok)throw new Error();
-    parseCSV(await res.text());
+    var values=await fetchSheetValues(SHEET_NAME,SHEET_RANGE);
+    parseCSV(sheetValuesToCSV(values));
+    await fetchWeeklySheetData();
     setSyncStatus('ok');
     document.getElementById('lastUpdated').textContent='마지막 업데이트: '+new Date().toLocaleTimeString('ko-KR')+' (자동 갱신 '+(AUTO_REFRESH_MS/60000)+'분마다)';
   }catch(e){
     setSyncStatus('err');
-    document.getElementById('lastUpdated').textContent='연결 실패 — 데모 데이터 표시 중';
-    useDemoData();
+    if(e&&e.status){throw e;}
+    document.getElementById('lastUpdated').textContent='연결 실패';
+    throw e;
   }
-  fetchWeeklySheetData();
   startAutoRefresh();
 }
 
 async function fetchWeeklySheetData(){
-  var range=encodeURIComponent(quoteSheetName(WEEKLY_SHEET_NAME)+'!'+WEEKLY_SHEET_RANGE);
-  var url='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&range='+range+'&_ts='+Date.now();
   try{
-    var res=await fetch(url,{cache:'no-store'});
-    if(!res.ok)throw new Error('HTTP '+res.status);
-    var text=await res.text();
-    if(!text||!text.trim()){
-      console.warn('일별 데이터 시트가 비어있거나 시트를 찾지 못했습니다. 시트 이름이 정확히 "'+WEEKLY_SHEET_NAME+'" 인지 확인해주세요.');
-    }
+    var values=await fetchSheetValues(WEEKLY_SHEET_NAME,WEEKLY_SHEET_RANGE);
+    var text=sheetValuesToCSV(values);
+    if(!text||!text.trim())console.warn('일별 데이터 시트가 비어있거나 시트를 찾지 못했습니다.');
     parseWeeklyCSV(text);
   }catch(e){
-    console.warn('일별 데이터 시트 로드 실패:', e.message, '— 시트 이름/공유 설정을 확인해주세요.');
     weeklyRows=[];weeklyRowsMap={};
+    throw e;
   }
   renderWeeklyTab();
 }
@@ -2796,7 +2935,7 @@ window.addEventListener('DOMContentLoaded',function(){
   try{ setTheme(savedTheme); }catch(e){ console.error('setTheme 초기화 실패:', e); }
   try{ buildRatioTabs(); }catch(e){ console.error('buildRatioTabs 초기화 실패:', e); }
   try{ initDetailAuth(); }catch(e){ console.error('initDetailAuth 초기화 실패:', e); }
-  fetchSheetData();
+  try{ initDashboardAuth(); }catch(e){ console.error('initDashboardAuth 초기화 실패:', e); showDashboardAuthGate(); }
 });
 
 document.addEventListener('keydown',function(e){
@@ -2804,11 +2943,11 @@ document.addEventListener('keydown',function(e){
 });
 
 window.addEventListener('pageshow',function(){
-  fetchSheetData();
+  if(DASHBOARD_ACCESS_TOKEN)fetchSheetData();
 });
 
 document.addEventListener('visibilitychange',function(){
-  if(document.visibilityState==='visible')fetchSheetData();
+  if(document.visibilityState==='visible'&&DASHBOARD_ACCESS_TOKEN)fetchSheetData();
 });
 </script>
 </body>
