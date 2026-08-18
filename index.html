@@ -73,9 +73,14 @@
     .page-header{display:flex;align-items:flex-start;justify-content:space-between}
     .page-title{font-size:20px;font-weight:600}
     .page-sub{font-size:12px;color:var(--text-muted);margin-top:4px}
+    .page-sub-line{display:block}
     .period-badge{padding:4px 12px;border-radius:20px;background:var(--bg-card2);border:1px solid var(--border);font-size:12px;color:var(--text-sub);font-family:'DM Mono',monospace}
     #weeklyRangeBadge,#weeklyScorecardRangeBadge{padding:10px 19px;font-size:17px;font-weight:800;color:var(--text);border:1px solid var(--accent);box-shadow:0 0 0 2px rgba(99,102,241,.10);letter-spacing:-.25px}
-    #weeklyScorecardRangeBadge{display:inline-flex;align-items:center;white-space:nowrap}
+    #weeklyRangeBadge,#weeklyScorecardRangeBadge{display:inline-flex;align-items:center;white-space:nowrap}
+    #tab-weekly > .page-header{container-type:inline-size}
+    @container (max-width:1050px){#weeklyRangeBadge{letter-spacing:-.7px}}
+    @container (max-width:920px){#weeklyRangeBadge{letter-spacing:-1.1px}}
+    @container (max-width:820px){#weeklyRangeBadge{letter-spacing:-1.45px}}
     .excluded-date-text,.included-date-text{color:var(--red)!important;font-weight:900!important;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);border-radius:6px;padding:2px 6px;margin-left:3px}
 
     /* CHART */
@@ -678,7 +683,7 @@
       <header class="page-header">
         <div>
           <h1 class="page-title">주차별 점검</h1>
-          <p class="page-sub">매주 금요일 오후 2시 보고 · 전주 금요일~이번 주 목요일을 한 주로 보되, 월을 넘는 주차는 해당 월의 날짜만 사용합니다 (예: 7/31~8/6 → 8월에서는 8/1~8/6)</p>
+          <p class="page-sub"><span class="page-sub-line">매주 금요일 오후 2시 보고</span><span class="page-sub-line">전주 금요일~이번 주 목요일을 한 주로 보되, 월을 넘는 주차는 해당 월의 날짜만 사용합니다 (예: 7/31~8/6 → 8월에서는 8/1~8/6)</span></p>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <span class="period-badge" id="weeklyRangeBadge">&#8212;</span>
