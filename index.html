@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>매출 &amp; 영업이익 시뮬레이션</title>
-  <!-- BUILD: 2026-08-10 rev-daily-friday-report-calendar-month-projection-v4-settlement-v3-v2-weekly-past-only -->
-  <script>console.log('[진단] 대시보드 빌드: 2026-08-10 rev-daily-friday-report-calendar-month-projection-v4-settlement-v3-v2-weekly-past-only — 이 로그가 안 보이면 캐시된 구버전 파일을 보고 있는 것입니다.');</script>
+  <!-- BUILD: 2026-08-10 rev-daily-friday-report-calendar-month-projection-v4-settlement-v3-v2-weekly-past-only-revenue-recovery -->
+  <script>console.log('[진단] 대시보드 빌드: 2026-08-10 rev-daily-friday-report-calendar-month-projection-v4-settlement-v3-v2-weekly-past-only-revenue-recovery — 이 로그가 안 보이면 캐시된 구버전 파일을 보고 있는 것입니다.');</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -2639,6 +2639,20 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
           reason=projectionMode==='settlement'
             ?'해당 월 정산 예정 매출 총액 '+fmtReasonMoney(settlementRevenueSum)+'을 '+dim+'일로 나눈 일평균 '+fmtReasonMoney(avg)+'이 예상 일평균 '+fmtReasonMoney(expectedDailyRevenue)+'보다 '+fmtReasonMoney(Math.abs(dailyDelta))+' '+(dailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다.'
             :'지난 '+pastRevenueCount+'일 실제 일평균 매출 '+fmtReasonMoney(avg)+'이 예상 일평균 '+fmtReasonMoney(expectedDailyRevenue)+'보다 '+fmtReasonMoney(Math.abs(dailyDelta))+' '+(dailyDelta>0?'높아':'낮아')+' 전망이 '+(delta>0?'상향':'하향')+'됐습니다.';
+
+          // 실적 기준에서 아직 남은 일정이 있고 매출 전망이 예상보다 낮다면,
+          // 남은 기간에 어느 정도의 일평균 매출이 필요해야 원래 월 예상 매출까지 회복되는지 역산해 안내한다.
+          if(projectionMode!=='settlement' && delta<0 && expectedDayCount>0){
+            var actualRevenueSoFar=projectedRevenue-(expectedDailyRevenue*expectedDayCount);
+            var remainingRevenueNeeded=Math.max(0,expected-actualRevenueSoFar);
+            var requiredDailyRevenue=remainingRevenueNeeded/expectedDayCount;
+            var requiredDailyUplift=requiredDailyRevenue-expectedDailyRevenue;
+            var requiredDailyUpliftPct=expectedDailyRevenue?requiredDailyUplift/expectedDailyRevenue*100:0;
+            reason+=' 남은 '+expectedDayCount+'일간 일평균 매출이 '+fmtReasonMoney(requiredDailyRevenue)+' 이상이면 기존 예상 월매출 '+fmtReasonMoney(expected)+' 수준까지 회복할 수 있습니다.';
+            if(requiredDailyUplift>0.5){
+              reason+=' 이는 기존 예상 일평균 '+fmtReasonMoney(expectedDailyRevenue)+'보다 '+fmtReasonMoney(requiredDailyUplift)+' ('+requiredDailyUpliftPct.toFixed(1)+'%) 더 필요한 수준입니다.';
+            }
+          }
         }
       }
     }else if(a.name==='광고비'){
