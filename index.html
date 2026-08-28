@@ -5,8 +5,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>매출 &amp; 영업이익 시뮬레이션</title>
-  <!-- BUILD: 2026-08-10 rev-daily-friday-report-calendar-month-projection-v4-settlement-v3-v2 -->
-  <script>console.log('[진단] 대시보드 빌드: 2026-08-10 rev-daily-friday-report-calendar-month-projection-v4-settlement-v3-v2 — 이 로그가 안 보이면 캐시된 구버전 파일을 보고 있는 것입니다.');</script>
+  <!-- BUILD: 2026-08-10 rev-daily-friday-report-calendar-month-projection-v4-settlement-v3-v2-weekly-past-only -->
+  <script>console.log('[진단] 대시보드 빌드: 2026-08-10 rev-daily-friday-report-calendar-month-projection-v4-settlement-v3-v2-weekly-past-only — 이 로그가 안 보이면 캐시된 구버전 파일을 보고 있는 것입니다.');</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Pretendard:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -1210,18 +1210,25 @@ function getIncludedDatesText(fullRange,usedRange){
   return list.length?list.join(', ')+' 포함':'';
 }
 // 월 경계 보정: 다음 달 첫 주에서 제외될 이전 달 말일은 이전 달 마지막 주차에 흡수한다.
-// 예: 31주차 7/24~7/30 -> 7월에서는 7/24~7/31(7/31 포함),
-//     32주차 7/31~8/6 -> 8월에서는 8/1~8/6(7/31 제외).
+// 단, 아직 지나지 않은 날짜는 절대 미리 포함하지 않는다. 흡수 가능 범위는 '어제'까지로 제한한다.
+// 예: 2026-08-28 기준 35주차(8/21~8/27)는 그대로 8/21~8/27만 사용하며, 8/28~8/31은 포함하지 않는다.
+//     이후 날짜가 실제로 지난 경우에만 월말 잔여일을 순차적으로 흡수할 수 있다.
 function getMonthAdjustedWeekRange(range,weekIndex){
   var used=getMonthClippedWeekRange(range);
   if(!range||!used||isNaN(range.end))return used;
   var y=range.end.getFullYear(),m=range.end.getMonth();
   var monthEnd=new Date(y,m,daysInMonth(y,m));
+  var today=new Date();
+  today.setHours(0,0,0,0);
+  var yesterday=new Date(today.getFullYear(),today.getMonth(),today.getDate()-1);
   var nextRange=(weekIndex!==undefined&&weekIndex!==null)?getWeekRange(weekIndex+1,DASHBOARD_YEAR):null;
   if(nextRange&&!isNaN(nextRange.start)&&!isNaN(nextRange.end)
      &&nextRange.start.getFullYear()===y&&nextRange.start.getMonth()===m
      &&(nextRange.end.getFullYear()!==y||nextRange.end.getMonth()!==m)){
-    used.end=new Date(monthEnd.getFullYear(),monthEnd.getMonth(),monthEnd.getDate());
+    var allowedEnd=monthEnd<yesterday?monthEnd:yesterday;
+    if(allowedEnd>used.end){
+      used.end=new Date(allowedEnd.getFullYear(),allowedEnd.getMonth(),allowedEnd.getDate());
+    }
   }
   return used;
 }
