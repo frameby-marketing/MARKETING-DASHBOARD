@@ -463,6 +463,11 @@
     .fva-factor-empty{font-size:12px;color:var(--text-muted);padding:12px 4px}
     .fva-line-legend{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:6px;font-size:12px;color:var(--text-sub)}
     .fva-line-legend span{display:inline-flex;align-items:center;gap:7px}.fva-legend-line{width:26px;height:3px;border-radius:3px;display:inline-block}.fva-legend-line.expected{background:#7b8190}.fva-legend-line.actual{background:var(--blue)}
+    .fva-integrated-variance{margin:22px 14px 0;padding-top:18px;border-top:1px solid var(--border)}
+    .fva-variance-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px}.fva-variance-help{font-size:11px;color:var(--text-muted);margin-bottom:12px}
+    .fva-variance-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}.fva-variance-table th,.fva-variance-table td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--border-light);white-space:nowrap}.fva-variance-table th{font-size:11px;color:var(--text-muted);font-weight:800;background:var(--bg-card2)}.fva-variance-table th:first-child,.fva-variance-table td:first-child{text-align:left;font-weight:900;position:sticky;left:0;background:var(--bg-card);z-index:1}.fva-variance-cell strong{display:block;font:800 12px 'DM Mono',monospace}.fva-variance-cell span{display:block;font:700 10px 'DM Mono',monospace;margin-top:2px}.fva-variance-na{color:var(--text-muted)}
+    .fva-status-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}.fva-status-tabs{display:flex;gap:6px;flex-wrap:wrap}.fva-status-btn{padding:7px 12px;border-radius:18px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font:800 11px 'Pretendard',sans-serif;cursor:pointer}.fva-status-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}.fva-status-legend{display:flex;gap:12px;align-items:center;font-size:10px;color:var(--text-muted)}.fva-status-legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:-1px}.fva-status-legend .normal{background:var(--green)}.fva-status-legend .issue{background:var(--red)}
+    .fva-status-table-wrap{overflow-x:auto}.fva-status-table{width:100%;min-width:940px;border-collapse:separate;border-spacing:0 8px}.fva-status-table th{font-size:11px;color:var(--text-muted);font-weight:800;text-align:left;padding:0 8px 4px}.fva-status-table td{padding:7px 8px;background:var(--bg-card2);border-top:1px solid var(--border-light);border-bottom:1px solid var(--border-light)}.fva-status-table td:first-child{width:170px;border-left:1px solid var(--border-light);border-radius:8px 0 0 8px;font-size:12px;font-weight:800;color:var(--text)}.fva-status-table td:last-child{border-right:1px solid var(--border-light);border-radius:0 8px 8px 0}.fva-status-track{height:22px;border-radius:6px;overflow:hidden;display:flex;background:var(--green);box-shadow:inset 0 0 0 1px rgba(0,0,0,.05)}.fva-status-seg.normal{background:var(--green)}.fva-status-seg.issue{background:var(--red)}.fva-status-note{font-size:10px;color:var(--text-sub);line-height:1.35;min-width:250px}.fva-status-days{font:800 10px 'DM Mono',monospace;color:var(--text-muted);white-space:nowrap}
     @media(max-width:900px){.fva-compare-grid{grid-template-columns:1fr}.fva-factor-grid{grid-template-columns:1fr}.fva-factor-row{grid-template-columns:minmax(100px,.85fr) minmax(0,1.4fr) auto}}
   </style>
 </head>
@@ -738,6 +743,7 @@
         <div class="chart-section-sub">회색선은 최초예측 영업이익 · 파란선은 실제 영업이익 · 실제값이 입력된 월까지만 실적선을 연결합니다</div>
         <div class="fva-line-legend"><span><i class="fva-legend-line expected"></i>최초예측</span><span><i class="fva-legend-line actual"></i>실제 실적</span></div>
         <div class="fva-line-wrap" id="fvaIntegratedChartWrap"></div>
+        <div class="fva-integrated-variance" id="fvaIntegratedVariance"></div>
         <div class="fva-factor-section" id="fvaIntegratedFactors"></div>
       </div>
       <div class="chart-section" id="fvaMonthlyMetricsSection">
@@ -1231,39 +1237,78 @@ function renderFvaIntegratedChart(map){
   svg+='<path d="'+path('actual')+'" fill="none" stroke="var(--blue)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>';
   rows.forEach(function(r,i){if(r.expected!==null){svg+='<circle cx="'+x(i)+'" cy="'+y(r.expected)+'" r="4.5" fill="#7b8190"/><text x="'+x(i)+'" y="'+(y(r.expected)-11)+'" text-anchor="middle" fill="#7b8190" font-size="11" font-weight="700">'+fmt(r.expected)+'만</text>'}if(r.actual!==null){var diff=r.expected!==null?r.actual-r.expected:null,pct=(r.expected&&diff!==null)?diff/Math.abs(r.expected)*100:null;svg+='<circle cx="'+x(i)+'" cy="'+y(r.actual)+'" r="5" fill="var(--blue)"/><text x="'+x(i)+'" y="'+(y(r.actual)+18)+'" text-anchor="middle" fill="var(--blue)" font-size="11" font-weight="800">'+fmt(r.actual)+'만</text>';if(diff!==null)svg+='<text x="'+x(i)+'" y="'+(H-7)+'" text-anchor="middle" fill="'+(diff>=0?'var(--green)':'var(--red)')+'" font-size="10.5" font-weight="800">차이 '+(diff>=0?'+':'')+fmt(diff)+'만'+(pct===null?'':' ('+(pct>=0?'+':'')+pct.toFixed(1)+'%)')+'</text>'}});
   svg+='</svg>';wrap.innerHTML=svg;
+  renderFvaIntegratedVariance(map,rows);
   renderFvaIntegratedFactors();
 }
+function renderFvaIntegratedVariance(map,profitRows){
+  var el=document.getElementById('fvaIntegratedVariance');if(!el)return;
+  var metrics=[
+    {label:'전체매출',key:'revenue',goodPositive:true},
+    {label:'고정비',key:'fixed',goodPositive:false},
+    {label:'발주비',key:'order',goodPositive:false},
+    {label:'광고비',key:'ad',goodPositive:false},
+    {label:'변동비',key:'variable',goodPositive:false},
+    {label:'영업이익',key:'profit',goodPositive:true}
+  ];
+  var html='<div class="fva-variance-title">월별 세부 항목 예측 대비 실적 차이</div><div class="fva-variance-help">금액 차이와 증감률을 한눈에 확인합니다. 매출·영업이익은 높을수록, 비용은 낮을수록 유리합니다.</div><div class="table-wrap"><table class="fva-variance-table"><thead><tr><th>월</th>';
+  metrics.forEach(function(m){html+='<th>'+m.label+'</th>'});html+='</tr></thead><tbody>';
+  for(var mon=5;mon<=12;mon++){
+    var key='26-'+String(mon).padStart(2,'0'),pair=map[key]||{},e=pair.expected,a=pair.actual,complete=e&&fvaActualComplete(a);
+    html+='<tr><td>'+mon+'월</td>';
+    metrics.forEach(function(m){
+      if(!e||!complete){html+='<td class="fva-variance-na">—</td>';return}
+      var ev=m.key==='profit'?fvaProfit(e):e[m.key],av=m.key==='profit'?fvaProfit(a):a[m.key],diff=av-ev,pct=fvaPctDiff(av,ev),cls=fvaClass(diff,m.goodPositive);
+      html+='<td><div class="fva-variance-cell '+cls+'"><strong>'+(diff>=0?'+':'')+fmt(diff)+'만</strong><span>'+(pct===null?'—':((pct>=0?'+':'')+pct.toFixed(1)+'%'))+'</span></div></td>';
+    });
+    html+='</tr>';
+  }
+  html+='</tbody></table></div>';el.innerHTML=html;
+}
+
+var fvaStatusMonth=5;
+function setFvaStatusMonth(m){fvaStatusMonth=m;renderFvaIntegratedFactors()}
 function renderFvaIntegratedFactors(){
   var el=document.getElementById('fvaIntegratedFactors');if(!el)return;
-  var factors={
-    5:[
-      ['DW 프로 실버','15일 품절 · 사전예약 전환','stock','품절/사전예약'],
-      ['DW 플러스 실버','18일 품절 · 사전예약 전환','stock','품절/사전예약'],
-      ['DW 프로','95,000원 → 99,000원 · 26일간','price','가격 상승'],
-      ['DW 플러스','95,000원 → 99,000원 · 26일간','price','가격 상승'],
-      ['PH 실버','30일 품절 · 사전예약 전환','stock','품절/사전예약'],
-      ['PH 블랙','17일 품절 · 사전예약 전환','stock','품절/사전예약']
-    ],
-    6:[
-      ['맥세이프 케이스','6/21부터 17시리즈 미만 기종 품절 처리 후 단종','end','단종'],
-      ['DW 프로','95,000원 → 99,000원 · 6일간','price','가격 상승'],
-      ['DW 플러스','95,000원 → 99,000원 · 6일간','price','가격 상승']
-    ],
-    7:[
-      ['DW 플러스 실버','29일간 품절 · 이후 재입고 없음','stock','품절'],
-      ['PH 스탠드','24일간 품절 · 사전예약 전환','stock','품절/사전예약'],
-      ['PH','33,000원 → 55,000원 · 27일간','price','가격 상승'],
-      ['DW 프로 블랙','12일간 품절 · 사전예약 전환','stock','품절/사전예약']
-    ],
-    8:[
-      ['DW 플러스 실버','품절 · 이후 재입고 없음','stock','품절'],
-      ['DW 플러스 블랙','9일간 품절 · 사전예약 전환','stock','품절/사전예약'],
-      ['DW 프로 실버','6일간 품절 · 사전예약 전환','stock','품절/사전예약']
-    ],
-    9:[],10:[],11:[],12:[]
+  var products=['맥세이프 케이스','맥세이프 킥프레임','PH 실버','PH 블랙','DW 프로 실버','DW 프로 블랙','DW 플러스 실버','DW 플러스 블랙'];
+  var data={
+    5:{
+      'PH 실버':{issue:30,note:'30일 품절 · 사전예약'},
+      'PH 블랙':{issue:17,note:'17일 품절 · 사전예약'},
+      'DW 프로 실버':{issue:15,note:'15일 품절 · 사전예약 / DW 프로 95,000원→99,000원 26일'},
+      'DW 프로 블랙':{issue:0,note:'DW 프로 95,000원→99,000원 26일'},
+      'DW 플러스 실버':{issue:18,note:'18일 품절 · 사전예약 / DW 플러스 95,000원→99,000원 26일'},
+      'DW 플러스 블랙':{issue:0,note:'DW 플러스 95,000원→99,000원 26일'}
+    },
+    6:{
+      '맥세이프 케이스':{issue:10,note:'6/21부터 17시리즈 미만 기종 품절 처리 후 단종'},
+      'DW 프로 실버':{issue:0,note:'DW 프로 95,000원→99,000원 6일'},
+      'DW 프로 블랙':{issue:0,note:'DW 프로 95,000원→99,000원 6일'},
+      'DW 플러스 실버':{issue:0,note:'DW 플러스 95,000원→99,000원 6일'},
+      'DW 플러스 블랙':{issue:0,note:'DW 플러스 95,000원→99,000원 6일'}
+    },
+    7:{
+      'PH 실버':{issue:24,note:'PH 스탠드 24일 품절 · 사전예약 / PH 33,000원→55,000원 27일'},
+      'PH 블랙':{issue:24,note:'PH 스탠드 24일 품절 · 사전예약 / PH 33,000원→55,000원 27일'},
+      'DW 프로 블랙':{issue:12,note:'12일 품절 · 사전예약'},
+      'DW 플러스 실버':{issue:29,note:'29일 품절 · 이후 재입고 없음'}
+    },
+    8:{
+      'DW 프로 실버':{issue:6,note:'6일 품절 · 사전예약'},
+      'DW 플러스 실버':{issue:31,note:'품절 · 이후 재입고 없음'},
+      'DW 플러스 블랙':{issue:9,note:'9일 품절 · 사전예약'}
+    },9:{},10:{},11:{},12:{}
   };
-  var html='<div class="fva-factor-heading"><div><div class="fva-factor-title">월별 예측 대비 차이 참고 요인</div><div class="fva-factor-help">주요 제품의 품절·사전예약·단종·가격 변동 등 매출에 영향을 줄 수 있는 특이사항</div></div></div><div class="fva-factor-grid">';
-  for(var m=5;m<=12;m++){var rows=factors[m]||[];html+='<div class="fva-factor-card"><div class="fva-factor-month">'+m+'월</div>';if(!rows.length){html+='<div class="fva-factor-empty">등록된 특이사항 없음</div>'}else{html+='<div class="fva-factor-list">';rows.forEach(function(r){html+='<div class="fva-factor-row"><div class="fva-factor-product">'+r[0]+'</div><div class="fva-factor-detail">'+r[1]+'</div><span class="fva-factor-badge '+r[2]+'">'+r[3]+'</span></div>'});html+='</div>'}html+='</div>'}html+='</div>';el.innerHTML=html;
+  var days=new Date(2026,fvaStatusMonth,0).getDate(),monthData=data[fvaStatusMonth]||{};
+  var html='<div class="fva-status-head"><div><div class="fva-factor-title">월별 주요 제품 판매 현황</div><div class="fva-factor-help">초록색은 정상판매, 빨간색은 품절·사전예약·단종 상태입니다. 기간 정보가 없는 가격변동은 우측 참고사항에 표시합니다.</div></div><div class="fva-status-legend"><span><i class="normal"></i>정상판매</span><span><i class="issue"></i>품절/사전예약/단종</span></div></div>';
+  html+='<div class="fva-status-tabs">';for(var m=5;m<=12;m++)html+='<button class="fva-status-btn '+(m===fvaStatusMonth?'active':'')+'" onclick="setFvaStatusMonth('+m+')">'+m+'월</button>';html+='</div>';
+  html+='<div class="fva-status-table-wrap"><table class="fva-status-table"><thead><tr><th>주요 제품</th><th>'+fvaStatusMonth+'월 '+days+'일 판매 상태</th><th>상태</th><th>참고사항</th></tr></thead><tbody>';
+  products.forEach(function(product){
+    var d=monthData[product]||{issue:0,note:'특이사항 없음'},issue=Math.max(0,Math.min(days,d.issue||0)),normal=days-issue,normalPct=normal/days*100,issuePct=issue/days*100;
+    html+='<tr><td>'+product+'</td><td><div class="fva-status-track">'+(normal>0?'<div class="fva-status-seg normal" style="width:'+normalPct+'%"></div>':'')+(issue>0?'<div class="fva-status-seg issue" style="width:'+issuePct+'%"></div>':'')+'</div></td><td class="fva-status-days">정상 '+normal+'일 · 이슈 '+issue+'일</td><td class="fva-status-note">'+d.note+'</td></tr>';
+  });
+  html+='</tbody></table></div>';
+  if(fvaStatusMonth>=9)html+='<div class="fva-factor-empty" style="padding:10px 2px 0">'+fvaStatusMonth+'월은 현재 등록된 판매 특이사항이 없어 전체 정상판매로 표시됩니다.</div>';
+  el.innerHTML=html;
 }
 
 function renderFvaCompareCards(e,a,label){
