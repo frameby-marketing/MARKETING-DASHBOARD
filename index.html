@@ -440,12 +440,15 @@
     .fva-diff-value{font:900 22px 'DM Mono',monospace;line-height:1.25}
     .fva-diff-pct{font:800 15px 'DM Mono',monospace;margin-top:3px}
     .fva-empty{padding:36px;text-align:center;color:var(--text-muted);background:var(--bg-card2);border-radius:10px}.fva-table .actual-row td{background:rgba(59,130,246,.04)}.fva-table .diff-row td{font-weight:700;background:var(--bg-card2)}
-    .fva-integrated-chart{display:none;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 8px 22px}
+    .fva-integrated-chart{display:none}
     .fva-integrated-chart.show{display:block}
-    .fva-integrated-chart>.chart-section-title,.fva-integrated-chart>.chart-section-sub,.fva-integrated-chart>.fva-line-legend{padding-left:14px;padding-right:14px}
+    .fva-integrated-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px 22px;margin-bottom:16px}
+    .fva-integrated-card:last-child{margin-bottom:0}
+    .fva-trend-card{padding-left:8px;padding-right:8px}
+    .fva-trend-card>.chart-section-title,.fva-trend-card>.chart-section-sub,.fva-trend-card>.fva-line-legend{padding-left:14px;padding-right:14px}
     .fva-line-wrap{overflow-x:auto;margin-top:14px;width:100%}
     .fva-line-svg{width:100%;min-width:760px;height:390px;display:block}
-    .fva-factor-section{margin:20px 14px 0;padding-top:18px;border-top:1px solid var(--border)}
+    .fva-factor-section{margin:0;padding:0 0 18px;border-top:0}
     .fva-factor-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}
     .fva-factor-title{font-size:18px;font-weight:800;color:var(--text)}
     .fva-factor-help{font-size:11px;color:var(--text-muted)}
@@ -463,11 +466,11 @@
     .fva-factor-empty{font-size:12px;color:var(--text-muted);padding:12px 4px}
     .fva-line-legend{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:6px;font-size:12px;color:var(--text-sub)}
     .fva-line-legend span{display:inline-flex;align-items:center;gap:7px}.fva-legend-line{width:26px;height:3px;border-radius:3px;display:inline-block}.fva-legend-line.expected{background:#7b8190}.fva-legend-line.actual{background:var(--blue)}
-    .fva-integrated-variance{margin:22px 14px 0;padding-top:18px;border-top:1px solid var(--border)}
+    .fva-integrated-variance{margin:0;padding:0;border-top:0}
     .fva-variance-title{font-size:18px;font-weight:800;color:var(--text);margin-bottom:4px}.fva-variance-help{font-size:11px;color:var(--text-muted);margin-bottom:12px}
     .fva-variance-table{width:100%;border-collapse:separate;border-spacing:0;font-size:12px}.fva-variance-table th,.fva-variance-table td{padding:10px 8px;text-align:center;border-bottom:1px solid var(--border-light);white-space:nowrap}.fva-variance-table th{font-size:11px;color:var(--text-muted);font-weight:800;background:var(--bg-card2)}.fva-variance-table th:first-child,.fva-variance-table td:first-child{text-align:left;font-weight:900;position:sticky;left:0;background:var(--bg-card);z-index:1}.fva-variance-cell strong{display:block;font:800 12px 'DM Mono',monospace}.fva-variance-cell span{display:block;font:700 10px 'DM Mono',monospace;margin-top:2px}.fva-variance-na{color:var(--text-muted)}
     .fva-status-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:12px}.fva-status-tabs{display:flex;gap:6px;flex-wrap:wrap}.fva-status-btn{padding:7px 12px;border-radius:18px;border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);font:800 11px 'Pretendard',sans-serif;cursor:pointer}.fva-status-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}.fva-status-legend{display:flex;gap:12px;align-items:center;font-size:10px;color:var(--text-muted)}.fva-status-legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:-1px}.fva-status-legend .normal{background:var(--green)}.fva-status-legend .price{background:#f5b301}.fva-status-legend .issue{background:var(--red)}.fva-status-legend .discontinued{background:#7f8793}
-    .fva-status-table-wrap{overflow-x:auto}.fva-status-table{width:100%;min-width:940px;border-collapse:separate;border-spacing:0 8px}.fva-status-table th{font-size:11px;color:var(--text-muted);font-weight:800;text-align:left;padding:0 8px 4px}.fva-status-table td{padding:7px 8px;background:var(--bg-card2);border-top:1px solid var(--border-light);border-bottom:1px solid var(--border-light)}.fva-status-table td:first-child{width:170px;border-left:1px solid var(--border-light);border-radius:8px 0 0 8px;font-size:12px;font-weight:800;color:var(--text)}.fva-status-table td:last-child{border-right:1px solid var(--border-light);border-radius:0 8px 8px 0}.fva-status-table tr.has-issue td{border-top-color:var(--red);border-bottom-color:var(--red)}.fva-status-table tr.has-issue td:first-child{border-left-color:var(--red)}.fva-status-table tr.has-issue td:last-child{border-right-color:var(--red)}.fva-status-track{height:22px;border-radius:6px;overflow:hidden;display:flex;background:var(--green);box-shadow:inset 0 0 0 1px rgba(0,0,0,.05)}.fva-status-seg.normal{background:var(--green)}.fva-status-seg.price{background:#f5b301}.fva-status-seg.issue{background:var(--red)}.fva-status-seg.discontinued{background:#7f8793}.fva-status-note{font-size:10px;color:var(--text-sub);line-height:1.35;min-width:250px}.fva-status-days{font:800 10px 'DM Mono',monospace;color:var(--text-muted);white-space:nowrap}
+    .fva-status-table-wrap{overflow-x:auto;padding-bottom:14px;margin-bottom:4px}.fva-status-table{width:100%;min-width:940px;border-collapse:separate;border-spacing:0 8px}.fva-status-table th{font-size:11px;color:var(--text-muted);font-weight:800;text-align:left;padding:0 8px 4px}.fva-status-table td{padding:7px 8px;background:var(--bg-card2);border-top:1px solid var(--border-light);border-bottom:1px solid var(--border-light)}.fva-status-table td:first-child{width:170px;border-left:1px solid var(--border-light);border-radius:8px 0 0 8px;font-size:12px;font-weight:800;color:var(--text)}.fva-status-table td:last-child{border-right:1px solid var(--border-light);border-radius:0 8px 8px 0}.fva-status-table tr.has-issue td{border-top-color:var(--red);border-bottom-color:var(--red)}.fva-status-table tr.has-issue td:first-child{border-left-color:var(--red)}.fva-status-table tr.has-issue td:last-child{border-right-color:var(--red)}.fva-status-track{height:22px;border-radius:6px;overflow:hidden;display:flex;background:var(--green);box-shadow:inset 0 0 0 1px rgba(0,0,0,.05)}.fva-status-seg.normal{background:var(--green)}.fva-status-seg.price{background:#f5b301}.fva-status-seg.issue{background:var(--red)}.fva-status-seg.discontinued{background:#7f8793}.fva-status-note{font-size:10px;color:var(--text-sub);line-height:1.35;min-width:250px}.fva-status-days{font:800 10px 'DM Mono',monospace;color:var(--text-muted);white-space:nowrap}
     @media(max-width:900px){.fva-compare-grid{grid-template-columns:1fr}.fva-factor-grid{grid-template-columns:1fr}.fva-factor-row{grid-template-columns:minmax(100px,.85fr) minmax(0,1.4fr) auto}}
   </style>
 </head>
@@ -739,12 +742,18 @@
       <header class="page-header"><div><h1 class="page-title">26 예측 대비 실적</h1><p class="page-sub">월을 선택해 해당 월의 최초예측과 실제 실적을 1:1 비교하고, 항목별 차이 금액과 증감률을 확인합니다</p></div><span class="period-badge" id="fvaRangeBadge">26-08</span></header>
       <div class="fva-month-selector" id="fvaMonthSelector"></div>
       <div class="fva-integrated-chart" id="fvaIntegratedChart">
-        <div class="chart-section-title chart-section-title-big">5~12월 영업이익 예측 대비 실적 추이</div>
-        <div class="chart-section-sub">회색선은 최초예측 영업이익 · 파란선은 실제 영업이익 · 실제값이 입력된 월까지만 실적선을 연결합니다</div>
-        <div class="fva-line-legend"><span><i class="fva-legend-line expected"></i>최초예측</span><span><i class="fva-legend-line actual"></i>실제 실적</span></div>
-        <div class="fva-line-wrap" id="fvaIntegratedChartWrap"></div>
-        <div class="fva-integrated-variance" id="fvaIntegratedVariance"></div>
-        <div class="fva-factor-section" id="fvaIntegratedFactors"></div>
+        <div class="fva-integrated-card fva-trend-card">
+          <div class="chart-section-title chart-section-title-big">5~12월 영업이익 예측 대비 실적 추이</div>
+          <div class="chart-section-sub">회색선은 최초예측 영업이익 · 파란선은 실제 영업이익 · 실제값이 입력된 월까지만 실적선을 연결합니다</div>
+          <div class="fva-line-legend"><span><i class="fva-legend-line expected"></i>최초예측</span><span><i class="fva-legend-line actual"></i>실제 실적</span></div>
+          <div class="fva-line-wrap" id="fvaIntegratedChartWrap"></div>
+        </div>
+        <div class="fva-integrated-card fva-variance-card">
+          <div class="fva-integrated-variance" id="fvaIntegratedVariance"></div>
+        </div>
+        <div class="fva-integrated-card fva-status-card">
+          <div class="fva-factor-section" id="fvaIntegratedFactors"></div>
+        </div>
       </div>
       <div class="chart-section" id="fvaMonthlyMetricsSection">
         <div class="chart-section-title chart-section-title-big" id="fvaMetricTitle">항목별 예측 대비</div>
