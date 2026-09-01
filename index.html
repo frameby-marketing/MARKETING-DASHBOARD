@@ -414,6 +414,21 @@
     .dashboard-auth-error{display:none;margin-top:14px;font-size:12.5px;line-height:1.55;color:var(--red);}
     .dashboard-auth-user{display:none;align-items:center;gap:7px;font-size:12px;color:var(--text-sub);max-width:240px;overflow:hidden;}
     .dashboard-auth-user img{width:22px;height:22px;border-radius:50%;flex-shrink:0}.dashboard-auth-user span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+    /* FORECAST VS ACTUAL */
+    .fva-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .fva-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px}
+    .fva-card-title{font-size:12px;color:var(--text-muted);margin-bottom:10px;font-weight:700}
+    .fva-card-value{font:700 25px 'DM Mono',monospace;color:var(--text)}
+    .fva-card-meta{font-size:12px;color:var(--text-sub);margin-top:8px;line-height:1.6}
+    .fva-good{color:var(--green)!important}.fva-bad{color:var(--red)!important}.fva-neutral{color:var(--text-muted)!important}
+    .fva-metric-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+    .fva-metric{background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:15px}
+    .fva-metric-name{font-size:14px;font-weight:800;margin-bottom:10px}.fva-metric-line{display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--text-sub);margin-top:5px}.fva-metric-diff{font:800 15px 'DM Mono',monospace;margin-top:10px}
+    .fva-chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.fva-svg{width:100%;min-width:560px;height:280px;display:block}.fva-legend{display:flex;gap:16px;font-size:12px;color:var(--text-sub);margin:6px 0 10px}.fva-dot{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px}
+    .fva-cause-row{display:grid;grid-template-columns:120px minmax(0,1fr) 140px;gap:14px;align-items:center;padding:11px 0;border-bottom:1px solid var(--border)}.fva-cause-row:last-child{border-bottom:none}.fva-cause-bar-track{height:9px;background:var(--bg-card2);border-radius:10px;overflow:hidden}.fva-cause-bar{height:100%;border-radius:10px;background:currentColor}.fva-cause-value{text-align:right;font:800 13px 'DM Mono',monospace}
+    .fva-empty{padding:36px;text-align:center;color:var(--text-muted);background:var(--bg-card2);border-radius:10px}.fva-table .actual-row td{background:rgba(59,130,246,.04)}.fva-table .diff-row td{font-weight:700;background:var(--bg-card2)}
+    @media(max-width:1000px){.fva-summary-grid{grid-template-columns:repeat(2,1fr)}.fva-metric-grid{grid-template-columns:repeat(2,1fr)}.fva-chart-grid{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -453,6 +468,7 @@
   </div>
   <div class="top-tabs-row">
     <button class="top-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">통합</button>
+    <button class="top-tab" data-tab="forecastActual" onclick="switchTab('forecastActual')">26 예측 대비 실적</button>
     <button class="top-tab" data-tab="weekly" onclick="switchTab('weekly')">주차별 점검</button>
   </div>
 </div>
@@ -678,6 +694,20 @@
       </div>
     </div>
 
+    <!-- TAB: FORECAST VS ACTUAL -->
+    <div class="tab-content" id="tab-forecastActual">
+      <header class="page-header"><div><h1 class="page-title">26 예측 대비 실적</h1><p class="page-sub">2026년 8월 이후 최초예측과 마감 실제 실적 비교 · 실제 데이터가 입력된 월까지만 누적 비교</p></div><span class="period-badge" id="fvaRangeBadge">26-08 ~ —</span></header>
+      <div class="fva-summary-grid" id="fvaSummaryGrid"></div>
+      <div class="chart-section"><div class="chart-section-title chart-section-title-big">항목별 누적 예측 대비</div><div class="chart-section-sub">실제 데이터가 입력된 동일 기간 기준 · 비용은 실제가 예측보다 낮을수록 유리</div><div class="fva-metric-grid" id="fvaMetricGrid"></div></div>
+      <div class="fva-chart-grid">
+        <div class="chart-section"><div class="chart-section-title chart-section-title-big">월별 영업이익 — 최초예측 vs 실제</div><div class="fva-legend"><span><i class="fva-dot" style="background:#7b8190"></i>최초예측</span><span><i class="fva-dot" style="background:#3b82f6"></i>실제</span></div><div class="chart-inner" id="fvaMonthlyProfitChart"></div></div>
+        <div class="chart-section"><div class="chart-section-title chart-section-title-big">누적 영업이익 — 최초예측 vs 실제</div><div class="chart-section-sub">8월부터 실제 입력 완료 월까지의 누적 흐름</div><div class="chart-inner" id="fvaCumulativeProfitChart"></div></div>
+      </div>
+      <div class="chart-section"><div class="chart-section-title chart-section-title-big">월별 항목 비교</div><div class="chart-section-sub">매출·고정비·발주비·광고비·변동비의 최초예측과 실제</div><div class="chart-inner" id="fvaItemChart"></div></div>
+      <div class="chart-section"><div class="chart-section-title chart-section-title-big">영업이익 차이 원인 분석</div><div class="chart-section-sub" id="fvaCauseSub">실제 입력 기간 누적 기준</div><div id="fvaCauseAnalysis"></div></div>
+      <div class="table-card"><div class="table-section-label chart-section-title-big">월별 상세 비교 <span style="font-size:11px;font-weight:400;color:var(--text-muted)">단위: 만원 · 상환비는 영업이익에서 제외</span></div><div class="table-wrap"><table class="fva-table"><thead><tr><th>월</th><th>구분</th><th>전체매출</th><th>고정비</th><th>발주비</th><th>광고비</th><th>변동비</th><th>상환비</th><th>총비용</th><th>영업이익</th><th>영업이익률</th></tr></thead><tbody id="fvaTableBody"></tbody></table></div></div>
+    </div>
+
     <!-- TAB: WEEKLY CHECK -->
     <div class="tab-content" id="tab-weekly">
       <header class="page-header">
@@ -816,6 +846,9 @@ var SHEET_NAME          = '매출데이터';
 var SHEET_RANGE         = 'A1:J13';
 var WEEKLY_SHEET_NAME   = '일별 데이터';
 var WEEKLY_SHEET_RANGE  = 'A1:S500';
+var FVA_SHEET_NAME      = '예측대비실적';
+var FVA_SHEET_RANGE     = 'A1:H100';
+var forecastActualRows  = [];
 var INIT_BALANCE        = 0;
 
 // 고정비/변동비/상환비 상세 내역 (주차별로 시트가 하나씩 생김: '31주차','32주차',...)
@@ -977,6 +1010,7 @@ function switchTab(tab){
   var navBtn=document.querySelector('[data-tab="'+tab+'"]');
   if(navBtn)navBtn.classList.add('active');
   if(tab==='weekly')renderWeeklyTab();
+  if(tab==='forecastActual')renderForecastActualTab();
 }
 
 function quoteSheetName(name){
@@ -1006,6 +1040,7 @@ async function fetchSheetData(force){
     var values=await fetchSheetValues(SHEET_NAME,SHEET_RANGE);
     parseCSV(sheetValuesToCSV(values));
     await fetchWeeklySheetData();
+    await fetchForecastActualData();
     setSyncStatus('ok');
     document.getElementById('lastUpdated').textContent='마지막 업데이트: '+new Date().toLocaleTimeString('ko-KR')+' (자동 갱신 '+(AUTO_REFRESH_MS/60000)+'분마다)';
   }catch(e){
@@ -1099,6 +1134,44 @@ async function fetchDetailSheetRows(weekNum){
     return null;
   }
 }
+
+async function fetchForecastActualData(){
+  try{
+    var values=await fetchSheetValues(FVA_SHEET_NAME,FVA_SHEET_RANGE);
+    forecastActualRows=(values||[]).slice(1).map(function(c){
+      function money(v){if(v===undefined||v===null||String(v).trim()==='')return null;return pn(v);}
+      return{month:String(c[0]||'').trim(),type:String(c[1]||'').trim(),revenue:money(c[2]),fixed:money(c[3]),order:money(c[4]),ad:money(c[5]),variable:money(c[6]),repay:money(c[7])};
+    }).filter(function(r){return r.month&&r.type;});
+  }catch(e){forecastActualRows=[];console.warn('예측대비실적 시트 로드 실패:',e);throw e;}
+  renderForecastActualTab();
+}
+function fvaProfit(r){return r?r.revenue-r.fixed-r.order-r.ad-r.variable:null}
+function fvaCost(r){return r?r.fixed+r.order+r.ad+r.variable:null}
+function fvaPctDiff(actual,expected){return expected?((actual-expected)/Math.abs(expected))*100:null}
+function fvaPairMap(){var m={};forecastActualRows.forEach(function(r){if(!m[r.month])m[r.month]={};if(r.type.indexOf('최초')>=0)m[r.month].expected=r;else if(r.type.indexOf('실제')>=0)m[r.month].actual=r;});return m}
+function fvaActualComplete(r){return !!r&&[r.revenue,r.fixed,r.order,r.ad,r.variable,r.repay].every(function(v){return v!==null})}
+function fvaMoney(v,sign){if(v===null||v===undefined||isNaN(v))return'—';return(sign&&v>0?'+':'')+fmt(v)+'만'}
+function fvaClass(diff,goodWhenPositive){if(diff===null||Math.abs(diff)<.0001)return'fva-neutral';return((diff>0)===goodWhenPositive)?'fva-good':'fva-bad'}
+function renderForecastActualTab(){
+  var root=document.getElementById('tab-forecastActual');if(!root)return;
+  var map=fvaPairMap(), months=Object.keys(map).sort();
+  var completed=months.filter(function(m){return map[m].expected&&fvaActualComplete(map[m].actual)});
+  var end=completed.length?completed[completed.length-1]:'—';document.getElementById('fvaRangeBadge').textContent='26-08 ~ '+end;
+  if(!months.length){['fvaSummaryGrid','fvaMetricGrid','fvaMonthlyProfitChart','fvaCumulativeProfitChart','fvaItemChart','fvaCauseAnalysis'].forEach(function(id){var e=document.getElementById(id);if(e)e.innerHTML='<div class="fva-empty">예측대비실적 시트 데이터를 불러오면 여기에 표시됩니다.</div>'});document.getElementById('fvaTableBody').innerHTML='';return}
+  function sumRows(kind,key){return completed.reduce(function(a,m){var r=map[m][kind];return a+(key==='cost'?fvaCost(r):key==='profit'?fvaProfit(r):r[key]);},0)}
+  var er=sumRows('expected','revenue'), ar=sumRows('actual','revenue'), ec=sumRows('expected','cost'), ac=sumRows('actual','cost'), ep=sumRows('expected','profit'), ap=sumRows('actual','profit');
+  var em=er?ep/er*100:0, am=ar?ap/ar*100:0;
+  var summaries=[['누적 전체매출',er,ar,ar-er,true],['누적 총비용',ec,ac,ac-ec,false],['누적 영업이익',ep,ap,ap-ep,true],['영업이익률',em,am,am-em,true]];
+  document.getElementById('fvaSummaryGrid').innerHTML=completed.length?summaries.map(function(x,i){var pct=i===3?null:fvaPctDiff(x[2],x[1]);return'<div class="fva-card"><div class="fva-card-title">'+x[0]+'</div><div class="fva-card-value '+fvaClass(x[3],x[4])+'">'+(i===3?x[2].toFixed(1)+'%':fvaMoney(x[2]))+'</div><div class="fva-card-meta">최초예측 '+(i===3?x[1].toFixed(1)+'%':fvaMoney(x[1]))+'<br><span class="'+fvaClass(x[3],x[4])+'">예측 대비 '+(i===3?(x[3]>=0?'+':'')+x[3].toFixed(1)+'%p':fvaMoney(x[3],true)+(pct!==null?' ('+(pct>=0?'+':'')+pct.toFixed(1)+'%)':''))+'</span></div></div>'}).join(''):'<div class="fva-empty" style="grid-column:1/-1">아직 실제 데이터가 입력된 월이 없습니다. 최초예측은 보존되며 실제 입력 후 동일 기간 누적 비교가 시작됩니다.</div>';
+  var metrics=[['매출','revenue',true],['고정비','fixed',false],['발주비','order',false],['광고비','ad',false],['변동비','variable',false]];
+  document.getElementById('fvaMetricGrid').innerHTML=completed.length?metrics.map(function(x){var e=sumRows('expected',x[1]),a=sumRows('actual',x[1]),d=a-e,p=fvaPctDiff(a,e);return'<div class="fva-metric"><div class="fva-metric-name">'+x[0]+'</div><div class="fva-metric-line"><span>최초예측</span><b>'+fvaMoney(e)+'</b></div><div class="fva-metric-line"><span>실제</span><b>'+fvaMoney(a)+'</b></div><div class="fva-metric-diff '+fvaClass(d,x[2])+'">'+fvaMoney(d,true)+(p!==null?' ('+(p>=0?'+':'')+p.toFixed(1)+'%)':'')+'</div></div>'}).join(''):'<div class="fva-empty" style="grid-column:1/-1">실제 입력 후 항목별 누적 비교가 표시됩니다.</div>';
+  renderFvaMonthlyProfit(map,months);renderFvaCumulative(map,completed);renderFvaItems(map,months);renderFvaCauses(map,completed);renderFvaTable(map,months);
+}
+function renderFvaMonthlyProfit(map,months){var W=700,H=260,pad=42, vals=[];months.forEach(function(m){vals.push(fvaProfit(map[m].expected)||0);if(fvaActualComplete(map[m].actual))vals.push(fvaProfit(map[m].actual)||0)});var max=Math.max(1,Math.max.apply(null,vals.map(Math.abs)));var zero=H/2,scale=(H/2-pad)/max,bw=22,gap=(W-pad*2)/months.length;var svg='<svg class="fva-svg" viewBox="0 0 '+W+' '+H+'"><line x1="'+pad+'" y1="'+zero+'" x2="'+(W-pad)+'" y2="'+zero+'" stroke="var(--border-light)"/>';months.forEach(function(m,i){var x=pad+gap*i+gap/2,e=fvaProfit(map[m].expected),a=fvaActualComplete(map[m].actual)?fvaProfit(map[m].actual):null;function bar(v,xx,c){var h=Math.abs(v)*scale,y=v>=0?zero-h:zero;return'<rect x="'+(xx-bw/2)+'" y="'+y+'" width="'+bw+'" height="'+Math.max(2,h)+'" rx="3" fill="'+c+'"/><text x="'+xx+'" y="'+(v>=0?y-6:y+h+14)+'" text-anchor="middle" fill="var(--text-sub)" font-size="10">'+fmt(v)+'</text>'}svg+=bar(e,x-13,'#7b8190');if(a!==null)svg+=bar(a,x+13,a>=e?'var(--green)':'var(--red)');svg+='<text x="'+x+'" y="'+(H-8)+'" text-anchor="middle" fill="var(--text-muted)" font-size="11">'+m.replace('26-','')+'월</text>';});svg+='</svg>';document.getElementById('fvaMonthlyProfitChart').innerHTML=svg}
+function renderFvaCumulative(map,months){if(!months.length){document.getElementById('fvaCumulativeProfitChart').innerHTML='<div class="fva-empty">실제 입력 후 누적 그래프가 표시됩니다.</div>';return}var W=700,H=260,p=42,ce=0,ca=0,es=[],as=[];months.forEach(function(m){ce+=fvaProfit(map[m].expected);ca+=fvaProfit(map[m].actual);es.push(ce);as.push(ca)});var all=es.concat(as),min=Math.min(0,Math.min.apply(null,all)),max=Math.max(1,Math.max.apply(null,all)),span=max-min||1;function y(v){return H-p-(v-min)/span*(H-p*2)}function pts(a){return a.map(function(v,i){return(p+i*(W-p*2)/Math.max(1,a.length-1))+','+y(v)}).join(' ')}var svg='<svg class="fva-svg" viewBox="0 0 '+W+' '+H+'"><line x1="'+p+'" y1="'+y(0)+'" x2="'+(W-p)+'" y2="'+y(0)+'" stroke="var(--border-light)"/><polyline points="'+pts(es)+'" fill="none" stroke="#7b8190" stroke-width="3"/><polyline points="'+pts(as)+'" fill="none" stroke="var(--blue)" stroke-width="4"/>';months.forEach(function(m,i){var x=p+i*(W-p*2)/Math.max(1,months.length-1);svg+='<circle cx="'+x+'" cy="'+y(es[i])+'" r="4" fill="#7b8190"/><circle cx="'+x+'" cy="'+y(as[i])+'" r="5" fill="var(--blue)"/><text x="'+x+'" y="'+(H-8)+'" text-anchor="middle" fill="var(--text-muted)" font-size="11">'+m.replace('26-','')+'월</text>'});svg+='</svg>';document.getElementById('fvaCumulativeProfitChart').innerHTML=svg}
+function renderFvaItems(map,months){var done=months.filter(function(m){return fvaActualComplete(map[m].actual)});if(!done.length){document.getElementById('fvaItemChart').innerHTML='<div class="fva-empty">실제 입력 후 월별 항목 비교가 표시됩니다.</div>';return}var metrics=[['매출','revenue'],['고정비','fixed'],['발주비','order'],['광고비','ad'],['변동비','variable']],html='<div style="display:grid;grid-template-columns:repeat('+done.length+',minmax(230px,1fr));gap:12px;min-width:'+(done.length*245)+'px">';done.forEach(function(m){html+='<div class="fva-metric"><div class="fva-metric-name">'+m.replace('26-','')+'월</div>';metrics.forEach(function(x){var e=map[m].expected[x[1]],a=map[m].actual[x[1]],d=a-e;html+='<div class="fva-metric-line"><span>'+x[0]+'</span><span>'+fmt(e)+' → <b class="'+fvaClass(d,x[1]==='revenue')+'">'+fmt(a)+'</b></span></div>'});html+='</div>'});html+='</div>';document.getElementById('fvaItemChart').innerHTML=html}
+function renderFvaCauses(map,months){if(!months.length){document.getElementById('fvaCauseAnalysis').innerHTML='<div class="fva-empty">실제 입력 후 원인 분석이 표시됩니다.</div>';return}function sum(kind,key){return months.reduce(function(a,m){return a+map[m][kind][key]},0)}var causes=[['매출',sum('actual','revenue')-sum('expected','revenue')],['고정비',-(sum('actual','fixed')-sum('expected','fixed'))],['발주비',-(sum('actual','order')-sum('expected','order'))],['광고비',-(sum('actual','ad')-sum('expected','ad'))],['변동비',-(sum('actual','variable')-sum('expected','variable'))]],mx=Math.max(1,Math.max.apply(null,causes.map(function(x){return Math.abs(x[1])}))),total=causes.reduce(function(a,x){return a+x[1]},0);document.getElementById('fvaCauseSub').textContent=months[0]+' ~ '+months[months.length-1]+' 누적 · 영업이익 예측 대비 '+fvaMoney(total,true);document.getElementById('fvaCauseAnalysis').innerHTML=causes.map(function(x){var c=x[1]>=0?'fva-good':'fva-bad';return'<div class="fva-cause-row"><b>'+x[0]+'</b><div class="fva-cause-bar-track"><div class="fva-cause-bar '+c+'" style="width:'+(Math.abs(x[1])/mx*100)+'%"></div></div><div class="fva-cause-value '+c+'">'+fvaMoney(x[1],true)+'</div></div>'}).join('')}
+function renderFvaTable(map,months){var html='';months.forEach(function(m){var e=map[m].expected,a=map[m].actual,complete=fvaActualComplete(a);function row(label,r,cls){if(!r)return'';var cost=fvaCost(r),profit=fvaProfit(r),margin=r.revenue?profit/r.revenue*100:0;return'<tr class="'+(cls||'')+'"><td>'+m+'</td><td>'+label+'</td><td>'+fmt(r.revenue)+'</td><td>'+fmt(r.fixed)+'</td><td>'+fmt(r.order)+'</td><td>'+fmt(r.ad)+'</td><td>'+fmt(r.variable)+'</td><td>'+fmt(r.repay)+'</td><td>'+fmt(cost)+'</td><td class="'+(profit>=0?'profit-pos':'profit-neg')+'">'+fmtSign(profit)+'</td><td>'+margin.toFixed(1)+'%</td></tr>'}html+=row('최초예측',e,'');if(complete){html+=row('실제',a,'actual-row');var d={revenue:a.revenue-e.revenue,fixed:a.fixed-e.fixed,order:a.order-e.order,ad:a.ad-e.ad,variable:a.variable-e.variable,repay:a.repay-e.repay};var dp=fvaProfit(a)-fvaProfit(e),dm=(a.revenue?fvaProfit(a)/a.revenue*100:0)-(e.revenue?fvaProfit(e)/e.revenue*100:0);html+='<tr class="diff-row"><td>'+m+'</td><td>예측 대비</td><td>'+fmtSign(d.revenue)+'</td><td>'+fmtSign(d.fixed)+'</td><td>'+fmtSign(d.order)+'</td><td>'+fmtSign(d.ad)+'</td><td>'+fmtSign(d.variable)+'</td><td>'+fmtSign(d.repay)+'</td><td>'+fmtSign(fvaCost(a)-fvaCost(e))+'</td><td class="'+(dp>=0?'profit-pos':'profit-neg')+'">'+fmtSign(dp)+'</td><td>'+((dm>=0?'+':'')+dm.toFixed(1))+'%p</td></tr>'}else{html+='<tr class="actual-row"><td>'+m+'</td><td>실제</td><td colspan="9" style="text-align:center;color:var(--text-muted)">미입력</td></tr>'}});document.getElementById('fvaTableBody').innerHTML=html}
 
 function parseWeeklyCSV(text){
   var allRows=parseCsvRows(text);
@@ -2897,6 +2970,7 @@ function renderAll(){
   renderRepay(rows);
   renderTable(rows);
   renderWeeklyTab();
+  renderForecastActualTab();
 }
 
 function fmt(n){
