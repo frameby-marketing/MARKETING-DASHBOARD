@@ -1491,13 +1491,13 @@ function renderFvaProductStatus(targetId,statusMonth,showTabs){
 
 function renderFvaCompareCards(e,a,label){
   var metrics=[
+    {name:'영업이익',key:'profit',goodPositive:true},
     {name:'전체매출',key:'revenue',goodPositive:true},
     {name:'고정비',key:'fixed',goodPositive:false},
     {name:'발주비',key:'order',goodPositive:false},
     {name:'광고비',key:'ad',goodPositive:false},
     {name:'변동비',key:'variable',goodPositive:false},
-    {name:'상환비',key:'repay',goodPositive:false},
-    {name:'영업이익',key:'profit',goodPositive:true}
+    {name:'상환비',key:'repay',goodPositive:false}
   ];
   var html=metrics.map(function(m){
     var ev=m.key==='profit'?fvaProfit(e):e[m.key],av=a?(m.key==='profit'?fvaProfit(a):a[m.key]):null;
