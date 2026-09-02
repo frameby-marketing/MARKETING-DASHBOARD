@@ -507,7 +507,7 @@
     .fva-month-bar-empty{height:24px;display:flex;align-items:center;justify-content:center;margin:0 4px;border:1px dashed var(--border-light);border-radius:5px;color:var(--text-muted);font-size:10px;font-weight:700}
     .fva-status-card{overflow:visible!important;padding-bottom:34px}
     .fva-status-table-wrap{overflow-x:auto!important;overflow-y:visible!important;padding-bottom:34px!important;margin-bottom:0!important}
-    .fva-status-table tbody tr:last-child td{border-bottom:1px solid var(--border-light)!important}
+    .fva-status-table tbody tr:last-child:not(.has-issue) td{border-bottom:1px solid var(--border-light)!important}.fva-status-table tbody tr:last-child.has-issue td{border-bottom:1px solid var(--red)!important}
     .fva-month-bar-label{text-align:center;font:800 11px 'DM Mono',monospace;color:var(--text-muted);margin-top:7px}
     .fva-avg-line{position:absolute;left:8px;right:8px;height:2px;background:var(--yellow);z-index:3;pointer-events:none}
     .fva-avg-label{position:absolute;right:10px;transform:translateY(-100%);padding:3px 7px;border-radius:5px;background:var(--yellow);color:#111;font:900 11px 'DM Mono',monospace;z-index:4;white-space:nowrap}
