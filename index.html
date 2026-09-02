@@ -1285,13 +1285,17 @@ function parseFvaChannelRows(all){
   }
   function n(c,idx){if(!c||c[idx]===undefined||c[idx]===null||String(c[idx]).trim()==='')return null;return channelMoney(c[idx]);}
 
-  // 자사몰+네이버: I열=월, J열=최초예측, K열=실제값
-  all.slice(1).forEach(function(c){
+  // 자사몰+네이버: I열=월, J열=구분(최초예측/실제), K열=금액
+  // 같은 월이 2개 행으로 구성되므로 J열 구분값에 따라 K열 금액을 각각 매핑한다.
+  all.slice(1,17).forEach(function(c){
     var month=normalizeFvaMonth(c[8]);
     if(!month)return;
-    var r=ensure(month),ev=n(c,9),av=n(c,10);
-    if(ev!==null)r.ownExpected=ev;
-    if(av!==null)r.ownActual=av;
+    var type=String(c[9]||'').trim();
+    var value=n(c,10);
+    if(value===null)return;
+    var r=ensure(month);
+    if(type.indexOf('최초')>=0||type.indexOf('예측')>=0)r.ownExpected=value;
+    else if(type.indexOf('실제')>=0)r.ownActual=value;
   });
 
   // M몰·쿠팡 월별 일평균: A22:C34 영역
@@ -1317,10 +1321,11 @@ function renderFvaSalesModal(){
   var month=fvaSelectedMonth,mon=Number(month.slice(3)),map=fvaChannelMap(),row=map[month]||{};
   if(title)title.textContent=mon+'월 전체매출 상세';
   if(fvaSalesChannel==='ownNaver'){
-    if(sub)sub.textContent='예측대비실적 시트 I~K열 · 자사몰+네이버 최초예측 vs 실제';
-    var e=row.ownExpected,a=row.ownActual;if(e===null||e===undefined||a===null||a===undefined){body.innerHTML='<div class="fva-popup-empty">'+mon+'월 자사몰+네이버 최초예측/실제 데이터가 없습니다.<br>예측대비실적 시트 I열=월, J열=최초예측, K열=실제값을 확인해주세요.</div>';return}
-    var mx=Math.max(1,Math.abs(e),Math.abs(a)),eh=Math.max(8,Math.abs(e)/mx*235),ah=Math.max(8,Math.abs(a)/mx*235),d=a-e,p=e?d/Math.abs(e)*100:null;
-    body.innerHTML='<div class="fva-popup-chart-card"><div class="fva-popup-chart-title">'+mon+'월 자사몰+네이버 매출</div><div class="fva-popup-chart-help">최초예측과 실제값 비교 · 단위: 만원</div><div class="fva-popup-compare"><div class="fva-popup-compare-col"><div class="fva-popup-compare-value">'+fvaMoney(e)+'</div><div class="fva-popup-compare-bar expected" style="height:'+eh+'px"></div><div class="fva-popup-compare-label">최초예측</div></div><div class="fva-popup-compare-col"><div class="fva-popup-compare-value '+(d>=0?'fva-good':'fva-bad')+'">'+fvaMoney(a)+'</div><div class="fva-popup-compare-bar actual" style="height:'+ah+'px"></div><div class="fva-popup-compare-label">실제</div></div></div><div class="fva-diff-focus"><div class="fva-diff-label">예측 대비 차이</div><div class="fva-diff-value '+(d>=0?'fva-good':'fva-bad')+'">'+fvaMoney(d,true)+'</div><div class="fva-diff-pct '+(d>=0?'fva-good':'fva-bad')+'">'+(p===null?'—':((p>=0?'+':'')+p.toFixed(1)+'%'))+'</div></div></div>';
+    if(sub)sub.textContent='예측대비실적 I1:K17 · I열=월 / J열=구분 / K열=자사몰+네이버매출';
+    var e=row.ownExpected,a=row.ownActual;
+    if(e===null||e===undefined){body.innerHTML='<div class="fva-popup-empty">'+mon+'월 자사몰+네이버 최초예측 데이터가 없습니다.<br>예측대비실적 I1:K17에서 I열=월, J열=구분(최초예측/실제), K열=자사몰+네이버매출을 확인해주세요.</div>';return}
+    var hasActual=!(a===null||a===undefined),mx=Math.max(1,Math.abs(e),hasActual?Math.abs(a):0),eh=Math.max(8,Math.abs(e)/mx*235),ah=hasActual?Math.max(8,Math.abs(a)/mx*235):0,d=hasActual?a-e:null,p=(hasActual&&e)?d/Math.abs(e)*100:null;
+    body.innerHTML='<div class="fva-popup-chart-card"><div class="fva-popup-chart-title">'+mon+'월 자사몰+네이버 매출</div><div class="fva-popup-chart-help">최초예측과 실제값 비교 · 단위: 만원'+(hasActual?'':' · 실제값 미입력')+'</div><div class="fva-popup-compare"><div class="fva-popup-compare-col"><div class="fva-popup-compare-value">'+fvaMoney(e)+'</div><div class="fva-popup-compare-bar expected" style="height:'+eh+'px"></div><div class="fva-popup-compare-label">최초예측</div></div><div class="fva-popup-compare-col"><div class="fva-popup-compare-value '+(hasActual?(d>=0?'fva-good':'fva-bad'):'fva-neutral')+'">'+(hasActual?fvaMoney(a):'—')+'</div>'+(hasActual?'<div class="fva-popup-compare-bar actual" style="height:'+ah+'px"></div>':'<div class="fva-popup-compare-bar" style="height:8px;background:var(--border-light)"></div>')+'<div class="fva-popup-compare-label">실제</div></div></div><div class="fva-diff-focus"><div class="fva-diff-label">예측 대비 차이</div><div class="fva-diff-value '+(hasActual?(d>=0?'fva-good':'fva-bad'):'fva-neutral')+'">'+(hasActual?fvaMoney(d,true):'—')+'</div><div class="fva-diff-pct '+(hasActual?(d>=0?'fva-good':'fva-bad'):'fva-neutral')+'">'+(p===null?'—':((p>=0?'+':'')+p.toFixed(1)+'%'))+'</div></div></div>';
     return;
   }
   var key=fvaSalesChannel==='mmall'?'mmall':'coupang',name=fvaSalesChannel==='mmall'?'M몰':'쿠팡';if(sub)sub.textContent='예측대비실적 A22:C34 · 26-01부터 선택 월까지 월별 일평균 매출 추이';
