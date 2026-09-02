@@ -1274,7 +1274,16 @@ function parseFvaChannelRows(all){
   fvaChannelRows=[];if(!all||!all.length)return;
   var byMonth={};
   function ensure(month){if(!byMonth[month])byMonth[month]={month:month,ownExpected:null,ownActual:null,mmall:null,coupang:null};return byMonth[month]}
-  function n(c,idx){if(!c||c[idx]===undefined||c[idx]===null||String(c[idx]).trim()==='')return null;return pn(c[idx]);}
+  // 팝업용 채널 데이터는 시트에서 '만원' 단위(예: 436) 또는 '원' 단위(예: 4,360,000)로
+  // 입력될 수 있으므로 크기를 보고 만원 단위로 정규화한다. 이미 만원 단위인 값은 다시 /10000 하지 않는다.
+  function channelMoney(v){
+    if(v===undefined||v===null||String(v).trim()==='')return null;
+    var raw=String(v).replace(/[₩,\s]/g,'').replace(/만원|원/g,'');
+    var num=parseFloat(raw);
+    if(isNaN(num))return null;
+    return Math.abs(num)>=10000?num/10000:num;
+  }
+  function n(c,idx){if(!c||c[idx]===undefined||c[idx]===null||String(c[idx]).trim()==='')return null;return channelMoney(c[idx]);}
 
   // 자사몰+네이버: I열=월, J열=최초예측, K열=실제값
   all.slice(1).forEach(function(c){
