@@ -804,6 +804,9 @@
         <div class="fva-compare-grid" id="fvaMetricGrid"></div>
       </div>
       <div class="table-card" id="fvaMonthlyTableSection"><div class="table-section-label chart-section-title-big" id="fvaTableTitle">상세 비교 <span style="font-size:11px;font-weight:400;color:var(--text-muted)">단위: 만원 · 상환비 포함</span></div><div class="table-wrap"><table class="fva-table"><thead><tr><th>월</th><th>구분</th><th>전체매출</th><th>고정비</th><th>발주비</th><th>광고비</th><th>변동비</th><th>상환비</th><th>총비용</th><th>영업이익</th><th>영업이익률</th></tr></thead><tbody id="fvaTableBody"></tbody></table></div></div>
+      <div class="fva-integrated-card fva-status-card" id="fvaMonthlyStatusSection" style="display:none">
+        <div class="fva-factor-section" id="fvaMonthlyStatus"></div>
+      </div>
     </div>
 
 
@@ -1371,16 +1374,17 @@ function renderForecastActualTab(){
   var root=document.getElementById('tab-forecastActual');if(!root)return;
   var map=fvaPairMap();renderFvaMonthSelector(map);
   var integrated=fvaSelectedMonth==='integrated';
-  var chart=document.getElementById('fvaIntegratedChart'),metrics=document.getElementById('fvaMonthlyMetricsSection'),table=document.getElementById('fvaMonthlyTableSection');
-  chart.classList.toggle('show',integrated);metrics.style.display=integrated?'none':'';table.style.display=integrated?'none':'';
+  var chart=document.getElementById('fvaIntegratedChart'),metrics=document.getElementById('fvaMonthlyMetricsSection'),table=document.getElementById('fvaMonthlyTableSection'),monthlyStatus=document.getElementById('fvaMonthlyStatusSection');
+  chart.classList.toggle('show',integrated);metrics.style.display=integrated?'none':'';table.style.display=integrated?'none':'';if(monthlyStatus)monthlyStatus.style.display=integrated?'none':'';
   if(integrated){document.getElementById('fvaRangeBadge').textContent='5~12월';renderFvaIntegratedChart(map);return}
   var month=fvaSelectedMonth,pair=map[month]||{},e=pair.expected,a=pair.actual,complete=!!e&&fvaActualComplete(a),label=Number(month.slice(3))+'월';
   document.getElementById('fvaRangeBadge').textContent=month;
   document.getElementById('fvaMetricTitle').textContent=label+' 항목별 예측 대비';
   document.getElementById('fvaTableTitle').innerHTML=label+' 상세 비교 <span style="font-size:11px;font-weight:400;color:var(--text-muted)">단위: 만원 · 상환비 포함</span>';
-  if(!e){document.getElementById('fvaMetricGrid').innerHTML='<div class="fva-empty" style="grid-column:1/-1">'+label+' 최초예측 데이터가 없습니다.</div>';document.getElementById('fvaTableBody').innerHTML='';return}
+  if(!e){document.getElementById('fvaMetricGrid').innerHTML='<div class="fva-empty" style="grid-column:1/-1">'+label+' 최초예측 데이터가 없습니다.</div>';document.getElementById('fvaTableBody').innerHTML='';renderFvaMonthlyStatus(Number(month.slice(3)));return}
   renderFvaCompareCards(e,complete?a:null,label);
   renderFvaTable(map,[month]);
+  renderFvaMonthlyStatus(Number(month.slice(3)));
 }
 function renderFvaIntegratedChart(map){
   var months=[];for(var i=5;i<=12;i++)months.push('26-'+String(i).padStart(2,'0'));
@@ -1428,8 +1432,10 @@ function renderFvaIntegratedVariance(map,profitRows){
 
 var fvaStatusMonth=5;
 function setFvaStatusMonth(m){fvaStatusMonth=m;renderFvaIntegratedFactors()}
-function renderFvaIntegratedFactors(){
-  var el=document.getElementById('fvaIntegratedFactors');if(!el)return;
+function renderFvaMonthlyStatus(m){renderFvaProductStatus('fvaMonthlyStatus',m,false)}
+function renderFvaIntegratedFactors(){renderFvaProductStatus('fvaIntegratedFactors',fvaStatusMonth,true)}
+function renderFvaProductStatus(targetId,statusMonth,showTabs){
+  var el=document.getElementById(targetId);if(!el)return;
   var products=['맥세이프 케이스','맥세이프 킥프레임','PH 실버','PH 블랙','DW 프로 실버','DW 프로 블랙','DW 플러스 실버','DW 플러스 블랙'];
   var data={
     5:{
@@ -1465,9 +1471,9 @@ function renderFvaIntegratedFactors(){
     11:{'맥세이프 케이스':{discontinued:30,note:'17시리즈 미만 기종 단종'},'DW 플러스 실버':{discontinued:30,note:'단종'}},
     12:{'맥세이프 케이스':{discontinued:31,note:'17시리즈 미만 기종 단종'},'DW 플러스 실버':{discontinued:31,note:'단종'}}
   };
-  var days=new Date(2026,fvaStatusMonth,0).getDate(),monthData=data[fvaStatusMonth]||{};
+  var days=new Date(2026,statusMonth,0).getDate(),monthData=data[statusMonth]||{};
   var html='<div class="fva-status-head"><div><div class="fva-factor-title">월별 주요 제품 판매 현황</div><div class="fva-factor-help">초록색은 정상판매, 노란색은 가격변경, 빨간색은 품절·사전예약, 회색은 단종 상태입니다. 가격변경과 품절이 겹치는 기간은 품절 이슈를 우선해 빨간색으로 표시합니다.</div></div><div class="fva-status-legend"><span><i class="normal"></i>정상판매</span><span><i class="price"></i>가격변경</span><span><i class="issue"></i>품절/사전예약</span><span><i class="discontinued"></i>단종</span></div></div>';
-  html+='<div class="fva-status-tabs">';for(var m=5;m<=12;m++)html+='<button class="fva-status-btn '+(m===fvaStatusMonth?'active':'')+'" onclick="setFvaStatusMonth('+m+')">'+m+'월</button>';html+='</div>';
+  if(showTabs){html+='<div class="fva-status-tabs">';for(var m=5;m<=12;m++)html+='<button class="fva-status-btn '+(m===statusMonth?'active':'')+'" onclick="setFvaStatusMonth('+m+')">'+m+'월</button>';html+='</div>';} 
   html+='<div class="fva-status-table-wrap"><table class="fva-status-table"><thead><tr><th>주요 제품</th><th>'+fvaStatusMonth+'월 '+days+'일 판매 상태</th><th>상태</th><th>참고사항</th></tr></thead><tbody>';
   products.forEach(function(product){
     var d=monthData[product]||{issue:0,price:0,discontinued:0,note:'특이사항 없음'};
