@@ -441,7 +441,7 @@
     .fva-diff-focus{margin-top:16px;padding:14px 16px;border-radius:9px;background:var(--bg-card2);border:1px solid var(--border);text-align:center}
     .fva-diff-label{font-size:12px;color:var(--text-muted);font-weight:700;margin-bottom:5px}
     .fva-diff-value{font:900 22px 'DM Mono',monospace;line-height:1.25}
-    .fva-diff-pct{font:800 15px 'DM Mono',monospace;margin-top:3px}
+    .fva-diff-pct{font:900 22px 'DM Mono',monospace;line-height:1.25;margin-top:3px}
     .fva-empty{padding:36px;text-align:center;color:var(--text-muted);background:var(--bg-card2);border-radius:10px}.fva-table .actual-row td{background:rgba(59,130,246,.04)}.fva-table .diff-row td{font-weight:700;background:var(--bg-card2)}
     .fva-integrated-chart{display:none}
     .fva-integrated-chart.show{display:block}
@@ -513,6 +513,7 @@
     .fva-month-bar-label{text-align:center;font:800 11px 'DM Mono',monospace;color:var(--text-muted);margin-top:7px}
     .fva-avg-line{position:absolute;left:8px;right:8px;height:2px;background:var(--yellow);z-index:3;pointer-events:none}
     .fva-avg-label{position:absolute;right:10px;transform:translateY(-100%);padding:3px 7px;border-radius:5px;background:var(--yellow);color:#111;font:900 11px 'DM Mono',monospace;z-index:4;white-space:nowrap}
+    .fva-channel-average-summary{margin-top:16px;padding:16px 18px;border:1px solid var(--border);border-radius:10px;background:var(--bg-card);display:flex;align-items:baseline;justify-content:center;gap:12px;flex-wrap:wrap;text-align:center}.fva-channel-average-summary .label{font-size:12px;font-weight:800;color:var(--text-muted)}.fva-channel-average-summary .amount{font:900 22px 'DM Mono',monospace}.fva-channel-average-summary .pct{font:900 22px 'DM Mono',monospace}.fva-channel-average-summary.good .amount,.fva-channel-average-summary.good .pct{color:var(--green)}.fva-channel-average-summary.bad .amount,.fva-channel-average-summary.bad .pct{color:var(--red)}.fva-channel-average-summary.neutral .amount,.fva-channel-average-summary.neutral .pct{color:var(--text-muted)}
     .fva-popup-empty{padding:54px 20px;text-align:center;color:var(--text-muted);font-size:13px}
     @media(max-width:760px){.fva-sales-modal-head{flex-direction:column}.fva-sales-modal-actions{justify-content:flex-start}.fva-popup-compare{gap:24px}.fva-sales-modal-body{padding:14px}.fva-card-click-hint{position:static;display:inline-block;margin-bottom:8px}}
 
@@ -1863,13 +1864,20 @@ function renderFvaSalesModal(){
     body.innerHTML='<div class="fva-popup-chart-card"><div class="fva-popup-chart-title">'+mon+'월 자사몰+네이버 매출</div><div class="fva-popup-chart-help">최초예측과 실제값 비교 · 단위: 만원'+(hasActual?'':' · 실제값 미입력')+'</div><div class="fva-popup-compare"><div class="fva-popup-compare-col"><div class="fva-popup-compare-value">'+fvaMoney(e)+'</div><div class="fva-popup-compare-bar expected" style="height:'+eh+'px"></div><div class="fva-popup-compare-label">최초예측</div></div><div class="fva-popup-compare-col"><div class="fva-popup-compare-value '+(hasActual?(d>=0?'fva-good':'fva-bad'):'fva-neutral')+'">'+(hasActual?fvaMoney(a):'—')+'</div>'+(hasActual?'<div class="fva-popup-compare-bar actual" style="height:'+ah+'px"></div>':'<div class="fva-popup-compare-bar" style="height:8px;background:var(--border-light)"></div>')+'<div class="fva-popup-compare-label">실제</div></div></div><div class="fva-diff-focus"><div class="fva-diff-label">예측 대비 차이</div><div class="fva-diff-value '+(hasActual?(d>=0?'fva-good':'fva-bad'):'fva-neutral')+'">'+(hasActual?fvaMoney(d,true):'—')+'</div><div class="fva-diff-pct '+(hasActual?(d>=0?'fva-good':'fva-bad'):'fva-neutral')+'">'+(p===null?'—':((p>=0?'+':'')+p.toFixed(1)+'%'))+'</div></div></div>';
     return;
   }
-  var key=fvaSalesChannel==='mmall'?'mmall':'coupang',name=fvaSalesChannel==='mmall'?'M몰':'쿠팡';if(sub)sub.textContent='예측대비실적 A22:C34 · 26-01부터 선택 월까지 월별 일평균 매출 추이';
+  var key=fvaSalesChannel==='mmall'?'mmall':'coupang',name=fvaSalesChannel==='mmall'?'M몰':'쿠팡',lag=fvaSalesChannel==='mmall'?1:2,sourceMon=mon-lag;
+  if(sub)sub.textContent='예측대비실적 A22:C34 · '+mon+'월 영업이익 정산 반영 기준: '+name+' '+sourceMon+'월 판매';
   var arr=[];for(var i=1;i<=mon;i++){var m='26-'+String(i).padStart(2,'0'),v=map[m]?map[m][key]:null;arr.push({month:i,value:v})}
   var avail=arr.filter(function(x){return x.value!==null&&x.value!==undefined});if(!avail.length){body.innerHTML='<div class="fva-popup-empty">'+name+' 월별 일평균 데이터가 없습니다.<br>예측대비실적 시트 A22:C34에서 A열=월, B열=M몰, C열=쿠팡 데이터를 확인해주세요.</div>';return}
-  var avg=avail.reduce(function(t,x){return t+x.value},0)/avail.length,max=Math.max.apply(null,avail.map(function(x){return Math.abs(x.value)}).concat([Math.abs(avg),1]));
-  var bars='';for(var j=1;j<=mon;j++){var x=arr[j-1],has=x&&x.value!==null&&x.value!==undefined,selected=j===mon,h=has?Math.max(4,Math.abs(x.value)/max*245):0;bars+='<div class="fva-month-bar-col"><div class="fva-month-bar-value">'+(has?fmt(x.value):'—')+'</div>'+(has?'<div class="fva-month-bar '+(selected?'selected':'')+'" style="height:'+h+'px"></div>':'<div class="fva-month-bar-empty">미입력</div>')+'<div class="fva-month-bar-label">'+j+'월</div></div>'}
-  var avgBottom=8+(Math.abs(avg)/max*245)+28,selectedValue=arr[mon-1]?arr[mon-1].value:null;
-  body.innerHTML='<div class="fva-popup-chart-card"><div class="fva-popup-chart-title">'+name+' 월별 일평균 매출</div><div class="fva-popup-chart-help">26-01~'+month+' · 다른 월은 회색, 선택 월은 초록색 · 노란선은 입력된 월의 평균 · 단위: 만원/일'+(selectedValue===null||selectedValue===undefined?' · '+mon+'월 데이터 미입력':'')+'</div><div style="overflow-x:auto"><div class="fva-monthly-bars-wrap"><div class="fva-monthly-bars" style="grid-template-columns:repeat('+mon+',minmax(54px,1fr))">'+bars+'</div><div class="fva-avg-line" style="bottom:'+avgBottom+'px"></div><div class="fva-avg-label" style="bottom:'+(avgBottom+2)+'px">평균 '+fmt(avg)+'만/일</div></div></div></div>';
+  var sourceValue=sourceMon>0&&arr[sourceMon-1]?arr[sourceMon-1].value:null;
+  var avgRows=arr.filter(function(x){return x.month<sourceMon&&x.value!==null&&x.value!==undefined});
+  var avg=avgRows.length?avgRows.reduce(function(t,x){return t+x.value},0)/avgRows.length:null;
+  var scaleVals=avail.map(function(x){return Math.abs(x.value)});if(avg!==null)scaleVals.push(Math.abs(avg));scaleVals.push(1);
+  var max=Math.max.apply(null,scaleVals);
+  var bars='';for(var j=1;j<=mon;j++){var x=arr[j-1],has=x&&x.value!==null&&x.value!==undefined,selected=j===sourceMon,h=has?Math.max(4,Math.abs(x.value)/max*245):0;bars+='<div class="fva-month-bar-col"><div class="fva-month-bar-value">'+(has?fmt(x.value):'—')+'</div>'+(has?'<div class="fva-month-bar '+(selected?'selected':'')+'" style="height:'+h+'px"></div>':'<div class="fva-month-bar-empty">미입력</div>')+'<div class="fva-month-bar-label">'+j+'월</div></div>'}
+  var avgLine=avg===null?'':'<div class="fva-avg-line" style="bottom:'+(8+(Math.abs(avg)/max*245)+28)+'px"></div><div class="fva-avg-label" style="bottom:'+(10+(Math.abs(avg)/max*245)+28)+'px">평균 '+fmt(avg)+'만/일</div>';
+  var diff=(sourceValue!==null&&sourceValue!==undefined&&avg!==null)?sourceValue-avg:null,pct=(diff!==null&&avg!==0)?diff/Math.abs(avg)*100:null,cls=diff===null?'neutral':(diff>0?'good':diff<0?'bad':'neutral');
+  var summary=diff===null?'<div class="fva-channel-average-summary neutral"><span class="label">평균 대비</span><span class="amount">비교 데이터 부족</span></div>':'<div class="fva-channel-average-summary '+cls+'"><span class="label">'+sourceMon+'월 정산 반영 매출 · 과거 평균 대비</span><span class="amount">'+(diff>0?'+':'')+fmt(diff)+'만/일</span><span class="pct">'+(pct===null?'—':((pct>0?'+':'')+pct.toFixed(1)+'%'))+'</span></div>';
+  body.innerHTML='<div class="fva-popup-chart-card"><div class="fva-popup-chart-title">'+name+' 월별 일평균 매출</div><div class="fva-popup-chart-help">'+mon+'월 영업이익에는 '+sourceMon+'월 '+name+' 판매가 반영됩니다. '+sourceMon+'월만 강조하고 나머지는 회색으로 표시합니다. 노란선/라벨은 '+(sourceMon>1?'1~'+(sourceMon-1)+'월':'이전 월')+' 평균 · 단위: 만원/일'+(sourceValue===null||sourceValue===undefined?' · '+sourceMon+'월 데이터 미입력':'')+'</div><div style="overflow-x:auto"><div class="fva-monthly-bars-wrap"><div class="fva-monthly-bars" style="grid-template-columns:repeat('+mon+',minmax(54px,1fr))">'+bars+'</div>'+avgLine+'</div></div>'+summary+'</div>';
 }
 
 function syncFvaProfitModalArea(){
