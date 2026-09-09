@@ -694,6 +694,14 @@
 
 /* 영업이익 하락 요인 중 매출 상세 원인 분석 */
 .fva-profit-revenue-cause{margin-top:18px;padding:22px;border:1px solid var(--border);border-radius:18px;background:var(--card)}
+.fva-prc-toggle-wrap{margin-top:18px;text-align:center}
+.fva-prc-toggle-btn{appearance:none;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:13px;font-weight:700;padding:10px 16px;border-radius:999px;cursor:pointer;transition:.18s ease}
+.fva-prc-toggle-btn:hover{background:var(--soft);border-color:#cbd5e1}
+.fva-prc-toggle-btn .fva-prc-toggle-icon{display:inline-block;margin-left:6px;transition:transform .18s ease}
+.fva-prc-toggle-btn[aria-expanded="true"] .fva-prc-toggle-icon{transform:rotate(180deg)}
+.fva-prc-collapsible{display:none;margin-top:14px}
+.fva-prc-collapsible.show{display:block}
+
 .fva-prc-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:14px}
 .fva-prc-title{font-size:19px;font-weight:900;color:var(--text);letter-spacing:-.3px}
 .fva-prc-help{font-size:12px;line-height:1.6;color:var(--text-muted);margin-top:5px;max-width:860px}
@@ -1747,7 +1755,7 @@ function fvaProfitRevenueCauseBox(mon){
   function platformCards(x){return x.platforms.map(function(p){var d=p.data.delta,cls=d<0?'down':d>0?'up':'flat';return '<div class="fva-prc-platform"><div class="fva-prc-platform-name">'+p.name+' 평균 대비</div><div class="fva-prc-platform-val '+cls+'">'+won(d)+' · '+pct(p.data.pct)+'</div></div>'}).join('')}
   var list=products.slice(0,5).map(function(x,i){
     var issue=fvaIntegratedStatusNote(mon,x.name);
-    return '<div class="fva-prc-product"><div class="fva-prc-product-top"><div><div class="fva-prc-product-name">'+(i+1)+'위 · '+fvaDisplayProductName(x.name)+'</div><div class="fva-prc-product-sub">정산 기준 과거 평균 '+psWon(x.avg)+' → 현재 '+psWon(x.cur)+(issue&&issue!=='특이사항 없음'?' · '+issue:'')+'</div></div><div class="fva-prc-product-loss">'+won(x.delta)+'<div class="fva-prc-product-sub">'+pct(x.pct)+'</div></div></div><div class="fva-prc-platforms">'+platformCards(x)+'</div></div>';
+    return '<div class="fva-prc-product"><div class="fva-prc-product-top"><div><div class="fva-prc-product-name">'+(i+1)+'위 · '+fvaDisplayProductName(x.name)+'</div><div class="fva-prc-product-sub">정산 기준 과거 평균 '+psWon(x.avg)+' → 현재 '+psWon(x.cur)+(issue&&issue!=='특이사항 없음'?' · '+issue:'')+'</div></div><div class="fva-prc-product-loss">'+won(x.delta)+'<div class="fva-prc-product-sub">'+pct(x.pct)+'</div></div></div></div>';
   }).join('');
 
   var forecastAbs=Math.abs(forecastGapWon);
@@ -1757,16 +1765,27 @@ function fvaProfitRevenueCauseBox(mon){
   var maxLoss=Math.max.apply(null,products.slice(0,5).map(function(x){return Math.abs(x.delta)}).concat([1]));
   var list=products.slice(0,5).map(function(x,i){
     var issue=fvaIntegratedStatusNote(mon,x.name),bar=Math.max(5,Math.abs(x.delta)/maxLoss*100);
-    return '<div class="fva-prc-product"><div class="fva-prc-product-top"><div><div class="fva-prc-product-name"><span class="fva-prc-rank">'+(i+1)+'위</span>'+fvaDisplayProductName(x.name)+'</div><div class="fva-prc-product-sub">정산 기준 과거 평균 '+psWon(x.avg)+' → 현재 '+psWon(x.cur)+(issue&&issue!=='특이사항 없음'?' · '+issue:'')+'</div></div><div class="fva-prc-product-loss">'+won(x.delta)+'<div class="fva-prc-product-sub">'+pct(x.pct)+'</div></div></div><div class="fva-prc-impact-bar"><div class="fva-prc-impact-fill" style="width:'+bar.toFixed(1)+'%"></div></div><div class="fva-prc-platforms">'+platformCards(x)+'</div></div>';
+    return '<div class="fva-prc-product"><div class="fva-prc-product-top"><div><div class="fva-prc-product-name"><span class="fva-prc-rank">'+(i+1)+'위</span>'+fvaDisplayProductName(x.name)+'</div><div class="fva-prc-product-sub">정산 기준 과거 평균 '+psWon(x.avg)+' → 현재 '+psWon(x.cur)+(issue&&issue!=='특이사항 없음'?' · '+issue:'')+'</div></div><div class="fva-prc-product-loss">'+won(x.delta)+'<div class="fva-prc-product-sub">'+pct(x.pct)+'</div></div></div><div class="fva-prc-impact-bar"><div class="fva-prc-impact-fill" style="width:'+bar.toFixed(1)+'%"></div></div></div>';
   }).join('');
 
   return '<div class="fva-profit-revenue-cause">'
     +'<div class="fva-prc-head"><div><div class="fva-prc-title">영업이익 하락 원인 · 매출 상세 분석</div><div class="fva-prc-help">영업이익 예측 대비 하락 요인 중 매출에 대해, 정산 시차를 반영해 어떤 제품과 플랫폼이 실제 감소를 만들었는지 확인합니다.</div></div><div class="fva-prc-badge">매출 하락 원인 분석</div></div>'
-    +'<div class="fva-prc-insight"><div class="fva-prc-insight-main"><div class="fva-prc-insight-kicker">핵심 해석</div><div class="fva-prc-insight-title">'+insightTitle+'</div><div class="fva-prc-insight-desc">'+insightDesc+'</div></div><div class="fva-prc-insight-side"><div class="fva-prc-insight-side-label">예측 대비 매출 부족</div><div class="fva-prc-insight-side-value">'+won(forecastGapWon)+'</div><div class="fva-prc-product-sub">주요 하락 제품 감소 합계 '+won(totalProductDecline)+' · 부족액 대비 약 '+explainRatio.toFixed(0)+'%</div></div></div>'
-    +'<div class="fva-prc-summary"><div class="fva-prc-summary-card"><div class="fva-prc-summary-label">가장 큰 하락 제품</div><div class="fva-prc-summary-value">'+fvaDisplayProductName(top.name)+'</div></div><div class="fva-prc-summary-card"><div class="fva-prc-summary-label">해당 제품 평균 대비</div><div class="fva-prc-summary-value" style="color:var(--red)">'+won(top.delta)+' · '+pct(top.pct)+'</div></div><div class="fva-prc-summary-card"><div class="fva-prc-summary-label">하락이 가장 큰 플랫폼</div><div class="fva-prc-summary-value">'+(biggest?biggest.name:'—')+'</div></div></div>'
-    +'<div class="fva-prc-list-title"><span>제품별 하락 영향 순위</span><span class="fva-prc-list-note">막대가 길수록 평균 대비 감소액이 큼</span></div>'
-    +list
+    +'<div class="fva-prc-insight"><div class="fva-prc-insight-main" style="width:100%"><div class="fva-prc-insight-kicker">핵심 해석</div><div class="fva-prc-insight-title">'+insightTitle+'</div><div class="fva-prc-insight-desc">'+insightDesc+'</div></div></div>'
+    +'<div class="fva-prc-summary" style="grid-template-columns:repeat(2,minmax(0,1fr))"><div class="fva-prc-summary-card"><div class="fva-prc-summary-label">가장 큰 하락 제품</div><div class="fva-prc-summary-value">'+fvaDisplayProductName(top.name)+'</div></div><div class="fva-prc-summary-card"><div class="fva-prc-summary-label">해당 제품 평균 대비</div><div class="fva-prc-summary-value" style="color:var(--red)">'+won(top.delta)+' · '+pct(top.pct)+'</div></div></div>'
+    +'<div class="fva-prc-toggle-wrap"><button type="button" class="fva-prc-toggle-btn" aria-expanded="false" onclick="fvaToggleRevenueImpactList(this)">제품별 하락 영향 순위 더 보기 <span class="fva-prc-toggle-icon">⌄</span></button></div>'
+    +'<div class="fva-prc-collapsible"><div class="fva-prc-list-title"><span>제품별 하락 영향 순위</span><span class="fva-prc-list-note">막대가 길수록 평균 대비 감소액이 큼</span></div>'+list+'</div>'
     +'</div>';
+}
+function fvaToggleRevenueImpactList(btn){
+  if(!btn)return;
+  var box=btn.closest('.fva-profit-revenue-cause');
+  if(!box)return;
+  var panel=box.querySelector('.fva-prc-collapsible');
+  if(!panel)return;
+  var open=!panel.classList.contains('show');
+  panel.classList.toggle('show',open);
+  btn.setAttribute('aria-expanded',open?'true':'false');
+  btn.innerHTML=(open?'제품별 하락 영향 순위 접기':'제품별 하락 영향 순위 더 보기')+' <span class="fva-prc-toggle-icon">⌄</span>';
 }
 var fvaProductChartContext={name:'',key:'integrated',month:1};
 function syncFvaProductChartModalArea(){
