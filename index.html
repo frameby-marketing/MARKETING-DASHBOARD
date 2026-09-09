@@ -590,6 +590,49 @@
     @media(max-width:1000px){.fva-platform-grid{grid-template-columns:1fr}.fva-profit-cause-grid{grid-template-columns:1fr}.fva-cause-summary{grid-template-columns:1fr}}
     @media(max-width:650px){.fva-cause-item{grid-template-columns:12px 1fr auto}.fva-cause-item-desc{grid-column:2/-1}.fva-donut{width:220px;height:220px}}
 
+    /* ===== FVA 원인분석 v2 ===== */
+    .fva-cause-summary-card{padding:20px 22px}
+    .fva-cause-summary-title{font-size:20px;letter-spacing:-.3px;margin-bottom:13px}
+    .fva-cause-summary-text{font-size:15px;line-height:1.8}
+    .fva-cause-summary-card.bad{border-left-width:6px}.fva-cause-summary-card.good{border-left-width:6px}
+    .fva-cause-primary{margin:-2px 0 12px;padding:14px 16px;border-radius:10px;background:rgba(239,68,68,.10);border:1px solid rgba(239,68,68,.30)}
+    .fva-cause-primary-label{font-size:12px;font-weight:900;color:var(--red);margin-bottom:4px}
+    .fva-cause-primary-value{font-size:23px;font-weight:900;color:var(--text);font-family:'DM Mono',monospace}
+    .fva-cause-token{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:999px;border:1px solid var(--token-color);margin:3px 5px 3px 0;font-weight:800;color:var(--text);background:color-mix(in srgb,var(--token-color) 12%,transparent)}
+    .fva-cause-token i{width:9px;height:9px;border-radius:50%;background:var(--token-color);display:inline-block}
+    .fva-platform-tabs,.fva-product-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 16px}
+    .fva-platform-tab,.fva-product-tab{border:1px solid var(--border);background:var(--bg-card2);color:var(--text-sub);border-radius:999px;padding:9px 16px;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit}
+    .fva-platform-tab.active,.fva-product-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+    .fva-platform-single{border:1px solid var(--border);background:var(--bg-card2);border-radius:13px;padding:18px}
+    .fva-history-chart{margin-top:16px;padding:16px;background:var(--bg-card);border:1px solid var(--border);border-radius:11px}
+    .fva-history-title{font-size:14px;font-weight:900;color:var(--text);margin-bottom:6px}
+    .fva-history-sub{font-size:11px;color:var(--text-muted);margin-bottom:14px}
+    .fva-bar-chart{height:220px;display:flex;align-items:flex-end;gap:11px;padding:24px 8px 28px;position:relative;border-bottom:1px solid var(--border)}
+    .fva-bar-chart-grouped{height:255px;gap:14px}
+    .fva-bar-col{flex:1;min-width:42px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+    .fva-bar-value{font:800 10px 'DM Mono',monospace;color:var(--text-sub);white-space:nowrap;margin-bottom:5px}
+    .fva-bar{width:62%;min-height:3px;background:#737986;border-radius:6px 6px 2px 2px}
+    .fva-bar.current{background:#3b82f6}
+    .fva-bar-month{position:absolute;bottom:-23px;font-size:11px;font-weight:800;color:var(--text-muted)}
+    .fva-avg-line{position:absolute;left:6px;right:6px;border-top:2px dashed #f59e0b;z-index:3;pointer-events:none}
+    .fva-avg-label{position:absolute;right:0;top:-22px;padding:3px 6px;border-radius:5px;background:#f59e0b;color:#111;font:900 10px 'DM Mono',monospace;white-space:nowrap}
+    .fva-driver-groups{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+    .fva-driver-group{background:var(--bg-card);border:1px solid var(--border);border-radius:11px;padding:13px}
+    .fva-driver-group-title{font-size:15px;font-weight:900;margin-bottom:10px}
+    .fva-driver-group.down .fva-driver-group-title{color:var(--red)}.fva-driver-group.up .fva-driver-group-title{color:var(--green)}
+    .fva-driver-row{cursor:pointer;transition:transform .15s,border-color .15s}.fva-driver-row:hover{transform:translateY(-1px);border-color:var(--accent)}
+    .fva-product-note{margin-top:7px;padding:6px 8px;border-radius:7px;background:var(--bg-card2);font-size:11px;color:var(--text-sub);line-height:1.5}
+    .fva-product-note.issue{color:#fbbf24;border:1px solid rgba(245,158,11,.3)}
+    .fva-product-detail{margin-top:14px}
+    .fva-actual-trend{margin-top:20px;padding-top:18px;border-top:1px solid var(--border)}
+    .fva-group-month{flex:1;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;position:relative}
+    .fva-group-bars{width:100%;height:100%;display:flex;align-items:flex-end;justify-content:center;gap:3px}
+    .fva-mini-bar{width:18%;min-height:3px;border-radius:4px 4px 1px 1px}
+    .fva-mini-bar.total{background:#6366f1}.fva-mini-bar.own{background:#22c55e}.fva-mini-bar.naver{background:#3b82f6}.fva-mini-bar.mmall{background:#f59e0b}
+    .fva-group-legend{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 0;font-size:11px;color:var(--text-sub)}
+    .fva-group-legend span{display:flex;align-items:center;gap:5px}.fva-group-legend i{width:9px;height:9px;border-radius:2px;display:inline-block}
+    @media(max-width:850px){.fva-driver-groups{grid-template-columns:1fr}.fva-cause-summary-title{font-size:17px}.fva-cause-summary-text{font-size:13px}}
+
   </style>
 </head>
 <body>
@@ -881,7 +924,6 @@
       <div class="fva-cause-section" id="fvaProductSalesAnalysisSection">
         <div id="fvaProductSalesAnalysis"></div>
       </div>
-      <div class="table-card" id="fvaMonthlyTableSection"><div class="table-section-label chart-section-title-big" id="fvaTableTitle">상세 비교 <span style="font-size:11px;font-weight:400;color:var(--text-muted)">단위: 만원 · 상환비 포함</span></div><div class="table-wrap"><table class="fva-table"><thead><tr><th>월</th><th>구분</th><th>전체매출</th><th>고정비</th><th>발주비</th><th>광고비</th><th>변동비</th><th>상환비</th><th>총비용</th><th>영업이익</th><th>영업이익률</th></tr></thead><tbody id="fvaTableBody"></tbody></table></div></div>
       <div class="fva-integrated-card fva-status-card" id="fvaMonthlyStatusSection" style="display:none">
         <div class="fva-factor-section" id="fvaMonthlyStatus"></div>
       </div>
@@ -1436,65 +1478,59 @@ function psProductMap(mon){var m={};psRowsForMonth(mon).forEach(function(r){m[r.
 function psPct(cur,base){return base?((cur-base)/Math.abs(base))*100:null}
 function psWon(v){return Math.round(v||0).toLocaleString('ko-KR')+'원'}
 function psQty(v){return Math.round(v||0).toLocaleString('ko-KR')+'개'}
+var fvaAnalysisPlatform='ownNaver';
+var fvaAnalysisProduct='';
+var fvaActualTrendProduct='DW PRO';
+function setFvaAnalysisPlatform(key){fvaAnalysisPlatform=key;fvaAnalysisProduct='';renderFvaProductSalesAnalysis(Number(fvaSelectedMonth.slice(3)))}
+function setFvaAnalysisProduct(name){fvaAnalysisProduct=name;renderFvaProductSalesAnalysis(Number(fvaSelectedMonth.slice(3)))}
+function setFvaActualTrendProduct(name){fvaActualTrendProduct=name;renderFvaProductSalesAnalysis(Number(fvaSelectedMonth.slice(3)))}
+function fvaProductStatusNote(mon,product){
+  var map={
+    5:{'PH STAND':'PH 실버 30일 품절 · 사전예약 / PH 블랙 17일 품절 · 사전예약','DW PRO':'DW 프로 실버 15일 품절 · 사전예약 / 26일 가격변경','DW PLUS':'DW 플러스 실버 18일 품절 · 사전예약 / 26일 가격변경'},
+    6:{'맥세이프 에어':'6/21부터 17시리즈 미만 기종 단종','맥세이프 에어범퍼':'6/21부터 17시리즈 미만 기종 단종','DW PRO':'6일 가격변경','DW PLUS':'6일 가격변경'},
+    7:{'맥세이프 에어':'17시리즈 미만 기종 단종','맥세이프 에어범퍼':'17시리즈 미만 기종 단종','PH STAND':'PH 실버·블랙 24일 품절 · 사전예약 / 27일 가격변경','DW PRO':'DW 프로 블랙 12일 품절 · 사전예약','DW PLUS':'DW 플러스 실버 29일 품절 · 이후 재입고 없음'},
+    8:{'맥세이프 에어':'17시리즈 미만 기종 단종','맥세이프 에어범퍼':'17시리즈 미만 기종 단종','DW PRO':'DW 프로 실버 6일 품절 · 사전예약','DW PLUS':'DW 플러스 실버 단종 / DW 플러스 블랙 9일 품절 · 사전예약'}
+  };
+  if(product==='맥세이프 킥프레임 일반') product='맥세이프 킥프레임';
+  return (map[mon]&&map[mon][product])||'특이사항 없음';
+}
+function fvaSimpleHistoryChart(months,values,currentMonth,avg,label){
+  var max=Math.max.apply(null,values.concat([avg||0,1]));
+  var bars=months.map(function(m,i){var h=Math.max(2,(values[i]/max)*155);return '<div class="fva-bar-col"><div class="fva-bar-value">'+Math.round(values[i]/10000).toLocaleString('ko-KR')+'만</div><div class="fva-bar '+(m===currentMonth?'current':'')+'" style="height:'+h+'px"></div><div class="fva-bar-month">'+m+'월</div></div>'}).join('');
+  var avgBottom=28+((avg||0)/max)*155;
+  return '<div class="fva-history-chart"><div class="fva-history-title">'+label+'</div><div class="fva-history-sub">이전 월은 회색 · 선택/정산 반영 월은 파란색 · 노란 점선은 표시 기간 평균</div><div class="fva-bar-chart">'+bars+(avg!==null?'<div class="fva-avg-line" style="bottom:'+avgBottom+'px"><span class="fva-avg-label">평균 '+psWon(avg)+'</span></div>':'')+'</div></div>';
+}
+function fvaProductHistory(mon,key,product){
+  var months=[],vals=[];for(var m=1;m<=mon;m++){months.push(m);var r=psProductMap(m)[product];vals.push(psPlatformValues(r,key).revenue)}
+  var avg=vals.length?vals.reduce(function(a,b){return a+b},0)/vals.length:null;
+  return fvaSimpleHistoryChart(months,vals,mon,avg,product+' · '+mon+'월까지 월별 매출');
+}
+function fvaActualProductTrendChart(mon,product){
+  var months=[];for(var m=1;m<=mon;m++)months.push(m);
+  var vals=months.map(function(m){var r=psProductMap(m)[product];return {total:r?r.totalRevenue:0,own:r?r.ownRevenue:0,naver:r?r.naverRevenue:0,mmall:r?r.mmallRevenue:0}});
+  var max=1;vals.forEach(function(v){max=Math.max(max,v.total,v.own,v.naver,v.mmall)});
+  var groups=months.map(function(m,i){var v=vals[i];function h(x){return Math.max(2,x/max*180)}return '<div class="fva-group-month"><div class="fva-group-bars"><div class="fva-mini-bar total" title="총매출 '+psWon(v.total)+'" style="height:'+h(v.total)+'px"></div><div class="fva-mini-bar own" title="자사 '+psWon(v.own)+'" style="height:'+h(v.own)+'px"></div><div class="fva-mini-bar naver" title="네이버 '+psWon(v.naver)+'" style="height:'+h(v.naver)+'px"></div><div class="fva-mini-bar mmall" title="M몰 '+psWon(v.mmall)+'" style="height:'+h(v.mmall)+'px"></div></div><div class="fva-bar-month">'+m+'월</div></div>'}).join('');
+  return '<div class="fva-history-chart"><div class="fva-history-title">'+product+' · 1~'+mon+'월 실제 판매 추세</div><div class="fva-history-sub">월별 총매출과 채널별 매출을 함께 비교합니다.</div><div class="fva-bar-chart fva-bar-chart-grouped">'+groups+'</div><div class="fva-group-legend"><span><i style="background:#6366f1"></i>총매출</span><span><i style="background:#22c55e"></i>자사</span><span><i style="background:#3b82f6"></i>네이버</span><span><i style="background:#f59e0b"></i>M몰</span></div></div>';
+}
 function renderFvaProductSalesAnalysis(mon){
-  var root=document.getElementById('fvaProductSalesAnalysisSection'),el=document.getElementById('fvaProductSalesAnalysis');if(!root||!el)return;
-  root.style.display='';
-  var defs=[
-    {key:'ownNaver',name:'자사몰+네이버',lag:0,desc:'당월 판매가 당월 실적에 반영'},
-    {key:'mmall',name:'M몰',lag:1,desc:'1개월 전 판매가 당월 정산에 반영'},
-    {key:'coupang',name:'쿠팡',lag:2,desc:'2개월 전 판매가 당월 정산에 반영'}
-  ];
-  var available=productSalesRows.length>0;
-  var html='<div class="fva-cause-head"><div><div class="fva-cause-title">매출 차이 원인 · 플랫폼 × 주요 제품 분석</div><div class="fva-cause-help">영업이익 월 기준으로 실제 정산에 영향을 주는 판매월을 맞춰 비교합니다. 각 채널은 직전 판매월 및 이전 월 평균과 비교하며, 하락폭이 큰 주요 제품을 우선 표시합니다.</div></div><div class="fva-settlement-note"><strong>'+mon+'월 영업이익 반영 기준</strong><br>자사몰+네이버 '+mon+'월 · M몰 '+(mon-1)+'월 · 쿠팡 '+(mon-2)+'월 판매</div></div>';
-  if(!available){el.innerHTML=html+'<div class="fva-empty">제품별매출 데이터가 없습니다. 연결된 스프레드시트에 <strong>제품별매출</strong> 시트를 추가해주세요.</div>';return}
-  html+='<div class="fva-platform-grid">';
-  defs.forEach(function(d){
-    var src=mon-d.lag;
-    if(src<1){html+='<div class="fva-platform-card neutral"><div class="fva-platform-name">'+d.name+'</div><div class="fva-empty">비교 가능한 선행 월이 없습니다.</div></div>';return}
-    var curRows=psRowsForMonth(src),prevRows=psRowsForMonth(src-1);
-    if(!curRows.length){html+='<div class="fva-platform-card neutral"><div class="fva-platform-top"><div class="fva-platform-name">'+d.name+'</div><div class="fva-source-month">'+src+'월 판매 반영</div></div><div class="fva-empty">'+src+'월 제품 데이터 미입력</div></div>';return}
-    var cur=psPlatformTotal(src,d.key),prev=prevRows.length?psPlatformTotal(src-1,d.key):null,avg=psAvgPlatformTotal(src,d.key),delta=prev===null?null:cur-prev,pct=prev?delta/Math.abs(prev)*100:null;
-    var cls=delta===null||Math.abs(delta)<1?'neutral':(delta>=0?'good':'bad');
-    var cMap=psProductMap(src),pMap=psProductMap(src-1),names={};Object.keys(cMap).concat(Object.keys(pMap)).forEach(function(n){names[n]=1});
-    var drivers=Object.keys(names).map(function(name){
-      var cr=cMap[name],pr=pMap[name],cv=psPlatformValues(cr,d.key),pv=psPlatformValues(pr,d.key),diff=cv.revenue-pv.revenue;
-      var avgVals=[];for(var mm=1;mm<src;mm++){var rr=psProductMap(mm)[name];if(rr)avgVals.push(psPlatformValues(rr,d.key).revenue)}
-      var pav=avgVals.length?avgVals.reduce(function(a,b){return a+b},0)/avgVals.length:null;
-      return{name:name,cur:cv,prev:pv,diff:diff,pct:pv.revenue?diff/Math.abs(pv.revenue)*100:null,avg:pav,avgPct:pav?((cv.revenue-pav)/Math.abs(pav))*100:null,cr:cr,pr:pr};
-    }).filter(function(x){return Math.max(x.cur.revenue,x.prev.revenue)>0}).sort(function(a,b){
-      var aBad=a.diff<0?Math.abs(a.diff)*3:Math.abs(a.diff),bBad=b.diff<0?Math.abs(b.diff)*3:Math.abs(b.diff);return bBad-aBad;
-    }).slice(0,5);
-    html+='<div class="fva-platform-card '+cls+'"><div class="fva-platform-top"><div><div class="fva-platform-name">'+d.name+'</div><div class="fva-driver-meta">'+d.desc+'</div></div><div class="fva-source-month">'+src+'월 판매 반영</div></div>'+
-      '<div class="fva-platform-total">'+psWon(cur)+'</div>'+
-      '<div class="fva-platform-delta '+cls+'">'+(delta===null?'직전월 비교 불가':('직전월 대비 '+(delta>=0?'+':'')+psWon(delta)+' · '+(pct===null?'—':((pct>=0?'+':'')+pct.toFixed(1)+'%'))))+'</div>'+
-      '<div class="fva-platform-avg">이전 월 평균 '+(avg===null?'—':psWon(avg))+(avg?(' · 평균 대비 '+((cur-avg)>=0?'+':'')+psPct(cur,avg).toFixed(1)+'%'):'')+'</div>'+
-      '<div class="fva-driver-list">';
-    if(!drivers.length)html+='<div class="fva-driver-meta">제품별 비교 데이터가 없습니다.</div>';
-    drivers.forEach(function(x){
-      var rcls=x.diff>=0?'good':'bad';
-      html+='<div class="fva-driver-row '+rcls+'"><div class="fva-driver-main"><div><div class="fva-driver-product">'+x.name+'</div><div class="fva-driver-meta">'+psQty(x.prev.qty)+' → '+psQty(x.cur.qty)+' · 매출 '+psWon(x.prev.revenue)+' → '+psWon(x.cur.revenue)+'</div></div><div class="fva-driver-change '+rcls+'">'+(x.diff>=0?'+':'')+psWon(x.diff)+'<br>'+(x.pct===null?'—':((x.pct>=0?'+':'')+x.pct.toFixed(1)+'%'))+'</div></div>';
-      if(d.key==='ownNaver'){
-        var oc=psPlatformValues(x.cr,'own'),op=psPlatformValues(x.pr,'own'),nc=psPlatformValues(x.cr,'naver'),np=psPlatformValues(x.pr,'naver'),od=oc.revenue-op.revenue,nd=nc.revenue-np.revenue;
-        html+='<div class="fva-driver-platforms"><span class="fva-driver-chip '+(od<0?'down':'up')+'">자사 '+(od>=0?'+':'')+psWon(od)+'</span><span class="fva-driver-chip '+(nd<0?'down':'up')+'">네이버 '+(nd>=0?'+':'')+psWon(nd)+'</span>'+(x.avgPct===null?'':'<span class="fva-driver-chip">이전 평균 대비 '+(x.avgPct>=0?'+':'')+x.avgPct.toFixed(1)+'%</span>')+'</div>';
-      }else if(x.avgPct!==null)html+='<div class="fva-driver-platforms"><span class="fva-driver-chip">이전 평균 대비 '+(x.avgPct>=0?'+':'')+x.avgPct.toFixed(1)+'%</span></div>';
-      html+='</div>';
-    });
-    html+='</div></div>';
-  });
+  var root=document.getElementById('fvaProductSalesAnalysisSection'),el=document.getElementById('fvaProductSalesAnalysis');if(!root||!el)return;root.style.display='';
+  var defs=[{key:'ownNaver',name:'자사몰+네이버',lag:0,desc:'당월 판매가 당월 실적에 반영'},{key:'mmall',name:'M몰',lag:1,desc:'1개월 전 판매가 당월 정산에 반영'},{key:'coupang',name:'쿠팡',lag:2,desc:'2개월 전 판매가 당월 정산에 반영'}];
+  var d=defs.filter(function(x){return x.key===fvaAnalysisPlatform})[0]||defs[0],src=mon-d.lag;
+  var html='<div class="fva-cause-head"><div><div class="fva-cause-title">매출 차이 원인 · 플랫폼 × 주요 제품 분석</div><div class="fva-cause-help">채널 하나씩 확인하도록 단순화했습니다. M몰은 1개월 전, 쿠팡은 2개월 전 판매월을 정산 기준으로 분석합니다.</div></div><div class="fva-settlement-note"><strong>'+mon+'월 영업이익 반영 기준</strong><br>자사몰+네이버 '+mon+'월 · M몰 '+(mon-1)+'월 · 쿠팡 '+(mon-2)+'월 판매</div></div>';
+  if(!productSalesRows.length){el.innerHTML=html+'<div class="fva-empty">제품별매출 데이터가 없습니다.</div>';return}
+  html+='<div class="fva-platform-tabs">'+defs.map(function(x){return '<button class="fva-platform-tab '+(x.key===d.key?'active':'')+'" onclick="setFvaAnalysisPlatform(\''+x.key+'\')">'+x.name+'</button>'}).join('')+'</div>';
+  if(src<1||!psRowsForMonth(src).length){el.innerHTML=html+'<div class="fva-empty">해당 정산 기준월의 제품별 매출 데이터가 없습니다.</div>';return}
+  var months=[],vals=[];for(var mm=1;mm<=src;mm++){months.push(mm);vals.push(psPlatformTotal(mm,d.key))}var cur=vals[vals.length-1],prev=vals.length>1?vals[vals.length-2]:null,delta=prev===null?null:cur-prev,pct=prev?delta/Math.abs(prev)*100:null,avg=vals.reduce(function(a,b){return a+b},0)/vals.length;
+  html+='<div class="fva-platform-single"><div class="fva-platform-top"><div><div class="fva-platform-name">'+d.name+'</div><div class="fva-driver-meta">'+d.desc+'</div></div><div class="fva-source-month">'+src+'월 판매 반영</div></div><div class="fva-platform-total">'+psWon(cur)+'</div><div class="fva-platform-delta '+(delta===null?'neutral':delta>=0?'good':'bad')+'">'+(delta===null?'직전월 비교 불가':'직전월 대비 '+(delta>=0?'+':'')+psWon(delta)+' · '+(pct>=0?'+':'')+pct.toFixed(1)+'%')+'</div>'+fvaSimpleHistoryChart(months,vals,src,avg,d.name+' · 1~'+src+'월 정산 기준 매출')+'<div class="fva-driver-groups">';
+  var cm=psProductMap(src),pm=psProductMap(src-1),names={};Object.keys(cm).concat(Object.keys(pm)).forEach(function(n){names[n]=1});
+  var arr=Object.keys(names).map(function(name){var cr=cm[name],pr=pm[name],cv=psPlatformValues(cr,d.key),pv=psPlatformValues(pr,d.key),diff=cv.revenue-pv.revenue;return{name:name,cur:cv,prev:pv,diff:diff,pct:pv.revenue?diff/Math.abs(pv.revenue)*100:null}}).filter(function(x){return Math.max(x.cur.revenue,x.prev.revenue)>0});
+  var downs=arr.filter(function(x){return x.diff<0}).sort(function(a,b){return a.diff-b.diff}).slice(0,6),ups=arr.filter(function(x){return x.diff>=0}).sort(function(a,b){return b.diff-a.diff}).slice(0,6);
+  function group(list,type,title){var z='<div class="fva-driver-group '+type+'"><div class="fva-driver-group-title">'+title+'</div>';if(!list.length)z+='<div class="fva-driver-meta">해당 제품 없음</div>';list.forEach(function(x){var note=fvaProductStatusNote(src,x.name),cls=x.diff<0?'bad':'good';z+='<div class="fva-driver-row '+cls+'" onclick="setFvaAnalysisProduct('+JSON.stringify(x.name).replace(/"/g,'&quot;')+')"><div class="fva-driver-main"><div><div class="fva-driver-product">'+x.name+'</div><div class="fva-driver-meta">'+psWon(x.prev.revenue)+' → '+psWon(x.cur.revenue)+'</div></div><div class="fva-driver-change '+cls+'">'+(x.diff>=0?'+':'')+psWon(x.diff)+'<br>'+(x.pct===null?'—':(x.pct>=0?'+':'')+x.pct.toFixed(1)+'%')+'</div></div><div class="fva-product-note '+(note==='특이사항 없음'?'':'issue')+'">'+note+'</div></div>'});return z+'</div>'}
+  html+=group(downs,'down','매출이 떨어진 주요 제품')+group(ups,'up','매출이 올라간 주요 제품')+'</div>';
+  var defaultProd=fvaAnalysisProduct||(downs[0]&&downs[0].name)||(ups[0]&&ups[0].name);if(defaultProd)html+='<div class="fva-product-detail">'+fvaProductHistory(src,d.key,defaultProd)+'</div>';
   html+='</div>';
-  // 선택 월 실제 판매 추세: 정산월과 별개로 현재 판매 부진 여부 확인
-  var saleRows=psRowsForMonth(mon),prevSale=psRowsForMonth(mon-1);
-  if(saleRows.length){
-    var sm=psProductMap(mon),pm=psProductMap(mon-1),top=saleRows.slice().sort(function(a,b){return b.totalRevenue-a.totalRevenue}).slice(0,6);
-    html+='<div class="fva-sales-month-strip"><div class="fva-sales-month-title">'+mon+'월 실제 판매월 기준 · 주요 제품 추세 <span style="font-weight:500;color:var(--text-muted)">정산 반영 시차와 별개로 현재 판매 상태 확인</span></div><div style="overflow-x:auto"><table class="fva-sales-month-table"><thead><tr><th>제품</th><th>총매출</th><th>전월 대비</th><th>자사</th><th>네이버</th><th>M몰</th><th>쿠팡</th></tr></thead><tbody>';
-    top.forEach(function(r){var p=pm[r.product],td=(r.totalRevenue-(p?p.totalRevenue:0)),pp=p&&p.totalRevenue?td/Math.abs(p.totalRevenue)*100:null;
-      function cell(k){var c=psPlatformValues(r,k).revenue,pr=psPlatformValues(p,k).revenue,d=c-pr;return psWon(c)+' <span class="'+(d<0?'fva-bad':'fva-good')+'">'+(d>=0?'+':'')+psWon(d)+'</span>'}
-      html+='<tr><td>'+r.product+'</td><td>'+psWon(r.totalRevenue)+'</td><td class="'+(td<0?'fva-bad':'fva-good')+'">'+(td>=0?'+':'')+psWon(td)+(pp===null?'':' ('+(pp>=0?'+':'')+pp.toFixed(1)+'%)')+'</td><td>'+cell('own')+'</td><td>'+cell('naver')+'</td><td>'+cell('mmall')+'</td><td>'+cell('coupang')+'</td></tr>';
-    });
-    html+='</tbody></table></div></div>';
-  }
-  html+='<div class="fva-driver-meta" style="margin-top:10px">데이터 소스: '+(productSalesSource==='sheet'?'Google Sheets 「제품별매출」':'첨부된 26년 1~8월 제품별 매출 데이터(시트 생성 전 fallback)')+'</div>';
-  el.innerHTML=html;
+  var saleRows=psRowsForMonth(mon);if(saleRows.length){var products=saleRows.slice().sort(function(a,b){return b.totalRevenue-a.totalRevenue}).slice(0,8).map(function(r){return r.product});if(products.indexOf('DW PRO')<0&&psProductMap(mon)['DW PRO'])products.unshift('DW PRO');if(products.indexOf(fvaActualTrendProduct)<0)fvaActualTrendProduct=products.indexOf('DW PRO')>=0?'DW PRO':products[0];html+='<div class="fva-actual-trend"><div class="fva-sales-month-title">'+mon+'월 실제 판매월 기준 주요 제품 추세</div><div class="fva-driver-meta">정산 시차와 별개로 선택 월까지 실제 판매 흐름을 확인합니다.</div><div class="fva-product-tabs">'+products.map(function(n){return '<button class="fva-product-tab '+(n===fvaActualTrendProduct?'active':'')+'" onclick="setFvaActualTrendProduct('+JSON.stringify(n).replace(/"/g,'&quot;')+')">'+n+'</button>'}).join('')+'</div>'+fvaActualProductTrendChart(mon,fvaActualTrendProduct)+'</div>'}
+  html+='<div class="fva-driver-meta" style="margin-top:10px">데이터 소스: '+(productSalesSource==='sheet'?'Google Sheets 「제품별매출」':'첨부된 26년 1~8월 제품별 매출 데이터')+'</div>';el.innerHTML=html;
 }
 
 function normalizeFvaMonth(v){
@@ -1588,28 +1624,20 @@ function openFvaProfitModal(){
 function closeFvaProfitModal(){var el=document.getElementById('fvaProfitModal');if(el)el.classList.remove('show')}
 function renderFvaProfitModal(){
   var body=document.getElementById('fvaProfitModalBody'),title=document.getElementById('fvaProfitModalTitle'),sub=document.getElementById('fvaProfitModalSub');if(!body)return;
-  var pair=fvaPairMap()[fvaSelectedMonth]||{},e=pair.expected,a=pair.actual,mon=Number(fvaSelectedMonth.slice(3));
-  if(title)title.textContent=mon+'월 영업이익 예측 대비 차이 원인';
+  var pair=fvaPairMap()[fvaSelectedMonth]||{},e=pair.expected,a=pair.actual,mon=Number(fvaSelectedMonth.slice(3));if(title)title.textContent=mon+'월 영업이익 예측 대비 차이 원인';
   if(!e||!fvaActualComplete(a)){body.innerHTML='<div class="fva-popup-empty">예측 또는 실제 데이터가 완전히 입력되지 않았습니다.</div>';return}
   var expectedProfit=fvaProfit(e),actualProfit=fvaProfit(a),net=actualProfit-expectedProfit;
-  var items=[
-    {name:'매출',contribution:a.revenue-e.revenue,desc:'실제 매출 − 예측 매출'},
-    {name:'고정비',contribution:e.fixed-a.fixed,desc:'예측 비용 − 실제 비용'},
-    {name:'발주비',contribution:e.order-a.order,desc:'예측 비용 − 실제 비용'},
-    {name:'광고비',contribution:e.ad-a.ad,desc:'예측 비용 − 실제 비용'},
-    {name:'변동비',contribution:e.variable-a.variable,desc:'예측 비용 − 실제 비용'},
-    {name:'상환비',contribution:e.repay-a.repay,desc:'예측 비용 − 실제 비용'}
-  ];
-  var totalAbs=items.reduce(function(t,x){return t+Math.abs(x.contribution)},0)||1;
-  var red=['#ef4444','#f87171','#dc2626','#fb7185','#b91c1c','#f43f5e'],green=['#22c55e','#4ade80','#16a34a','#34d399','#15803d','#10b981'],ri=0,gi=0,start=0,grad=[];
-  items.forEach(function(x){x.share=Math.abs(x.contribution)/totalAbs*100;x.color=x.contribution>=0?green[(gi++)%green.length]:red[(ri++)%red.length];var end=start+x.share;grad.push(x.color+' '+start.toFixed(2)+'% '+end.toFixed(2)+'%');start=end});
-  var positives=items.filter(function(x){return x.contribution>0}).sort(function(a,b){return b.contribution-a.contribution}),negatives=items.filter(function(x){return x.contribution<0}).sort(function(a,b){return a.contribution-b.contribution});
-  var html='<div class="fva-profit-cause-grid"><div class="fva-donut-wrap"><div class="fva-donut" style="background:conic-gradient('+grad.join(',')+')"><div class="fva-donut-center"><div class="fva-donut-center-label">영업이익 예측 대비</div><div class="fva-donut-center-value '+(net>=0?'good':'bad')+'">'+fvaMoney(net,true)+'</div></div></div><div class="fva-donut-caption">원형그래프의 비중은 각 항목의 <strong>절대 영향금액</strong> 기준입니다. 초록은 영업이익을 올린 요인, 빨강은 내린 요인입니다.</div></div><div class="fva-cause-legend">';
-  items.slice().sort(function(a,b){return Math.abs(b.contribution)-Math.abs(a.contribution)}).forEach(function(x){var cls=x.contribution>=0?'good':'bad';html+='<div class="fva-cause-item"><span class="fva-cause-dot" style="background:'+x.color+'"></span><div class="fva-cause-item-name">'+x.name+'</div><div class="fva-cause-item-desc">'+x.desc+' · 절대영향 '+x.share.toFixed(1)+'%</div><div class="fva-cause-item-value '+cls+'">'+(x.contribution>=0?'+':'')+fvaMoney(x.contribution)+'</div></div>'});
-  html+='</div></div><div class="fva-cause-summary"><div class="fva-cause-summary-card bad"><div class="fva-cause-summary-title">영업이익을 낮춘 요인</div><div class="fva-cause-summary-text">'+(negatives.length?negatives.map(function(x){return '<strong>'+x.name+'</strong> '+fvaMoney(x.contribution)}).join(' · '):'하락 요인 없음')+'</div></div><div class="fva-cause-summary-card good"><div class="fva-cause-summary-title">하락폭을 상쇄한 요인</div><div class="fva-cause-summary-text">'+(positives.length?positives.map(function(x){return '<strong>'+x.name+'</strong> +'+fvaMoney(x.contribution)}).join(' · '):'상쇄 요인 없음')+'</div></div></div>';
-  html+='<div class="fva-settlement-note" style="margin-top:14px"><strong>검산</strong> · 6개 영향 합계 '+fvaMoney(items.reduce(function(t,x){return t+x.contribution},0),true)+' = 실제 영업이익 '+fvaMoney(actualProfit)+' − 최초예측 '+fvaMoney(expectedProfit)+' = '+fvaMoney(net,true)+'</div>';
-  body.innerHTML=html;
+  var colors={'매출':'#3b82f6','고정비':'#a855f7','발주비':'#f59e0b','광고비':'#06b6d4','변동비':'#ec4899','상환비':'#ef4444'};
+  var items=[{name:'매출',contribution:a.revenue-e.revenue,desc:'실제 매출 − 예측 매출'},{name:'고정비',contribution:e.fixed-a.fixed,desc:'예측 비용 − 실제 비용'},{name:'발주비',contribution:e.order-a.order,desc:'예측 비용 − 실제 비용'},{name:'광고비',contribution:e.ad-a.ad,desc:'예측 비용 − 실제 비용'},{name:'변동비',contribution:e.variable-a.variable,desc:'예측 비용 − 실제 비용'},{name:'상환비',contribution:e.repay-a.repay,desc:'예측 비용 − 실제 비용'}];
+  var totalAbs=items.reduce(function(t,x){return t+Math.abs(x.contribution)},0)||1,start=0,grad=[];items.forEach(function(x){x.share=Math.abs(x.contribution)/totalAbs*100;x.color=colors[x.name];var end=start+x.share;grad.push(x.color+' '+start.toFixed(2)+'% '+end.toFixed(2)+'%');start=end});
+  var positives=items.filter(function(x){return x.contribution>0}).sort(function(a,b){return b.contribution-a.contribution}),negatives=items.filter(function(x){return x.contribution<0}).sort(function(a,b){return a.contribution-b.contribution}),largest=negatives[0];
+  var html='<div class="fva-profit-cause-grid"><div class="fva-donut-wrap"><div class="fva-donut" style="background:conic-gradient('+grad.join(',')+')"><div class="fva-donut-center"><div class="fva-donut-center-label">영업이익 예측 대비</div><div class="fva-donut-center-value '+(net>=0?'good':'bad')+'">'+fvaMoney(net,true)+'</div></div></div><div class="fva-donut-caption">6개 항목을 서로 다른 색으로 표시합니다. 조각 크기는 절대 영향금액 비중입니다.</div></div><div class="fva-cause-legend">';
+  items.slice().sort(function(a,b){return Math.abs(b.contribution)-Math.abs(a.contribution)}).forEach(function(x){html+='<div class="fva-cause-item" style="border-left:4px solid '+x.color+'"><span class="fva-cause-dot" style="background:'+x.color+'"></span><div class="fva-cause-item-name">'+x.name+'</div><div class="fva-cause-item-desc">'+x.desc+' · 영향 '+x.share.toFixed(1)+'%</div><div class="fva-cause-item-value">'+(x.contribution>=0?'+':'')+fvaMoney(x.contribution)+'</div></div>'});
+  function tokens(list){return list.length?list.map(function(x){return '<span class="fva-cause-token" style="--token-color:'+x.color+'"><i></i>'+x.name+' '+(x.contribution>0?'+':'')+fvaMoney(x.contribution)+'</span>'}).join(''):'없음'}
+  html+='</div></div><div class="fva-cause-summary"><div class="fva-cause-summary-card bad">'+(largest?'<div class="fva-cause-primary"><div class="fva-cause-primary-label">가장 큰 영업이익 하락 요인</div><div class="fva-cause-primary-value" style="color:'+largest.color+'">'+largest.name+' · '+fvaMoney(largest.contribution)+'</div></div>':'')+'<div class="fva-cause-summary-title">영업이익을 낮춘 요인</div><div class="fva-cause-summary-text">'+tokens(negatives)+'</div></div><div class="fva-cause-summary-card good"><div class="fva-cause-summary-title">하락폭을 상쇄한 요인</div><div class="fva-cause-summary-text">'+tokens(positives)+'</div></div></div>';
+  html+='<div class="fva-settlement-note" style="margin-top:14px"><strong>검산</strong> · 6개 영향 합계 '+fvaMoney(items.reduce(function(t,x){return t+x.contribution},0),true)+' = 실제 영업이익 '+fvaMoney(actualProfit)+' − 최초예측 '+fvaMoney(expectedProfit)+' = '+fvaMoney(net,true)+'</div>';body.innerHTML=html;
 }
+
 document.addEventListener('keydown',function(e){if(e.key==='Escape'){closeFvaSalesModal();closeFvaProfitModal()}});
 window.addEventListener('resize',syncFvaProfitModalArea);
 
@@ -1641,16 +1669,14 @@ function renderForecastActualTab(){
   var root=document.getElementById('tab-forecastActual');if(!root)return;
   var map=fvaPairMap();renderFvaMonthSelector(map);
   var integrated=fvaSelectedMonth==='integrated';
-  var chart=document.getElementById('fvaIntegratedChart'),metrics=document.getElementById('fvaMonthlyMetricsSection'),table=document.getElementById('fvaMonthlyTableSection'),monthlyStatus=document.getElementById('fvaMonthlyStatusSection'),productAnalysis=document.getElementById('fvaProductSalesAnalysisSection');
-  chart.classList.toggle('show',integrated);metrics.style.display=integrated?'none':'';table.style.display=integrated?'none':'';if(monthlyStatus)monthlyStatus.style.display=integrated?'none':'';if(productAnalysis)productAnalysis.style.display=integrated?'none':'';
+  var chart=document.getElementById('fvaIntegratedChart'),metrics=document.getElementById('fvaMonthlyMetricsSection'),monthlyStatus=document.getElementById('fvaMonthlyStatusSection'),productAnalysis=document.getElementById('fvaProductSalesAnalysisSection');
+  chart.classList.toggle('show',integrated);metrics.style.display=integrated?'none':'';if(monthlyStatus)monthlyStatus.style.display=integrated?'none':'';if(productAnalysis)productAnalysis.style.display=integrated?'none':'';
   if(integrated){document.getElementById('fvaRangeBadge').textContent='5~12월';renderFvaIntegratedChart(map);return}
   var month=fvaSelectedMonth,pair=map[month]||{},e=pair.expected,a=pair.actual,complete=!!e&&fvaActualComplete(a),label=Number(month.slice(3))+'월';
   document.getElementById('fvaRangeBadge').textContent=month;
   document.getElementById('fvaMetricTitle').textContent=label+' 항목별 예측 대비';
-  document.getElementById('fvaTableTitle').innerHTML=label+' 상세 비교 <span style="font-size:11px;font-weight:400;color:var(--text-muted)">단위: 만원 · 상환비 포함</span>';
-  if(!e){document.getElementById('fvaMetricGrid').innerHTML='<div class="fva-empty" style="grid-column:1/-1">'+label+' 최초예측 데이터가 없습니다.</div>';document.getElementById('fvaTableBody').innerHTML='';renderFvaMonthlyStatus(Number(month.slice(3)));renderFvaProductSalesAnalysis(Number(month.slice(3)));return}
+  if(!e){document.getElementById('fvaMetricGrid').innerHTML='<div class="fva-empty" style="grid-column:1/-1">'+label+' 최초예측 데이터가 없습니다.</div>';renderFvaMonthlyStatus(Number(month.slice(3)));renderFvaProductSalesAnalysis(Number(month.slice(3)));return}
   renderFvaCompareCards(e,complete?a:null,label);
-  renderFvaTable(map,[month]);
   renderFvaMonthlyStatus(Number(month.slice(3)));
   renderFvaProductSalesAnalysis(Number(month.slice(3)));
 }
@@ -1790,8 +1816,6 @@ function renderFvaCompareCards(e,a,label){
   }).join('');
   document.getElementById('fvaMetricGrid').innerHTML=html;
 }
-function renderFvaTable(map,months){var m=months[0],pair=map[m]||{},e=pair.expected,a=pair.actual,complete=e&&fvaActualComplete(a),html='';function row(label,r,cls){if(!r)return'';var cost=fvaCost(r),profit=fvaProfit(r),margin=r.revenue?profit/r.revenue*100:0;return'<tr class="'+(cls||'')+'"><td>'+m+'</td><td>'+label+'</td><td>'+fmt(r.revenue)+'</td><td>'+fmt(r.fixed)+'</td><td>'+fmt(r.order)+'</td><td>'+fmt(r.ad)+'</td><td>'+fmt(r.variable)+'</td><td>'+fmt(r.repay)+'</td><td>'+fmt(cost)+'</td><td class="'+(profit>=0?'profit-pos':'profit-neg')+'">'+fmtSign(profit)+'</td><td>'+margin.toFixed(1)+'%</td></tr>'}if(e)html+=row('최초예측',e,'');if(e&&complete){html+=row('실제',a,'actual-row');var d={revenue:a.revenue-e.revenue,fixed:a.fixed-e.fixed,order:a.order-e.order,ad:a.ad-e.ad,variable:a.variable-e.variable,repay:a.repay-e.repay},dp=fvaProfit(a)-fvaProfit(e),dm=(a.revenue?fvaProfit(a)/a.revenue*100:0)-(e.revenue?fvaProfit(e)/e.revenue*100:0);html+='<tr class="diff-row"><td>'+m+'</td><td>예측 대비</td><td>'+fmtSign(d.revenue)+'</td><td>'+fmtSign(d.fixed)+'</td><td>'+fmtSign(d.order)+'</td><td>'+fmtSign(d.ad)+'</td><td>'+fmtSign(d.variable)+'</td><td>'+fmtSign(d.repay)+'</td><td>'+fmtSign(fvaCost(a)-fvaCost(e))+'</td><td class="'+(dp>=0?'profit-pos':'profit-neg')+'">'+fmtSign(dp)+'</td><td>'+((dm>=0?'+':'')+dm.toFixed(1))+'%p</td></tr>'}else if(e){html+='<tr class="actual-row"><td>'+m+'</td><td>실제</td><td colspan="9" style="text-align:center;color:var(--text-muted)">미입력</td></tr>'}document.getElementById('fvaTableBody').innerHTML=html}
-
 function parseWeeklyCSV(text){
   var allRows=parseCsvRows(text);
   if(allRows.length<2){weeklyRows=[];weeklyRowsMap={};return}
