@@ -217,14 +217,14 @@
     .projection-main-card .kpi-sub{font-size:20px!important;color:#fff!important;line-height:1.7!important}
     .projection-main-card .projection-footnote{font-size:14px!important;color:#fff!important;opacity:.78}
     .profit-bridge-chart{margin:22px 0 16px;padding:20px 18px 16px;border:1px solid var(--border-light);border-radius:12px;background:rgba(15,23,42,.28)}
-    .profit-bridge-bars{height:300px;display:flex;align-items:flex-end;justify-content:center;gap:min(12vw,130px);border-bottom:1px solid var(--border-light);padding:38px 22px 0}
+    .profit-bridge-bars{height:430px;display:flex;align-items:flex-end;justify-content:center;gap:min(12vw,130px);border-bottom:1px solid var(--border-light);padding:54px 22px 0}
     .profit-bridge-col{width:min(31%,210px);height:100%;display:flex;flex-direction:column;justify-content:flex-end;position:relative}
-    .profit-bridge-value{text-align:center;font:900 17px 'DM Mono',monospace;color:#fff;margin-bottom:8px;white-space:nowrap}
+    .profit-bridge-value{text-align:center;font:900 20px 'DM Mono',monospace;color:#fff;margin-bottom:10px;white-space:nowrap}
     .profit-bridge-bar{width:100%;position:relative;border-radius:9px 9px 2px 2px;overflow:visible;min-height:6px}
     .profit-revenue-bar{background:linear-gradient(180deg,#6366f1,#3b82f6);border:1px solid rgba(255,255,255,.28)}
     .profit-cost-bar{display:flex;flex-direction:column-reverse;background:rgba(148,163,184,.12);border:1px solid var(--border-light)}
     .profit-cost-seg{width:100%;min-height:1px;position:relative;border-top:1px solid rgba(255,255,255,.15)}
-    .profit-cost-seg span{position:absolute;left:calc(100% + 8px);top:50%;transform:translateY(-50%);font-size:10px;color:var(--text-sub);white-space:nowrap}
+    .profit-cost-seg span{position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);font-size:12px;font-weight:700;color:var(--text-sub);white-space:nowrap}
     .profit-gap-zone{position:absolute;left:-1px;right:-1px;z-index:4;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:900;text-align:center}
     .profit-gap-zone.profit{border:2px solid var(--green);background:repeating-linear-gradient(135deg,rgba(34,197,94,.25) 0 7px,rgba(34,197,94,.06) 7px 14px);color:#bbf7d0}
     .profit-gap-zone.loss{border:2px solid var(--red);background:repeating-linear-gradient(135deg,rgba(239,68,68,.32) 0 7px,rgba(239,68,68,.08) 7px 14px);color:#fecaca}
@@ -256,6 +256,9 @@
     .projection-eval-row.good .projection-eval-name,.projection-eval-row.good .projection-eval-change{color:var(--green)}
     .projection-eval-row.bad .projection-eval-name,.projection-eval-row.bad .projection-eval-change{color:var(--red)}
     .projection-eval-text{font-weight:600}
+    .projection-assessment-card .projection-eval-row{grid-template-columns:150px minmax(0,1fr);padding:19px 20px;border-color:var(--border-light);border-left:5px solid var(--accent);border-radius:10px;align-items:center}
+    .projection-assessment-card .projection-eval-name{font-size:22px;font-weight:900}
+    .projection-assessment-card .projection-eval-text{font-size:17px;line-height:1.75;color:var(--text)}
     .projection-eval-change{display:block;font-size:17px;font-weight:800;line-height:1.45}
     .projection-eval-reason{display:block;color:#fff!important;font-size:15px;font-weight:500;line-height:1.65;margin:7px 0 0 0}
     html.light .projection-eval-reason{color:var(--text)!important}
@@ -959,7 +962,7 @@
       </header>
       <div class="settings-grid">
         <div class="settings-card full-width">
-          <div class="settings-note" style="margin-top:0">&#x203B; 이 대시보드는 스프레드시트 ID <code>1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI</code>에 고정 연동되어 있으며, <code>매출데이터</code>(A1:J13) · <code>일별 데이터</code>(A1:S500) 두 시트를 자동으로 읽어옵니다. 우측 상단 &#39;스프레드시트&#39; 버튼으로 바로 열 수 있어요.</div>
+          <div class="settings-note" style="margin-top:0">&#x203B; 이 대시보드는 스프레드시트 ID <code>1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI</code>에 고정 연동되어 있으며, <code>매출데이터</code>(A1:J13) · <code>일별 데이터</code>(A1:U500) 두 시트를 자동으로 읽어옵니다. 우측 상단 &#39;스프레드시트&#39; 버튼으로 바로 열 수 있어요.</div>
         </div>
         <div class="settings-card full-width">
           <div class="settings-section-title">매출데이터 시트 구성 가이드</div>
@@ -998,20 +1001,22 @@
                 <tr><td>C열</td><td>통합일평균정산 (원)</td><td>3,550,000</td><td>모든 채널 합산 일평균 정산 매출 (지난주 정산 확정분)</td></tr>
                 <tr><td>D열</td><td>일평균매출(자사+네이버) (원)</td><td>2,589,314</td><td>'매출데이터' 시트 B열과 비교되는 실적(실시간)</td></tr>
                 <tr><td>E열</td><td>일평균정산(자사+네이버) (원)</td><td>2,540,000</td><td>자사+네이버 일평균 정산 매출</td></tr>
-                <tr><td>F열</td><td>통합일평균광고비 (원)</td><td>1,042,781</td><td>모든 채널 합산 일평균 광고비 실적(실시간 확인)</td></tr>
-                <tr><td>G열</td><td>통합일평균광고충전 (원)</td><td>1,020,000</td><td>실제 충전된 일평균 광고비</td></tr>
-                <tr><td>H열</td><td>예상발주비 (원)</td><td>0</td><td>해당 일자에 계획된 발주비</td></tr>
-                <tr><td>I열</td><td>실제발주비 (원)</td><td>0</td><td>해당 일자에 실제로 나간 발주비</td></tr>
-                <tr><td>J열</td><td>발주비 특이사항 (선택)</td><td>결제일 지연</td><td>예상과 다를 때 사유 기재</td></tr>
-                <tr><td>K열</td><td>예상고정비 (원)</td><td>0</td><td>해당 일자에 계획된 고정비</td></tr>
-                <tr><td>L열</td><td>실제고정비 (원)</td><td>0</td><td>해당 일자에 실제 집행된 고정비</td></tr>
-                <tr><td>M열</td><td>고정비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
-                <tr><td>N열</td><td>예상변동비 (원)</td><td>0</td><td>해당 일자에 계획된 변동비</td></tr>
-                <tr><td>O열</td><td>실제변동비 (원)</td><td>0</td><td>해당 일자에 실제 집행된 변동비</td></tr>
-                <tr><td>P열</td><td>변동비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
-                <tr><td>Q열</td><td>예상상환비 (원)</td><td>0</td><td>해당 일자에 계획된 상환비</td></tr>
-                <tr><td>R열</td><td>실제상환비 (원)</td><td>0</td><td>해당 일자에 실제 집행된 상환비</td></tr>
-                <tr><td>S열</td><td>상환비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
+                <tr><td>F열</td><td>예상 기타매출(B2B등) (원)</td><td>0</td><td>해당 일자에 예상되는 B2B·환급금 등 기타매출</td></tr>
+                <tr><td>G열</td><td>실제 기타매출(B2B등) (원)</td><td>0</td><td>해당 일자에 확정된 B2B·환급금 등 기타매출</td></tr>
+                <tr><td>H열</td><td>통합일평균광고비 (원)</td><td>1,042,781</td><td>모든 채널 합산 일평균 광고비 실적(실시간 확인)</td></tr>
+                <tr><td>I열</td><td>통합일평균광고충전 (원)</td><td>1,020,000</td><td>실제 충전된 일평균 광고비</td></tr>
+                <tr><td>J열</td><td>예상발주비 (원)</td><td>0</td><td>해당 일자에 계획된 발주비</td></tr>
+                <tr><td>K열</td><td>실제발주비 (원)</td><td>0</td><td>해당 일자에 실제로 나간 발주비</td></tr>
+                <tr><td>L열</td><td>발주비 특이사항 (선택)</td><td>결제일 지연</td><td>예상과 다를 때 사유 기재</td></tr>
+                <tr><td>M열</td><td>예상고정비 (원)</td><td>0</td><td>해당 일자에 계획된 고정비</td></tr>
+                <tr><td>N열</td><td>실제고정비 (원)</td><td>0</td><td>해당 일자에 실제 집행된 고정비</td></tr>
+                <tr><td>O열</td><td>고정비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
+                <tr><td>P열</td><td>예상변동비 (원)</td><td>0</td><td>해당 일자에 계획된 변동비</td></tr>
+                <tr><td>Q열</td><td>실제변동비 (원)</td><td>0</td><td>해당 일자에 실제 집행된 변동비</td></tr>
+                <tr><td>R열</td><td>변동비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
+                <tr><td>S열</td><td>예상상환비 (원)</td><td>0</td><td>해당 일자에 계획된 상환비</td></tr>
+                <tr><td>T열</td><td>실제상환비 (원)</td><td>0</td><td>해당 일자에 실제 집행된 상환비</td></tr>
+                <tr><td>U열</td><td>상환비 특이사항 (선택)</td><td></td><td>예상과 다를 때 사유 기재</td></tr>
               </tbody>
             </table>
           </div>
@@ -1232,7 +1237,7 @@ var SHEET_ID            = '1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI';
 var SHEET_NAME          = '매출데이터';
 var SHEET_RANGE         = 'A1:J13';
 var WEEKLY_SHEET_NAME   = '일별 데이터';
-var WEEKLY_SHEET_RANGE  = 'A1:S500';
+var WEEKLY_SHEET_RANGE  = 'A1:U500';
 var FVA_SHEET_NAME      = '예측대비실적';
 var FVA_SHEET_RANGE     = 'A1:Z100';
 var forecastActualRows  = [];
@@ -2233,20 +2238,22 @@ function parseWeeklyCSV(text){
       combinedSettlement:pnOrNull(c[2]),   // 통합일평균정산
       ownNaverRevenue:pnOrNull(c[3]),      // 일평균매출(자사+네이버)
       ownNaverSettlement:pnOrNull(c[4]),   // 일평균정산(자사+네이버)
-      combinedAd:pnOrNull(c[5]),           // 통합일평균광고비
-      combinedAdCharge:pnOrNull(c[6]),     // 통합일평균광고충전
-      expectedOrder:pnOrNull(c[7]),
-      actualOrder:pnOrNull(c[8]),
-      orderNote:c[9]||'',
-      expectedFixed:pnOrNull(c[10]),
-      actualFixed:pnOrNull(c[11]),
-      fixedNote:c[12]||'',
-      expectedVariable:pnOrNull(c[13]),
-      actualVariable:pnOrNull(c[14]),
-      variableNote:c[15]||'',
-      expectedRepay:pnOrNull(c[16]),
-      actualRepay:pnOrNull(c[17]),
-      repayNote:c[18]||'',
+      expectedOtherRevenue:pnOrNull(c[5]), // 예상 기타매출(B2B등)
+      actualOtherRevenue:pnOrNull(c[6]),   // 실제 기타매출(B2B등)
+      combinedAd:pnOrNull(c[7]),           // 통합일평균광고비
+      combinedAdCharge:pnOrNull(c[8]),     // 통합일평균광고충전
+      expectedOrder:pnOrNull(c[9]),
+      actualOrder:pnOrNull(c[10]),
+      orderNote:c[11]||'',
+      expectedFixed:pnOrNull(c[12]),
+      actualFixed:pnOrNull(c[13]),
+      fixedNote:c[14]||'',
+      expectedVariable:pnOrNull(c[15]),
+      actualVariable:pnOrNull(c[16]),
+      variableNote:c[17]||'',
+      expectedRepay:pnOrNull(c[18]),
+      actualRepay:pnOrNull(c[19]),
+      repayNote:c[20]||'',
     };
   }).filter(function(r){return r.date});
   weeklyRowsMap={};
@@ -2256,6 +2263,7 @@ function parseWeeklyCSV(text){
     return{일자:r.date,
            통합매출실적:r.combinedRevenue,통합정산:r.combinedSettlement,
            자사네이버실적:r.ownNaverRevenue,자사네이버정산:r.ownNaverSettlement,
+           예상기타매출:r.expectedOtherRevenue,실제기타매출:r.actualOtherRevenue,
            광고비실적:r.combinedAd,광고충전:r.combinedAdCharge,
            예상발주비:r.expectedOrder,실제발주비:r.actualOrder,
            예상고정비:r.expectedFixed,실제고정비:r.actualFixed,
@@ -2295,6 +2303,7 @@ function getAggregatedWeekRow(range){
   return{
     combinedRevenue:avg('combinedRevenue'),combinedSettlement:avg('combinedSettlement'),
     ownNaverRevenue:avg('ownNaverRevenue'),ownNaverSettlement:avg('ownNaverSettlement'),
+    expectedOtherRevenue:sum('expectedOtherRevenue'),actualOtherRevenue:sum('actualOtherRevenue'),
     combinedAd:avg('combinedAd'),combinedAdCharge:avg('combinedAdCharge'),combinedAdChargeSum:adChargeSum===null?0:adChargeSum,
     expectedOrder:sum('expectedOrder'),actualOrder:sum('actualOrder'),orderNote:notes('orderNote'),
     expectedFixed:sum('expectedFixed'),actualFixed:sum('actualFixed'),fixedNote:notes('fixedNote'),
@@ -3634,7 +3643,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   function valOrZero(v){return(v!==null&&v!==undefined&&!isNaN(v))?Number(v):0;}
   function hasActualSignal(day){
     if(!day)return false;
-    var keys=['combinedRevenue','combinedSettlement','combinedAd','combinedAdCharge','actualOrder','actualFixed','actualVariable','actualRepay'];
+    var keys=['combinedRevenue','combinedSettlement','actualOtherRevenue','combinedAd','combinedAdCharge','actualOrder','actualFixed','actualVariable','actualRepay'];
     for(var i=0;i<keys.length;i++)if(day[keys[i]]!==null&&day[keys[i]]!==undefined&&!isNaN(day[keys[i]]))return true;
     return false;
   }
@@ -3657,9 +3666,9 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   var actualCutoff=monthWeeks&&monthWeeks.length?new Date(monthWeeks[monthWeeks.length-1].range.end):new Date(monthStart.getTime()-86400000);
   actualCutoff.setHours(0,0,0,0);
 
-  var projectedRevenue=0,projectedAd=0,projectedOrder=0,projectedFixed=0,projectedVariable=0,projectedRepay=0;
-  var expectedCumRevenue=0,expectedCumAd=0,expectedCumOrder=0,expectedCumFixed=0,expectedCumVariable=0,expectedCumRepay=0;
-  var settlementRevenueSum=0,chargeAdSum=0;
+  var projectedRevenue=0,projectedCoreRevenue=0,projectedOtherRevenue=0,projectedAd=0,projectedOrder=0,projectedFixed=0,projectedVariable=0,projectedRepay=0;
+  var expectedCumRevenue=0,expectedCumOtherRevenue=0,expectedMonthOtherRevenue=0,expectedCumAd=0,expectedCumOrder=0,expectedCumFixed=0,expectedCumVariable=0,expectedCumRepay=0;
+  var settlementRevenueSum=0,actualOtherRevenueSum=0,chargeAdSum=0;
   var settlementRevenueCount=0,chargeAdCount=0;
   var actualDayCount=0,expectedDayCount=0,cumDayCount=0,missingPastDays=[];
   var pastRevenueSum=0,pastRevenueCount=0,pastAdSum=0,pastAdCount=0;
@@ -3671,15 +3680,18 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     var key=fmtDateISO(d),day=weeklyRowsMap[key]||null;
     var isPast=d<=actualCutoff;
     var isCum=d<=dataCutoff;
+    if(day)expectedMonthOtherRevenue+=valOrZero(day.expectedOtherRevenue);
 
     if(isCum){
       cumDayCount++;
       expectedCumRevenue+=expectedDailyRevenue;
       expectedCumAd+=expectedDailyAd;
       if(day){
+        expectedCumOtherRevenue+=valOrZero(day.expectedOtherRevenue);
         expectedCumOrder+=valOrZero(day.expectedOrder); expectedCumFixed+=valOrZero(day.expectedFixed);
         expectedCumVariable+=valOrZero(day.expectedVariable); expectedCumRepay+=valOrZero(day.expectedRepay);
         settlementRevenueSum+=valOrZero(day.combinedSettlement); chargeAdSum+=valOrZero(day.combinedAdCharge);
+        actualOtherRevenueSum+=valOrZero(day.actualOtherRevenue);
         pastCostActual.order+=valOrZero(day.actualOrder); pastCostActual.fixed+=valOrZero(day.actualFixed);
         pastCostActual.variable+=valOrZero(day.actualVariable); pastCostActual.repay+=valOrZero(day.actualRepay);
         pastCostExpected.order+=valOrZero(day.expectedOrder); pastCostExpected.fixed+=valOrZero(day.expectedFixed);
@@ -3695,19 +3707,20 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     if(projectionMode==='actual'){
       if(isPast){
         actualDayCount++; if(!day)missingPastDays.push(key);
-        projectedRevenue+=day?valOrZero(day.combinedRevenue):0; projectedAd+=day?valOrZero(day.combinedAd):0;
+        projectedCoreRevenue+=day?valOrZero(day.combinedRevenue):0; projectedOtherRevenue+=day?valOrZero(day.actualOtherRevenue):0; projectedAd+=day?valOrZero(day.combinedAd):0;
         projectedOrder+=day?valOrZero(day.actualOrder):0; projectedFixed+=day?valOrZero(day.actualFixed):0;
         projectedVariable+=day?valOrZero(day.actualVariable):0; projectedRepay+=day?valOrZero(day.actualRepay):0;
         if(day&&day.combinedRevenue!==null&&day.combinedRevenue!==undefined&&!isNaN(day.combinedRevenue)){pastRevenueSum+=Number(day.combinedRevenue);pastRevenueCount++;}
         if(day&&day.combinedAd!==null&&day.combinedAd!==undefined&&!isNaN(day.combinedAd)){pastAdSum+=Number(day.combinedAd);pastAdCount++;}
       }else{
         expectedDayCount++;
-        projectedRevenue+=expectedDailyRevenue; projectedAd+=expectedDailyAd;
+        projectedCoreRevenue+=expectedDailyRevenue; projectedOtherRevenue+=day?valOrZero(day.expectedOtherRevenue):0; projectedAd+=expectedDailyAd;
         projectedOrder+=day?valOrZero(day.expectedOrder):0; projectedFixed+=day?valOrZero(day.expectedFixed):0;
         projectedVariable+=day?valOrZero(day.expectedVariable):0; projectedRepay+=day?valOrZero(day.expectedRepay):0;
       }
     }
   }
+  if(projectionMode==='actual')projectedRevenue=projectedCoreRevenue+projectedOtherRevenue;
 
   var remainingCalendarDays=Math.max(0,Math.round((monthEnd-dataCutoff)/86400000));
   var ownDailyForecast=Number(planRow.dailyAvg)||0;
@@ -3721,13 +3734,15 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   var assessments,plannedProfit,projectedProfit;
   if(projectionMode==='settlement'){
     // 모든 항목을 동일한 1일~기준일 누적 범위로 통일한다.
-    projectedRevenue=settlementRevenueSum; projectedAd=chargeAdSum;
+    projectedCoreRevenue=settlementRevenueSum; projectedOtherRevenue=actualOtherRevenueSum;
+    projectedRevenue=projectedCoreRevenue+projectedOtherRevenue; projectedAd=chargeAdSum;
     projectedOrder=pastCostActual.order; projectedFixed=pastCostActual.fixed;
     projectedVariable=pastCostActual.variable; projectedRepay=pastCostActual.repay;
-    plannedProfit=expectedCumRevenue-(expectedCumAd+expectedCumOrder+expectedCumFixed+expectedCumVariable+expectedCumRepay);
+    plannedProfit=(expectedCumRevenue+expectedCumOtherRevenue)-(expectedCumAd+expectedCumOrder+expectedCumFixed+expectedCumVariable+expectedCumRepay);
     projectedProfit=projectedRevenue-(projectedAd+projectedOrder+projectedFixed+projectedVariable+projectedRepay);
     assessments=[
-      {name:'매출',forecast:projectedRevenue,expected:expectedCumRevenue,isRevenue:true},
+      {name:'매출',forecast:projectedCoreRevenue,expected:expectedCumRevenue,isRevenue:true},
+      {name:'기타매출',forecast:projectedOtherRevenue,expected:expectedCumOtherRevenue,isRevenue:true},
       {name:'광고비',forecast:projectedAd,expected:expectedCumAd,isRevenue:false},
       {name:'발주비',forecast:projectedOrder,expected:expectedCumOrder,isRevenue:false},
       {name:'고정비',forecast:projectedFixed,expected:expectedCumFixed,isRevenue:false},
@@ -3747,10 +3762,11 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     projectedProfit=projectedRevenue-(projectedAd+projectedOrder+projectedFixed+projectedVariable+projectedRepay);
     assessments=[];
   }else{
-    plannedProfit=planRow.profit;
+    plannedProfit=planRow.profit+expectedMonthOtherRevenue;
     projectedProfit=projectedRevenue-(projectedAd+projectedOrder+projectedFixed+projectedVariable+projectedRepay);
     assessments=[
-      {name:'매출',forecast:projectedRevenue,expected:planRow.revenueAdj,isRevenue:true},
+      {name:'매출',forecast:projectedCoreRevenue,expected:planRow.revenueAdj,isRevenue:true},
+      {name:'기타매출',forecast:projectedOtherRevenue,expected:expectedMonthOtherRevenue,isRevenue:true},
       {name:'광고비',forecast:projectedAd,expected:planRow.ad,isRevenue:false},
       {name:'발주비',forecast:projectedOrder,expected:planRow.order,isRevenue:false},
       {name:'고정비',forecast:projectedFixed,expected:planRow.fixed,isRevenue:false},
@@ -3781,6 +3797,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     if(projectionMode==='settlement'){
       var period=fmtDateShort(monthStart)+'~'+fmtDateShort(dataCutoff);
       if(a.name==='매출')reason=period+' 예상 매출 누적 '+fmtReasonMoney(expected)+' 대비 정산 누적 '+fmtReasonMoney(forecast)+'을 비교했습니다.';
+      else if(a.name==='기타매출')reason=period+' 예상 기타매출 누적 '+fmtReasonMoney(expected)+' 대비 실제 기타매출 누적 '+fmtReasonMoney(forecast)+'을 비교했습니다.';
       else if(a.name==='광고비')reason=period+' 예상 광고비 누적 '+fmtReasonMoney(expected)+' 대비 충전 누적 '+fmtReasonMoney(forecast)+'을 비교했습니다. ※ 충전 데이터에는 쿠팡 광고비가 제외되어 있습니다.';
       else{
         var k=a.name==='발주비'?'order':a.name==='고정비'?'fixed':a.name==='변동비'?'variable':'repay';
@@ -3794,9 +3811,15 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
         var dailyDelta=avg-expectedDailyRevenue;
         reason='지난 '+pastRevenueCount+'일 실제 일평균 매출 '+fmtReasonMoney(avg)+'이 예상 일평균 '+fmtReasonMoney(expectedDailyRevenue)+'보다 '+fmtReasonMoney(Math.abs(dailyDelta))+' '+(dailyDelta>=0?'높아':'낮아')+' 전망에 반영됐습니다.';
         if(delta<0&&expectedDayCount>0){
-          var actualRevenueSoFar=projectedRevenue-(expectedDailyRevenue*expectedDayCount),remainingRevenueNeeded=Math.max(0,expected-actualRevenueSoFar),requiredDailyRevenue=remainingRevenueNeeded/expectedDayCount;
+          var actualRevenueSoFar=projectedCoreRevenue-(expectedDailyRevenue*expectedDayCount),remainingRevenueNeeded=Math.max(0,expected-actualRevenueSoFar),requiredDailyRevenue=remainingRevenueNeeded/expectedDayCount;
           reason+=' 남은 '+expectedDayCount+'일간 일평균 매출이 '+fmtReasonMoney(requiredDailyRevenue)+' 이상이면 기존 예상 월매출 '+fmtReasonMoney(expected)+' 수준까지 회복할 수 있습니다.';
         }
+      }
+    }else if(a.name==='기타매출'){
+      if(projectionMode==='settlement'){
+        reason=fmtDateShort(monthStart)+'~'+fmtDateShort(dataCutoff)+' 예상 기타매출 누적 '+fmtReasonMoney(expected)+' 대비 실제 기타매출 누적 '+fmtReasonMoney(forecast)+'을 비교했습니다.';
+      }else{
+        reason='현재까지 실제 기타매출과 남은 기간 일별 데이터의 예상 기타매출을 합산해 월말 전망에 반영했습니다.';
       }
     }else if(a.name==='광고비'){
       var adAvg=avgOrNull(pastAdSum,pastAdCount);
@@ -3834,7 +3857,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   var revenueParts=[{name:'확정 누적 정산',value:settlementRevenueSum,color:'#6366f1'},{name:'향후 자사몰+네이버',value:ownDailyForecast*futureOwnSettlementDays,color:'#3b82f6'},{name:'월정산',value:monthlySettlementFixed,color:'#06b6d4'},{name:'기타 정산',value:otherSettlementFixed,color:'#14b8a6'}];
   var costParts=[{name:'광고비',value:projectedAd,color:'#f59e0b'},{name:'발주비',value:projectedOrder,color:'#f97316'},{name:'고정비',value:projectedFixed,color:'#a855f7'},{name:'변동비',value:projectedVariable,color:'#ec4899'},{name:'상환비',value:projectedRepay,color:'#64748b'}];
   var totalProjectedCost=projectedAd+projectedOrder+projectedFixed+projectedVariable+projectedRepay;
-  var maxBridge=Math.max(projectedRevenue,totalProjectedCost,1),bridgeHeight=220;
+  var maxBridge=Math.max(projectedRevenue,totalProjectedCost,1),bridgeHeight=340;
   var revenueHeight=Math.max(6,projectedRevenue/maxBridge*bridgeHeight),costHeight=bridgeHeight;
   var costSegmentsHtml=costParts.map(function(x){var h=Math.max(0,x.value/maxBridge*100);return '<div class="profit-cost-seg" style="height:'+h.toFixed(3)+'%;background:'+x.color+'"><span>'+x.name+' '+fmtWeeklyMoney(x.value,false)+'</span></div>';}).join('');
   var outcomeGap=Math.abs(projectedRevenue-totalProjectedCost);
