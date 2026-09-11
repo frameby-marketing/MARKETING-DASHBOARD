@@ -3668,7 +3668,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
 
   var projectedRevenue=0,projectedCoreRevenue=0,projectedOtherRevenue=0,projectedAd=0,projectedOrder=0,projectedFixed=0,projectedVariable=0,projectedRepay=0;
   var expectedCumRevenue=0,expectedCumOtherRevenue=0,expectedMonthOtherRevenue=0,expectedCumAd=0,expectedCumOrder=0,expectedCumFixed=0,expectedCumVariable=0,expectedCumRepay=0;
-  var settlementRevenueSum=0,ownNaverSettlementSum=0,actualOtherRevenueSum=0,chargeAdSum=0;
+  var settlementRevenueSum=0,ownNaverSettlementSum=0,actualOtherRevenueSum=0,futureOtherRevenueSum=0,chargeAdSum=0;
   var settlementRevenueCount=0,chargeAdCount=0;
   var actualDayCount=0,expectedDayCount=0,cumDayCount=0,missingPastDays=[];
   var pastRevenueSum=0,pastRevenueCount=0,pastAdSum=0,pastAdCount=0;
@@ -3681,6 +3681,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     var isPast=d<=actualCutoff;
     var isCum=d<=dataCutoff;
     if(day)expectedMonthOtherRevenue+=valOrZero(day.expectedOtherRevenue);
+    if(day&&!isCum)futureOtherRevenueSum+=valOrZero(day.expectedOtherRevenue);
 
     if(isCum){
       cumDayCount++;
@@ -3734,7 +3735,7 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
   var ownDailyForecast=Number(planRow.dailyAvg)||0;
   var futureOwnSettlementDays=remainingCalendarDays;
   var monthlySettlementFixed=forecastStatusWeeklyColumnTotal('월정산');
-  var otherSettlementFixed=forecastStatusWeeklyColumnTotal('기타정산');
+  var otherSettlementFixed=actualOtherRevenueSum+futureOtherRevenueSum;
   var fixedAdCharge=forecastStatusWeeklyColumnTotal('확정광고비');
   var chargedDailyAverage=cumDayCount?chargeAdSum/cumDayCount:0;
   var futureAdForecast=chargedDailyAverage*remainingCalendarDays;
@@ -3879,6 +3880,10 @@ function renderMonthlyProfitProjection(rows,curAs,monthWeeks,monthLabel){
     bridgeChartHtml+
     '<div class="kpi-sub projection-footnote" style="margin-top:8px">'+foot+'</div>'+breakEvenHtml+missingNote+'</div>'+
     (projectionMode==='settlementForecast'?'<div class="kpi-card projection-assessment-card"><div class="kpi-label">월말 예측 산출 구성</div>'+donutChartsHtml+'<div class="projection-eval-list"><div class="projection-eval-row"><div class="projection-eval-name">정산 매출</div><div class="projection-eval-text">확정 누적(자사+네이버) '+fmtWeeklyMoney(ownNaverSettlementSum,false)+' + 향후 자사몰·네이버 '+fmtWeeklyMoney(ownDailyForecast*futureOwnSettlementDays,false)+' ('+fmtWeeklyMoney(ownDailyForecast,false)+' × '+futureOwnSettlementDays+'일) + 월정산(M몰+쿠팡) '+fmtWeeklyMoney(monthlySettlementFixed,false)+' + 기타정산(B2B등) '+fmtWeeklyMoney(otherSettlementFixed,false)+'</div></div><div class="projection-eval-row"><div class="projection-eval-name">충전 광고비</div><div class="projection-eval-text">현재까지 충전 '+fmtWeeklyMoney(chargeAdSum,false)+' + 확정 META 광고비 '+fmtWeeklyMoney(fixedAdCharge,false)+' + 남은 기간 예상 충전 '+fmtWeeklyMoney(futureAdForecast,false)+' (현재 충전 일평균 '+fmtWeeklyMoney(chargedDailyAverage,false)+' × '+remainingCalendarDays+'일) = 월말 합계 '+fmtWeeklyMoney(projectedAd,false)+'</div></div><div class="projection-eval-row"><div class="projection-eval-name">지출 발주비</div><div class="projection-eval-text">현재까지 실제 발주비 '+fmtWeeklyMoney(pastCostActual.order,false)+' + 남은 기간 예상 발주비 '+fmtWeeklyMoney(Math.max(0,projectedOrder-pastCostActual.order),false)+' = 월말 합계 '+fmtWeeklyMoney(projectedOrder,false)+'</div></div><div class="projection-eval-row"><div class="projection-eval-name">기타비용</div><div class="projection-eval-text"><strong>고정비</strong> '+fmtWeeklyMoney(projectedFixed,false)+' · <strong>변동비</strong> '+fmtWeeklyMoney(projectedVariable,false)+' · <strong>상환비</strong> '+fmtWeeklyMoney(projectedRepay,false)+' · <strong>월말 합계</strong> '+fmtWeeklyMoney(projectedFixed+projectedVariable+projectedRepay,false)+'</div></div></div></div>':'<div class="kpi-card projection-assessment-card"><div class="kpi-label">항목별 평가 · '+(projectionMode==='settlement'?'동일 기간 예상 누적 vs 실제 누적':'예상 vs 전망')+'</div><div class="projection-bars-grid">'+assessments.map(assessmentBarHtml).join('')+'</div>'+evaluationListHtml+'</div>');
+  if(projectionMode==='settlementForecast'){
+    var settlementDetailEl=projEl.querySelector('.projection-assessment-card .projection-eval-row:first-child .projection-eval-text');
+    if(settlementDetailEl)settlementDetailEl.innerHTML+='<br><span style="display:inline-block;margin-top:8px;color:var(--text-sub);font-size:15px"><strong>기타정산 세부</strong> · 현재까지 실제 '+fmtWeeklyMoney(actualOtherRevenueSum,false)+' + 남은 기간 예상 '+fmtWeeklyMoney(futureOtherRevenueSum,false)+' = '+fmtWeeklyMoney(otherSettlementFixed,false)+'</span>';
+  }
 }
 
 function renderWeeklyTable(rows,totalWeeks){
