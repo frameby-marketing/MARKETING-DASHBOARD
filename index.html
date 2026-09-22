@@ -5,6 +5,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>매출 &amp; 영업이익 시뮬레이션</title>
+  <script>
+    /* 홈·다른 대시보드와 공통 테마를 첫 화면이 그려지기 전에 복원합니다. */
+    (function(){
+      try{
+        var shared=localStorage.getItem('theme');
+        var legacy=localStorage.getItem('rmv2_theme');
+        var theme=shared==='light'||shared==='dark'
+          ? shared
+          : (legacy==='light'||legacy==='dark'?legacy:'dark');
+        localStorage.setItem('theme',theme);
+        localStorage.removeItem('rmv2_theme');
+        document.documentElement.classList.toggle('light',theme==='light');
+        document.documentElement.setAttribute('data-theme',theme);
+      }catch(e){}
+    })();
+  </script>
   <!-- BUILD: 2026-08-31 settlement-cumulative-unified-v1 -->
   <script>console.log('[진단] 대시보드 빌드: 2026-08-31 settlement-cumulative-unified-v1 — 정산·충전 기준 동일 기간 누적 비교 적용');</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1415,9 +1431,11 @@ function setTheme(mode){
     el.classList.toggle('active', !isLight);
   });
 
-  // 기존 대시보드 저장값 유지 + 공용 사이드바 저장키도 함께 동기화
-  localStorage.setItem('rmv2_theme', isLight ? 'light' : 'dark');
-  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  // 홈과 모든 대시보드가 사용하는 공통 저장키로 동기화
+  try{
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    localStorage.removeItem('rmv2_theme');
+  }catch(e){}
 
   renderAll();
 }
@@ -4174,11 +4192,33 @@ function fmtKorean(v,showSign){
 }
 
 window.addEventListener('DOMContentLoaded',function(){
-  var savedTheme=localStorage.getItem('rmv2_theme')||'dark';
+  var savedTheme='dark';
+  try{
+    var sharedTheme=localStorage.getItem('theme');
+    var legacyTheme=localStorage.getItem('rmv2_theme');
+    savedTheme=sharedTheme==='light'||sharedTheme==='dark'
+      ? sharedTheme
+      : (legacyTheme==='light'||legacyTheme==='dark'?legacyTheme:'dark');
+    localStorage.setItem('theme',savedTheme);
+    localStorage.removeItem('rmv2_theme');
+  }catch(e){}
   try{ setTheme(savedTheme); }catch(e){ console.error('setTheme 초기화 실패:', e); }
   try{ buildRatioTabs(); }catch(e){ console.error('buildRatioTabs 초기화 실패:', e); }
   try{ initDetailAuth(); }catch(e){ console.error('initDetailAuth 초기화 실패:', e); }
   try{ initDashboardAuth(); }catch(e){ console.error('initDashboardAuth 초기화 실패:', e); showDashboardAuthGate(); }
+
+  new MutationObserver(function(){
+    var theme=document.documentElement.getAttribute('data-theme');
+    if((theme==='light'||theme==='dark')&&document.documentElement.classList.contains('light')!==(theme==='light')){
+      setTheme(theme);
+    }
+  }).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+});
+
+window.addEventListener('storage',function(event){
+  if(event.key==='theme'&&(event.newValue==='light'||event.newValue==='dark')){
+    setTheme(event.newValue);
+  }
 });
 
 document.addEventListener('keydown',function(e){
