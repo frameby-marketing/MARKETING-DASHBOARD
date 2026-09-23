@@ -996,7 +996,7 @@
       </header>
       <div class="settings-grid">
         <div class="settings-card full-width">
-          <div class="settings-note" style="margin-top:0">&#x203B; 이 대시보드는 스프레드시트 ID <code>1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI</code>에 고정 연동되어 있으며, <code>매출데이터</code>(A1:J13) · <code>일별 데이터</code>(A1:U500) 두 시트를 자동으로 읽어옵니다. 우측 상단 &#39;스프레드시트&#39; 버튼으로 바로 열 수 있어요.</div>
+          <div class="settings-note" style="margin-top:0">&#x203B; 이 대시보드는 스프레드시트 ID <code>1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI</code>에 고정 연동되어 있으며, <code>매출데이터</code>(A1:K13) · <code>일별 데이터</code>(A1:U500) 두 시트를 자동으로 읽어옵니다. 우측 상단 &#39;스프레드시트&#39; 버튼으로 바로 열 수 있어요.</div>
         </div>
         <div class="settings-card full-width">
           <div class="settings-section-title">매출데이터 시트 구성 가이드</div>
@@ -1007,18 +1007,19 @@
                 <tr><td>A열</td><td>월</td><td>26-01, 26-02 …</td><td>행 2부터 입력 (1행 헤더)</td></tr>
                 <tr><td>B열</td><td>일평균매출 — 자사+네이버 (만원)</td><td>120</td><td>직접 입력</td></tr>
                 <tr><td>C열</td><td>전체매출 (만원)</td><td>=B2/0.7*30+B2 등</td><td>시트 계산식으로 직접 입력</td></tr>
-                <tr><td>D열</td><td>고정비 (만원)</td><td>820</td><td>인건비·임차료 등</td></tr>
-                <tr><td>E열</td><td>발주비 (만원)</td><td>980</td><td>재고 매입비</td></tr>
-                <tr><td>F열</td><td>광고비 (만원)</td><td>700</td><td>마케팅 비용</td></tr>
-                <tr><td>G열</td><td>변동비 (만원)</td><td>200</td><td>배송·수수료 등 기타</td></tr>
-                <tr><td>H열</td><td>상환비 (만원)</td><td>1000</td><td>대출 상환액</td></tr>
-                <tr><td>I열</td><td>메모 (선택)</td><td>프로모션 기간</td><td>대시보드 참고 표시</td></tr>
-                <tr><td>J열</td><td>산정기준 (선택)</td><td>확정 / 시뮬레이션</td><td>확정 시 시나리오 미적용</td></tr>
+                <tr><td>D열</td><td>자본수입 (차입금)</td><td>0</td><td>영업이익 계산에서 제외</td></tr>
+                <tr><td>E열</td><td>고정비 (만원)</td><td>820</td><td>인건비·임차료 등</td></tr>
+                <tr><td>F열</td><td>발주비 (만원)</td><td>980</td><td>재고 매입비</td></tr>
+                <tr><td>G열</td><td>광고비 (만원)</td><td>700</td><td>마케팅 비용</td></tr>
+                <tr><td>H열</td><td>변동비 (만원)</td><td>200</td><td>배송·수수료 등 기타</td></tr>
+                <tr><td>I열</td><td>상환비 (만원)</td><td>1000</td><td>대출 상환액</td></tr>
+                <tr><td>J열</td><td>메모 (선택)</td><td>프로모션 기간</td><td>대시보드 참고 표시</td></tr>
+                <tr><td>K열</td><td>산정기준 (선택)</td><td>확정 / 시뮬레이션</td><td>확정 시 시나리오 미적용</td></tr>
               </tbody>
             </table>
           </div>
           <div class="guide-steps">
-            <div class="guide-step"><span class="step-num">1</span><span>&#39;매출데이터&#39; 시트의 1행 헤더: <code>월 | 일평균매출 | 전체매출 | 고정비 | 발주비 | 광고비 | 변동비 | 상환비 | 메모 | 산정기준</code></span></div>
+            <div class="guide-step"><span class="step-num">1</span><span>&#39;매출데이터&#39; 시트의 1행 헤더: <code>월 | 일평균매출 | 전체매출 | 자본수입 (차입금) | 고정비 | 발주비 | 광고비 | 변동비 | 상환비 | 메모 | 산정기준</code></span></div>
             <div class="guide-step"><span class="step-num">2</span><span>2행부터 월별 데이터 입력 — 확정된 달은 실적, 미래 달은 예측값 입력</span></div>
             <div class="guide-step"><span class="step-num">3</span><span>공유 설정 → <strong>링크가 있는 모든 사용자 → 뷰어</strong>로 유지</span></div>
           </div>
@@ -1269,7 +1270,7 @@ var TOTAL_REPAY_GOAL = 32700; // 목표 상환금액: 3억 2천 7백만원
 // 이 대시보드는 아래 스프레드시트에 고정 연동됩니다 (설정 UI 없음)
 var SHEET_ID            = '1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI';
 var SHEET_NAME          = '매출데이터';
-var SHEET_RANGE         = 'A1:J13';
+var SHEET_RANGE         = 'A1:K13';
 var WEEKLY_SHEET_NAME   = '일별 데이터';
 var WEEKLY_SHEET_RANGE  = 'A1:U500';
 var FVA_SHEET_NAME      = '예측대비실적';
@@ -2466,8 +2467,8 @@ function parseCSV(text){
   if(allRows.length<2){useDemoData();return}
   rawRows=allRows.slice(1).map(function(c){
     return{month:c[0]||'',dailyAvg:pn(c[1]),revenue:pn(c[2]),
-           fixed:pn(c[3]),order:pn(c[4]),ad:pn(c[5]),
-           variable:pn(c[6]),repay:pn(c[7]),memo:c[8]||'',basis:c[9]||''};
+           fixed:pn(c[4]),order:pn(c[5]),ad:pn(c[6]),
+           variable:pn(c[7]),repay:pn(c[8]),memo:c[9]||'',basis:c[10]||''};
   }).filter(function(r){return r.month});
   renderAll();
 }
