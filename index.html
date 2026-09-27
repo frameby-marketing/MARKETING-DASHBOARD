@@ -798,6 +798,15 @@
 .fva-prc-conclusion{margin-top:14px;padding:14px 15px;border-radius:13px;background:var(--panel);border:1px solid var(--border);color:var(--text);font-size:13px;font-weight:800;line-height:1.7}
 .fva-prc-conclusion strong{color:var(--text)}
 @media(max-width:900px){.fva-prc-summary,.fva-prc-platforms,.fva-prc-insight{grid-template-columns:1fr}.fva-prc-head{display:block}.fva-prc-badge{display:inline-block;margin-top:10px}}
+
+    .daily-eval-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    .daily-eval-card,.daily-profit-card,.daily-eval-empty{background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:20px;color:var(--text)}
+    .daily-eval-label{font-weight:700;font-size:14px}.daily-eval-values{display:flex;justify-content:space-between;gap:12px;margin:18px 0 12px;color:var(--text-muted);font-size:12px}
+    .daily-eval-values span:last-child{text-align:right}.daily-eval-values b{display:block;color:var(--text);font-size:17px;margin-top:4px}
+    .daily-eval-track{background:var(--border);height:7px;border-radius:10px;overflow:hidden;margin-bottom:10px}.daily-eval-track i{display:block;height:100%;border-radius:10px}
+    .daily-profit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}.daily-profit-card h2{margin:0;font-size:18px}.daily-profit-card p{color:var(--text-muted);font-size:12px}
+    .daily-profit-result{font-size:26px;font-weight:800;margin:18px 0}.daily-eval-detail{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--border);padding:10px 0;font-size:13px}.daily-eval-detail span{color:var(--text-muted)}
+    @media(max-width:900px){.daily-eval-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:650px){.daily-eval-grid,.daily-profit-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -836,14 +845,19 @@
     </div>
   </div>
   <div class="top-tabs-row">
-    <button class="top-tab active" data-tab="dashboard" onclick="switchTab('dashboard')">통합</button>
+    <button class="top-tab active" data-tab="dailyCumulative" onclick="switchTab('dailyCumulative')">일별 누적 현황</button>
+    <button class="top-tab" data-tab="dashboard" onclick="switchTab('dashboard')">예측 기준</button>
     <button class="top-tab" data-tab="forecastActual" onclick="switchTab('forecastActual')">26 예측 대비 실적</button>
     <button class="top-tab" data-tab="weekly" onclick="switchTab('weekly')">주차별 점검</button>
   </div>
 </div>
 <div class="app">
   <main class="main">
-    <div class="tab-content active" id="tab-dashboard">
+    <div class="tab-content active" id="tab-dailyCumulative">
+      <header class="page-header"><div><h1>9월 평가 지표</h1><p class="page-sub" id="dailyEvalPeriod">일별 데이터 연결 중...</p></div></header>
+      <div id="dailyEvalContent" class="daily-eval"><div class="daily-eval-empty">데이터 로딩 중...</div></div>
+    </div>
+    <div class="tab-content" id="tab-dashboard">
 
       <header class="page-header">
         <div>
@@ -1447,6 +1461,7 @@ function switchTab(tab){
   document.querySelectorAll('.top-tab').forEach(function(el){el.classList.remove('active')});
   var navBtn=document.querySelector('[data-tab="'+tab+'"]');
   if(navBtn)navBtn.classList.add('active');
+  if(tab==='dailyCumulative')renderDailyCumulative();
   if(tab==='weekly')renderWeeklyTab();
   if(tab==='forecastActual')renderForecastActualTab();
 }
@@ -1641,6 +1656,40 @@ async function fetchForecastActualData(){
     parseFvaChannelRows(all);
   }catch(e){forecastActualRows=[];console.warn('예측대비실적 시트 로드 실패:',e);throw e;}
   renderForecastActualTab();
+  renderDailyCumulative();
+}
+
+// 전체회의의 월 누적 평가 지표와 동일한 일별 데이터/월 계획 산식을 사용한다.
+function renderDailyCumulative(){
+  var root=document.getElementById('dailyEvalContent'),period=document.getElementById('dailyEvalPeriod');
+  if(!root)return;
+  var now=new Date(),year=now.getFullYear(),month=now.getMonth(),cutoff=new Date(year,month,now.getDate()-1);
+  var prefix=year+'-'+pad2(month+1)+'-',monthRows=weeklyRows.filter(function(r){return r.date&&r.date.slice(0,7)===prefix&&r.date<=fmtDateISO(cutoff)});
+  var plan=calcRows().find(function(r){return r.month===String(year).slice(2)+'-'+pad2(month+1)});
+  if(!plan||!monthRows.length){period.textContent='해당 월의 일별 데이터와 계획을 확인해 주세요.';root.innerHTML='<div class="daily-eval-empty">표시할 월 누적 데이터가 없습니다.</div>';return}
+  var latest=monthRows.filter(function(r){return ['combinedSettlement','ownNaverSettlement','combinedAdCharge','actualOrder','actualFixed','actualVariable'].some(function(k){return r[k]!==null})}).slice(-1)[0];
+  if(!latest){root.innerHTML='<div class="daily-eval-empty">실적 데이터 입력을 기다리고 있습니다.</div>';return}
+  var rows=monthRows.filter(function(r){return r.date<=latest.date}),days=new Date(year,month+1,0).getDate();
+  var complete=monthRows.some(function(r){return r.date===fmtDateISO(cutoff)&&['ownNaverSettlement','combinedSettlement','combinedAdCharge','expectedOrder','actualOrder','expectedFixed','actualFixed','expectedVariable','actualVariable'].every(function(k){return r[k]!==null})});
+  period.textContent=(month+1)+'/1 ~ '+latest.date.slice(5).replace('-','/')+' · '+(complete?'전일 데이터 입력 완료':'전일 데이터 미입력');
+  function sum(key,arr){return arr.reduce(function(v,r){return v+(r[key]||0)},0)}
+  function avg(key,arr){var valid=arr.filter(function(r){return r[key]!==null});return valid.length?sum(key,valid)/valid.length:0}
+  function won(n){return Math.round(n*10000).toLocaleString('ko-KR')+'원'}
+  function card(label,current,target,cost,expected){var ratio=target?current/target*100:0,good=cost?current<=target:current>=target;return '<div class="daily-eval-card"><div class="daily-eval-label">'+label+'</div><div class="daily-eval-values"><span>'+(expected?'예상':'목표')+'<b>'+won(target)+'</b></span><span>'+(expected?'실제':'현재')+'<b>'+won(current)+'</b></span></div><div class="daily-eval-track"><i style="width:'+Math.min(100,ratio)+'%;background:'+(good?'#22a777':'#dc6464')+'"></i></div><strong style="color:'+(good?'#22a777':'#dc6464')+'">'+(target?ratio.toFixed(1)+'%':'—')+'</strong></div>'}
+  var monthPlan=weeklyRows.filter(function(r){return r.date&&r.date.slice(0,7)===prefix}),targetRevenue=plan.revenueAdj,targetAd=year===2026&&month===8?110*days:plan.ad;
+  var orderExpected=sum('expectedOrder',monthPlan),fixedExpected=sum('expectedFixed',monthPlan),variableExpected=sum('expectedVariable',monthPlan);
+  var settlement=sum('combinedSettlement',rows),charge=sum('combinedAdCharge',rows),order=sum('actualOrder',rows),fixed=sum('actualFixed',rows),variable=sum('actualVariable',rows);
+  var targetProfit=targetRevenue-targetAd-orderExpected-fixedExpected-variableExpected,actualProfit=settlement-charge-order-fixed-variable;
+  function detail(label,value){return '<div class="daily-eval-detail"><span>'+label+'</span><b>'+won(value)+'</b></div>'}
+  root.innerHTML='<div class="daily-eval-grid">'+
+    card('자사+네이버 일평균 정산',avg('ownNaverSettlement',rows),plan.dailyAvg,false,false)+
+    card('전체매출 일평균 정산',avg('combinedSettlement',rows),targetRevenue/days,false,false)+
+    card('통합 일평균 광고충전',avg('combinedAdCharge',rows),targetAd/days,true,false)+
+    card('실제 발주비 누적',order,sum('expectedOrder',rows),true,true)+
+    card('실제 고정비 누적',fixed,sum('expectedFixed',rows),true,true)+
+    card('실제 변동비 누적',variable,sum('expectedVariable',rows),true,true)+'</div>'+
+    '<div class="daily-profit-grid"><section class="daily-profit-card"><h2>목표 영업이익</h2><p>월 목표 · 전체 예상비용 기준</p><div class="daily-profit-result">'+won(targetProfit)+'</div>'+detail('목표 총매출',targetRevenue)+detail('목표 총광고비',targetAd)+detail('예상 총발주비',orderExpected)+detail('예상 총고정비',fixedExpected)+detail('예상 총변동비',variableExpected)+'</section>'+
+    '<section class="daily-profit-card"><h2>현시점 누적 영업이익</h2><p>정산 · 충전 · 실제비용 누적 기준</p><div class="daily-profit-result">'+won(actualProfit)+'</div>'+detail('누적 정산 전체매출액',settlement)+detail('누적 광고충전',charge)+detail('실제 누적 발주비',order)+detail('실제 누적 고정비',fixed)+detail('실제 누적 변동비',variable)+'</section></div>';
 }
 
 
