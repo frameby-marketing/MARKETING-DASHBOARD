@@ -4255,7 +4255,7 @@ window.addEventListener('DOMContentLoaded',function(){
   try{ setTheme(savedTheme); }catch(e){ console.error('setTheme 초기화 실패:', e); }
   try{ buildRatioTabs(); }catch(e){ console.error('buildRatioTabs 초기화 실패:', e); }
   try{ initDetailAuth(); }catch(e){ console.error('initDetailAuth 초기화 실패:', e); }
-  try{ initDashboardAuth(); }catch(e){ console.error('initDashboardAuth 초기화 실패:', e); showDashboardAuthGate(); }
+  try{ initDashboardAuth(); }catch(e){ console.error('initDashboardAuth 초기화 실패:', e); showDashboardAuthGate(); } 
 
   new MutationObserver(function(){
     var theme=document.documentElement.getAttribute('data-theme');
