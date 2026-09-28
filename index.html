@@ -4469,7 +4469,7 @@ window.addEventListener('DOMContentLoaded',function(){
   try{ buildRatioTabs(); }catch(e){ console.error('buildRatioTabs 초기화 실패:', e); }
   try{ initDetailAuth(); }catch(e){ console.error('initDetailAuth 초기화 실패:', e); }
   try{ initDashboardAuth(); }catch(e){ console.error('initDashboardAuth 초기화 실패:', e); showDashboardAuthGate(); }
-
+ 
   new MutationObserver(function(){
     var theme=document.documentElement.getAttribute('data-theme');
     if((theme==='light'||theme==='dark')&&document.documentElement.classList.contains('light')!==(theme==='light')){
