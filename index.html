@@ -1746,7 +1746,7 @@ function renderDailyCumulative(){
   Array.from(root.querySelectorAll('.eval-item')).forEach(function(card,i){card.onclick=function(){openEvalDetail(i)}});
   var revenue=sm('settlement',monthRows)+sm('actualMonthlySettlement',monthRows),otherRevenue=sm('actualOtherRevenue',monthRows),charge=sm('adCharge',monthRows),profit=revenue+otherRevenue-charge-current.orderActual-current.fixedActual-current.variableActual;
   var META_PAYMENT_CONFIG={date:'2026-09-14',amount:11546045,sourceMonthDays:31};
-  var forecastData=getMonthEndProfitData({monthlyLatest:current,dim:dim,monthRowsLatest:monthRows,fullMonthRows:full,latestDate:latest});
+  var forecastData=getMonthEndProfitData({monthlyLatest:current,monthlyPlan:plan,dim:dim,monthRowsLatest:monthRows,fullMonthRows:full,latestDate:latest});
   var forecastRepay=sm('repay',monthRows)+sm('expRepay',full.filter(function(r){return r.date>latest}));
   var forecastCash=forecastData.monthEndProfit+(financeIncluded?targetCapital-forecastRepay:0);
   // 대표 보고용 요약: 현재 실적과 목표의 격차, 현금 수지 및 최대 비용 차이를 두 문장으로 표시한다.
@@ -1785,8 +1785,13 @@ function renderDailyCumulative(){
     else{
       var daysLeft=dim-latest.getDate(),daysSelected=chosen.getDate()-latest.getDate(),fraction=daysLeft?daysSelected/daysLeft:0;
       var future=full.filter(function(r){return r.date>latest&&r.date<=chosen});
-      actualRevenue=sm('settlement',monthRows)+(forecastData.ownRevenue-sm('settlement',monthRows))*fraction+sm('actualMonthlySettlement',monthRows)+sm('expectedMonthlySettlement',future);actualOther=otherRevenue+sm('expectedOtherRevenue',future);actualAd=charge+(forecastData.totalAd-charge)*fraction;actualOrder=current.orderActual+sm('expOrder',future);actualFixed=current.fixedActual+sm('expFixed',future);actualVariable=current.variableActual+sm('expVariable',future);
-      if(chosen.getDate()===dim){actualRevenue=forecastData.totalRevenue-forecastData.otherSettlement;actualOther=forecastData.otherSettlement;actualAd=forecastData.totalAd;actualOrder=forecastData.totalOrder;actualFixed=forecastData.totalFixed;actualVariable=forecastData.totalVariable}
+      var settledOwn=sm('settlement',monthRows),settledMonthly=sm('actualMonthlySettlement',monthRows);
+      var projectedOwn=settledOwn+(forecastData.ownRevenue-settledOwn)*fraction;
+      actualRevenue=projectedOwn+settledMonthly+sm('expectedMonthlySettlement',future);
+      actualOther=otherRevenue+sm('expectedOtherRevenue',future);
+      actualAd=charge+(forecastData.totalAd-charge)*fraction;
+      actualOrder=current.orderActual+sm('expOrder',future);actualFixed=current.fixedActual+sm('expFixed',future);actualVariable=current.variableActual+sm('expVariable',future);
+      if(chosen.getDate()===dim){actualRevenue=forecastData.ownRevenue+forecastData.channelRevenue;actualOther=forecastData.otherSettlement;actualAd=forecastData.totalAd;actualOrder=forecastData.totalOrder;actualFixed=forecastData.totalFixed;actualVariable=forecastData.totalVariable}
       value=actualRevenue+actualOther-actualAd-actualOrder-actualFixed-actualVariable;
       basis='입력된 실제 누적 + 선택일까지의 예상 정산·기타매출·광고비·비용';
     }
@@ -1794,7 +1799,7 @@ function renderDailyCumulative(){
     if(isFuture&&chosen.getDate()===dim){actualRepay=forecastRepay;actualCapital=financeIncluded?targetCapital:0;value=forecastCash;basis='오른쪽 월말 현금 수지 예측과 동일한 계산 기준'}
     var day=chosen.getDate(),periodTargetRevenue=plan.totalTargetDaily*day,periodTargetAd=plan.adTargetDaily*day,periodTargetOrder=targetOrder*day/dim,periodTargetFixed=targetFixed*day/dim,periodTargetVariable=targetVariable*day/dim,periodCapital=financeIncluded&&meetingEvalCapitalDate&&meetingEvalCapitalDate<=input.value?targetCapital:0,periodRepay=financeIncluded?targetRepay*day/dim:0,periodTarget=periodTargetRevenue-periodTargetAd-periodTargetOrder-periodTargetFixed-periodTargetVariable+periodCapital-periodRepay,gap=value-periodTarget;
     selectedProfitDetail={date:chosen,isFuture:isFuture,value:value,revenue:actualRevenue,other:actualOther,ad:actualAd,order:actualOrder,fixed:actualFixed,variable:actualVariable,repay:actualRepay,capital:actualCapital,basis:basis,actualMonthly:sm('actualMonthlySettlement',history),expectedMonthly:isFuture?sm('expectedMonthlySettlement',future):0};
-    var card=$('currentProfitCard');card.querySelector('h3').textContent=(isFuture?md(chosen)+' 예상 누적':chosen.getTime()===latest.getTime()?'어제('+md(chosen)+')까지 누적':md(chosen)+'까지 누적')+' 현금 수지';card.querySelector('.profit-summary-head small').textContent=isFuture?'선택 날짜 기준 예측':'입력된 실제 데이터 기준';
+    var card=$('currentProfitCard');card.querySelector('h3').textContent=(isFuture?md(chosen)+' 예상 누적':chosen.getTime()===latest.getTime()?'어제('+md(chosen)+')까지 누적':md(chosen)+'까지 누적')+' 현금 수지';card.querySelector('.profit-summary-head small').textContent=month+'/1~'+md(chosen)+' · '+(isFuture?'선택 날짜까지의 예측':'실제 누적');
     var headline=card.querySelector('.profit-result');headline.innerHTML=bigMoney(value);headline.className='profit-result '+(value>=0?'good':'bad');
     $('selectedProfitResult').textContent='같은 기간 연초 목표 대비 '+signedMoney(gap)+' '+(gap<0?'↓':gap>0?'↑':'=');
     $('selectedProfitResult').className='selected-profit-result '+(gap>=0?'good':'bad');
@@ -1895,10 +1900,10 @@ function openEvalDetail(idx){
   openDetailModal(`${label} · ${periodTitle}`,`${periodText} 전체 집계`,evalDetailVisual(label,actual,target,tl,al,lower,periodText));
 }
 function getMonthEndProfitData(pr){
-  let actual=pr.monthlyLatest||{},dim=pr.dim||30,currentRows=pr.monthRowsLatest||[],futureRows=(pr.fullMonthRows||[]).filter(row=>row.date>pr.latestDate),isSeptember=year===2026&&month===9,
-      actualOtherSettlement=sum(pr.fullMonthRows||[],row=>row.date<=cutoff?(row.actualOtherRevenue||0):0),expectedOtherSettlement=sum(pr.fullMonthRows||[],row=>row.date>cutoff?(row.expectedOtherRevenue||0):0),
-      ownDailySettlement=actual.ownSettlementActual||0,ownRevenue=ownDailySettlement*dim,actualMonthlySettlement=sum(pr.fullMonthRows||[],row=>row.date<=pr.latestDate?(row.actualMonthlySettlement||0):0),expectedMonthlySettlement=sum(futureRows,row=>row.expectedMonthlySettlement||0),channelRevenue=actualMonthlySettlement+expectedMonthlySettlement,otherSettlement=actualOtherSettlement+expectedOtherSettlement,totalRevenue=ownRevenue+channelRevenue+otherSettlement,
-      nonMetaCharges=currentRows.map(row=>isSeptember&&iso(row.date)===META_PAYMENT_CONFIG.date?0:(Number(row.adCharge)||0)),nonMetaDaily=nonMetaCharges.length?avg(nonMetaCharges):0,metaCharge=isSeptember?META_PAYMENT_CONFIG.amount:0,nonMetaForecast=nonMetaDaily*dim,totalAd=metaCharge+nonMetaForecast,
+  let actual=pr.monthlyLatest||{},plan=pr.monthlyPlan||{},dim=pr.dim||30,currentRows=pr.monthRowsLatest||[],futureRows=(pr.fullMonthRows||[]).filter(row=>row.date>pr.latestDate),isSeptember=year===2026&&month===9,
+      actualOtherSettlement=sum(pr.fullMonthRows||[],row=>row.date<=pr.latestDate?(row.actualOtherRevenue||0):0),expectedOtherSettlement=sum(pr.fullMonthRows||[],row=>row.date>pr.latestDate?(row.expectedOtherRevenue||0):0),
+      ownDailySettlement=currentRows.some(row=>row.ownNaverSettlement!=null)?(actual.ownSettlementActual||0):(plan.ownTarget||0),ownRevenue=ownDailySettlement*dim,actualMonthlySettlement=sum(pr.fullMonthRows||[],row=>row.date<=pr.latestDate?(row.actualMonthlySettlement||0):0),expectedMonthlySettlement=sum(futureRows,row=>row.expectedMonthlySettlement||0),channelRevenue=actualMonthlySettlement+expectedMonthlySettlement,otherSettlement=actualOtherSettlement+expectedOtherSettlement,totalRevenue=ownRevenue+channelRevenue+otherSettlement,
+      nonMetaCharges=currentRows.map(row=>isSeptember&&iso(row.date)===META_PAYMENT_CONFIG.date?0:(Number(row.adCharge)||0)),nonMetaDaily=nonMetaCharges.length?avg(nonMetaCharges):0,metaCharge=isSeptember?META_PAYMENT_CONFIG.amount:0,nonMetaForecast=nonMetaCharges.length?nonMetaDaily*dim:plan.adTargetDaily*dim,totalAd=metaCharge+nonMetaForecast,
       actualOrder=actual.orderActual||0,futureOrder=sum(futureRows,row=>row.expOrder||0),totalOrder=actualOrder+futureOrder,actualFixed=actual.fixedActual||0,futureFixed=sum(futureRows,row=>row.expFixed||0),totalFixed=actualFixed+futureFixed,actualVariable=actual.variableActual||0,futureVariable=sum(futureRows,row=>row.expVariable||0),totalVariable=actualVariable+futureVariable,monthEndProfit=totalRevenue-totalAd-totalOrder-totalFixed-totalVariable;
   return {dim,ownDailySettlement,ownRevenue,channelRevenue,actualMonthlySettlement,expectedMonthlySettlement,actualOtherSettlement,expectedOtherSettlement,otherSettlement,totalRevenue,nonMetaCharges,nonMetaDaily,metaCharge,nonMetaForecast,totalAd,actualOrder,futureOrder,totalOrder,actualFixed,futureFixed,totalFixed,actualVariable,futureVariable,totalVariable,monthEndProfit};
 }
@@ -1914,7 +1919,7 @@ function openCurrentProfitDetail(){
   var expenseRows=line('광고충전액',d.ad)+line('발주비',d.order)+line('고정비',d.fixed)+line('변동비',d.variable)+(financeIncluded?line('상환비',d.repay):'')+total('누적 지출 합계',expense);
   var title=md(d.date)+'까지 '+(isFuture?'예상 누적':'실제 누적')+' 현금 수지';
   var body='<div class="detail-stats">'+statCard('누적 현금 수지',fmtWon(d.value),d.basis)+statCard('누적 수입',fmtWon(income),'정산·기타매출'+(financeIncluded?'·차입금':''))+statCard('누적 지출',fmtWon(expense),'광고·발주·고정·변동'+(financeIncluded?'·상환':''))+'</div><div class="profit-summary"><div class="profit-summary-card"><div class="profit-summary-head"><div><h3>누적 수입</h3><small>월초~'+md(d.date)+'</small></div><div class="profit-result">'+fmtMoney(income)+'</div></div><div class="profit-formula-list">'+incomeRows+'</div></div><div class="profit-summary-card"><div class="profit-summary-head"><div><h3>누적 지출</h3><small>월초~'+md(d.date)+'</small></div><div class="profit-result">'+fmtMoney(expense)+'</div></div><div class="profit-formula-list">'+expenseRows+'</div></div></div>';
-  openDetailModal(title,'수입 − 지출 = '+fmtWon(d.value),body);
+  openDetailModal(title,(isFuture?'실제 누적 + 선택 날짜까지의 예상 금액 · ':'실제 입금·집행 누적 · ')+'수입 − 지출 = '+fmtWon(d.value),body);
 }
 function openMonthEndProfitDetail(){
   let pr=DATA.profit;if(!pr)return;
