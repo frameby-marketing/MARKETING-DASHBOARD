@@ -856,6 +856,7 @@
     <div class="tab-content active" id="tab-dailyCumulative">
       <div id="meetingEvalHost"></div>
     </div>
+<style id="monthlyConfirmedStyles">#tab-dashboard .monthly-finance-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 16px}#tab-dashboard .monthly-finance-row>span{font-size:12px;color:var(--text-muted)}#tab-dashboard .cash-mode-tabs{display:inline-flex;gap:7px}#tab-dashboard .cash-mode-tabs button{border:0;border-radius:8px;background:rgba(128,128,128,.18);color:var(--text-sub);font:inherit;font-size:12px;font-weight:800;padding:9px 14px;cursor:pointer}#tab-dashboard .cash-mode-tabs button.active{background:#df303a;color:#fff}#tab-dashboard #kpiGrid{grid-template-columns:repeat(3,minmax(0,1fr))}@media(max-width:700px){#tab-dashboard #kpiGrid{grid-template-columns:1fr}}</style>
     <div class="tab-content" id="tab-dashboard">
 
       <header class="page-header">
@@ -864,6 +865,7 @@
         </div>
       </header>
 
+      <div class="monthly-finance-row"><div class="cash-mode-tabs" id="monthlyFinanceTabs" role="group" aria-label="차입과 상환 포함 여부"><button type="button" data-mode="exclude" class="active" aria-pressed="true" onclick="setMonthlyFinanceMode('exclude')">차입/상환 제외</button><button type="button" data-mode="include" aria-pressed="false" onclick="setMonthlyFinanceMode('include')">차입/상환 포함</button></div><span>확정 월만 집계 · BP 제외 설정은 전체 지표에 적용</span></div>
       <!-- ① 차트 2칸 나란히 -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div class="chart-section">
@@ -898,47 +900,13 @@
         <div class="chart-inner" id="profitCompareChartWrap"></div>
       </div>
 
-      <!-- ② 이번 달 배너 -->
-      <div class="breakeven-banner">
-        <div class="be-cell">
-          <div class="breakeven-label" id="beCurrentLabel">26년 05월 현재 매출</div>
-          <div class="breakeven-value blue" id="beCurrentValue">&#8212;</div>
-          <div class="breakeven-meta" id="beCurrentMeta"></div>
-        </div>
-        <div class="be-divider"></div>
-        <div class="be-cell">
-          <div class="breakeven-label" id="breakevenLabel">흑자 달성 최소 매출</div>
-          <div class="breakeven-value yellow" id="breakevenValue">&#8212;</div>
-          <div class="breakeven-meta" id="breakevenMeta"></div>
-        </div>
-        <div class="be-divider"></div>
-        <div class="be-cell">
-          <div class="breakeven-label" id="beGapLabel">현재 예상 손익</div>
-          <div class="breakeven-value" id="beGapValue">&#8212;</div>
-          <div class="breakeven-meta" id="beGapMeta"></div>
-        </div>
-      </div>
-
       <!-- ③ KPI -->
       <div class="kpi-grid" id="kpiGrid"></div>
-
-      <!-- ④ 월별 개별 시나리오 -->
-      <div class="target-card">
-        <div class="target-label" style="display:flex;align-items:center;justify-content:space-between">
-          <span>6~12월 월별 항목 직접 수정
-            <span style="font-size:10px;font-weight:400;color:var(--text-muted);margin-left:8px">매출·고정비·발주비·광고비·변동비·상환비를 직접 입력 — 우측 현금 수지와 상단 그래프·전체 대시보드에 바로 반영됩니다</span>
-          </span>
-          <button class="header-action-btn" style="padding:6px 12px;font-size:11px" onclick="resetMonthOverrides()">직접 수정 초기화</button>
-        </div>
-        <div class="tmc-scroll" style="margin-top:10px" id="targetTable"></div>
-      </div>
 
       <!-- ⑤ 비용 구성 비율 -->
       <div class="chart-section">
         <div class="chart-section-title chart-section-title-big">&#128200; 비용 구성 비율 — 확정 기준 <span style="font-weight:400;color:var(--text-muted);font-size:11px">(산정기준 '확정'인 달만 합산)</span></div>
         <div class="ratio-grid" id="costRatioGridConfirmed"></div>
-        <div class="chart-section-title chart-section-title-big" style="margin-top:20px">&#128302; 비용 구성 예측 비율 — 연간 전체(시뮬레이션 포함) <span style="font-weight:400;color:var(--text-muted);font-size:11px">(확정 + 시뮬레이션, 시나리오 반영)</span></div>
-        <div class="ratio-grid" id="costRatioGridProjected"></div>
       </div>
 
       <!-- ⑤-2 비용 구성 비율 비교 (25년 vs 26년) -->
@@ -958,44 +926,6 @@
         <div class="avg-compare-grid" id="avgCompareGrid"></div>
       </div>
 
-      <!-- ⑥ 상환 계획 -->
-      <div class="repay-section-wrap">
-        <div class="repay-section-header">
-          <div class="repay-section-title chart-section-title-big">상환 계획 <span class="repay-section-sub" id="repayTotal"></span></div>
-        </div>
-        <div class="repay-progress-wrap">
-          <div class="repay-progress-header">
-            <span style="font-size:14px;color:var(--text-sub)">상환 진행률 (목표 3.27억 · 이번 달까지 누적 기준)</span>
-            <span id="repayProgressPct" style="font-family:'DM Mono',monospace;font-size:16px;font-weight:700;color:var(--yellow)">0%</span>
-          </div>
-          <div class="repay-progress-track">
-            <div class="repay-progress-bar" id="repayProgressBar" style="width:0%"></div>
-          </div>
-          <div id="repayProgressSub" style="font-size:13px;color:var(--text-muted);margin-top:5px;font-family:'DM Mono',monospace;"></div>
-        </div>
-        <div style="font-size:14px;font-weight:600;color:var(--text-sub);margin-bottom:8px;">
-          월별 상환 내역
-          <span style="font-size:12px;font-weight:400;color:var(--text-muted);margin-left:6px">구글 스프레드시트 H열(상환비) 값을 그대로 표시 · 목표 합계 3억 2,700만</span>
-        </div>
-        <div class="repay-months-row" id="repaySection"></div>
-      </div>
-
-      <!-- ⑦ 월별 상세 테이블 -->
-      <div class="table-card">
-        <div class="table-section-label chart-section-title-big">월별 상세 내역 <span style="font-size:11px;font-weight:400;color:var(--text-muted);margin-left:6px">단위: 만원 · 하단 TOTAL(연간 합계) / AVERAGE(월평균)</span></div>
-        <div class="table-wrap">
-          <table id="mainTable">
-            <thead>
-              <tr>
-                <th>월</th><th>일평균(자사+네이버)</th><th>전체매출</th>
-                <th>고정비</th><th>발주비</th><th>광고비</th><th>변동비</th>
-                <th>상환비</th><th>합계비용</th><th>현금 수지</th><th>누적 자금수지</th><th>산정기준</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody"></tbody>
-          </table>
-        </div>
-      </div>
     </div>
 
     <!-- TAB: SETTINGS -->
@@ -1009,10 +939,10 @@
       </header>
       <div class="settings-grid">
         <div class="settings-card full-width">
-          <div class="settings-note" style="margin-top:0">&#x203B; 이 대시보드는 스프레드시트 ID <code>1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI</code>에 고정 연동되어 있으며, <code>매출데이터</code>(A1:M13) · <code>일별 데이터</code>(A1:X500) 두 시트를 자동으로 읽어옵니다. 우측 상단 &#39;스프레드시트&#39; 버튼으로 바로 열 수 있어요.</div>
+          <div class="settings-note" style="margin-top:0">&#x203B; 이 대시보드는 스프레드시트 ID <code>1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI</code>에 고정 연동되어 있으며, <code>매출데이터</code>(일별 기준 A1:M13 · 월별 확정 O1:AA14) · <code>일별 데이터</code>(A1:X500) 두 시트를 자동으로 읽어옵니다. 우측 상단 &#39;스프레드시트&#39; 버튼으로 바로 열 수 있어요.</div>
         </div>
         <div class="settings-card full-width">
-          <div class="settings-section-title">매출데이터 시트 구성 가이드</div>
+          <div class="settings-section-title">매출데이터 시트 구성 가이드 · 일별 목표 A:M / 월별 확정 O:AA</div>
           <div class="guide-table-wrap">
             <table class="guide-table">
               <thead><tr><th>열</th><th>내용</th><th>예시</th><th>비고</th></tr></thead>
@@ -1033,7 +963,7 @@
           </div>
           <div class="guide-steps">
             <div class="guide-step"><span class="step-num">1</span><span>&#39;매출데이터&#39; 시트의 1행 헤더: <code>월 | 일평균매출 | 전체매출 | 자본수입 (차입금) | 고정비 | 발주비 | 광고비 | 변동비 | 상환비 | 메모 | 산정기준</code></span></div>
-            <div class="guide-step"><span class="step-num">2</span><span>2행부터 월별 데이터 입력 — 확정된 달은 실적, 미래 달은 예측값 입력</span></div>
+            <div class="guide-step"><span class="step-num">2</span><span>월별 누적 현황은 O1:AA14의 13열을 읽고, 산정기준이 ‘확정’인 26년 월 행만 집계합니다. O=월, P=일평균, Q=전체매출, R=자본수입, S=고정비, T=발주비, U=광고비, V=변동비, W=상환비, X=메모, Y=산정기준, Z=현금 수지, AA=차입금 입금일입니다.</span></div>
             <div class="guide-step"><span class="step-num">3</span><span>공유 설정 → <strong>링크가 있는 모든 사용자 → 뷰어</strong>로 유지</span></div>
           </div>
         </div>
@@ -1255,6 +1185,7 @@ var monthOverrides = {}; // { '26-06': {revenue:.., fixed:.., order:.., ad:.., v
 // BP사에 25년 9~12월 발생분(1억 4,500만)을 25년에 지급하지 않고 26년 2/3/4월에 나눠 지급 —
 // '연간 총 발주비 대비' 왜곡을 보고 싶을 때 이 지연 지급분을 제외해 볼 수 있는 토글
 var BP_EXCLUDE_ACTIVE = false;
+var MONTHLY_FINANCE_MODE = 'exclude';
 var BP_EXCLUDE_AMOUNTS = {'26-02':7100,'26-03':3700,'26-04':3700}; // 만원 — 26년에서 뺄 금액
 var BP_ACCRUAL_2025 = {9:6700, 10:7500, 11:300, 12:100}; // 만원 — 'BP 제외'(발생주의 보정) 시 25년에 더할 금액 (월 번호 기준)
 
@@ -1287,6 +1218,7 @@ var TOTAL_REPAY_GOAL = 32700; // 목표 상환금액: 3억 2천 7백만원
 var SHEET_ID            = '1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI';
 var SHEET_NAME          = '매출데이터';
 var SHEET_RANGE         = 'A1:M13';
+var MONTHLY_CONFIRMED_RANGE = 'O1:AA14';
 var WEEKLY_SHEET_NAME   = '일별 데이터';
 var WEEKLY_SHEET_RANGE  = 'A1:X500';
 var FVA_SHEET_NAME      = '예측대비실적';
@@ -1495,8 +1427,9 @@ async function fetchSheetData(force){
   setSyncStatus('loading');
   try{
     var values=await fetchSheetValues(SHEET_NAME,SHEET_RANGE);
-    parseCSV(sheetValuesToCSV(values));
     meetingEvalPlanValues=values;
+    var confirmedValues=await fetchSheetValues(SHEET_NAME,MONTHLY_CONFIRMED_RANGE);
+    parseCSV(sheetValuesToCSV(confirmedValues));
     await fetchWeeklySheetData();
     await fetchMonthlyForecastStatusData();
     await fetchForecastActualData();
@@ -2807,12 +2740,12 @@ function parseCsvRows(text){
 
 function parseCSV(text){
   var allRows=parseCsvRows(text);
-  if(allRows.length<2){useDemoData();return}
+  if(allRows.length<2){rawRows=[];renderAll();return}
   rawRows=allRows.slice(1).map(function(c){
-    return{month:c[0]||'',dailyAvg:pn(c[1]),revenue:pn(c[2]),capital:pn(c[3]),
+    return{month:String(c[0]||'').trim(),dailyAvg:pn(c[1]),revenue:pn(c[2]),capital:pn(c[3]),
            fixed:pn(c[4]),order:pn(c[5]),ad:pn(c[6]),
-           variable:pn(c[7]),repay:pn(c[8]),memo:c[9]||'',basis:c[10]||''};
-  }).filter(function(r){return r.month});
+           variable:pn(c[7]),repay:pn(c[8]),memo:c[9]||'',basis:String(c[10]||'').trim()};
+  }).filter(function(r){return /^26-(0[1-9]|1[0-2])$/.test(r.month)&&r.basis.trim()==='확정'});
   renderAll();
 }
 
@@ -2889,7 +2822,7 @@ function calcRows(){
     var isFuture=fi>=0;
     var sc=isFuture?monthScenarios[fi]:0;
     var factor=(isSimulated&&isFuture)?(1+sc/100):1;
-    var ov=monthOverrides[r.month]||{};
+    var ov={}; // 확정본에는 과거 시나리오 입력값을 적용하지 않는다
     var revenueAdj=(ov.revenue!==undefined)?ov.revenue:r.revenue*factor;
     var dailyAvgAdj=r.dailyAvg*factor;
     var fixedVal=(ov.fixed!==undefined)?ov.fixed:r.fixed;
@@ -2901,11 +2834,11 @@ function calcRows(){
     var adVal=(ov.ad!==undefined)?ov.ad:adAdjBase;
     var variableVal=(ov.variable!==undefined)?ov.variable:r.variable;
     var repayVal=(ov.repay!==undefined)?ov.repay:r.repay;
-    var financing=meetingEvalFinanceMode==='include';
+    var financing=MONTHLY_FINANCE_MODE==='include';
     var totalCost=fixedVal+orderVal+adVal+variableVal+(financing?repayVal:0);
     var profit=revenueAdj+(financing?((ov.capital!==undefined)?ov.capital:(r.capital||0)):0)-totalCost;
     balance+=profit;
-    var row=Object.assign({},r,{revenueAdj:revenueAdj,dailyAvg:dailyAvgAdj,fixed:fixedVal,order:orderVal,ad:adVal,variable:variableVal,repay:repayVal,totalCost:totalCost,profit:profit,balance:balance,isSimulated:isSimulated,scenarioRate:sc,hasOverride:Object.keys(ov).length>0});
+    var row=Object.assign({},r,{revenueAdj:revenueAdj,dailyAvg:dailyAvgAdj,fixed:fixedVal,order:orderVal,ad:adVal,variable:variableVal,repay:repayVal,repayEffective:financing?repayVal:0,totalCost:totalCost,profit:profit,balance:balance,isSimulated:isSimulated,scenarioRate:sc,hasOverride:Object.keys(ov).length>0});
     return row;
   });
 }
@@ -2919,6 +2852,7 @@ function renderBarChart(cid,rows,field){
   var el=document.getElementById(cid);
   if(!el)return;
   var values=rows.map(function(r){return r[field]});
+  if(!rows.length){el.innerHTML='<div class="empty">확정된 월 데이터가 없습니다.</div>';return}
   var months=rows.map(function(r){return r.month.replace('26-','')+'월'});
   var maxAbs=Math.max.apply(null,values.map(function(v){return Math.abs(v)}).concat([1]));
   var W=500,H=240,mTop=28,mBot=36,mLeft=8,mRight=8;
@@ -2973,7 +2907,7 @@ function buildRatioCards(rows,gridId,valueClass){
     {key:'repay',   label:'상환비 비율'},
   ];
   var html=cats.map(function(c){
-    var total=rows.reduce(function(s,r){return s+r[c.key]},0);
+    var total=rows.reduce(function(s,r){return s+(c.key==='repay'?r.repayEffective:r[c.key])},0);
     var pct=totalRevenue>0?(total/totalRevenue*100):0;
     return'<div class="kpi-card"><div class="kpi-label">'+c.label+'</div><div class="kpi-value '+valueClass+'">'+fmtPct(pct)+'</div><div class="kpi-sub">'+fmt(total)+'만원 · 매출 '+fmt(totalRevenue)+'만원 대비</div></div>';
   }).join('');
@@ -2983,7 +2917,7 @@ function buildRatioCards(rows,gridId,valueClass){
 function renderCostRatio(rows){
   var confirmedRows=rows.filter(function(r){return r.basis==='확정'});
   buildRatioCards(confirmedRows,'costRatioGridConfirmed','green');
-  buildRatioCards(rows,'costRatioGridProjected','blue');
+
 }
 
 // ===== 비용 구성 비율 비교 (25년 vs 26년) =====
@@ -3008,7 +2942,7 @@ function buildRatioTabs(){
 function switchRatioCategory(key){
   selectedRatioCategory=key;
   buildRatioTabs();
-  renderRatioCompare(calcRows());
+  renderRatioCompare(calcRows().filter(function(r){return r.basis==='확정'}));
 }
 
 function avgOf(arr){
@@ -3026,14 +2960,11 @@ function renderRatioCompare(rows){
   for(var m=1;m<=12;m++){
     var h=HIST_2025[m-1];
     var val2025=h?h[cat]:null;
-    if(cat==='order'&&BP_EXCLUDE_ACTIVE&&h&&BP_ACCRUAL_2025[m]!==undefined){
-      val2025=val2025+BP_ACCRUAL_2025[m];
-    }
     pct2025.push((h&&h.revenue>0)?(val2025/h.revenue*100):null);
     var mk='26-'+pad2(m);
     var r2=null;
     for(var i=0;i<rows.length;i++){if(rows[i].month===mk){r2=rows[i];break;}}
-    var val2026=r2?(cat==='fixed'?r2.fixed:cat==='order'?r2.order:cat==='ad'?r2.ad:cat==='variable'?r2.variable:r2.repay):null;
+    var val2026=r2?(cat==='fixed'?r2.fixed:cat==='order'?r2.order:cat==='ad'?r2.ad:cat==='variable'?r2.variable:r2.repayEffective):null;
     pct2026.push((r2&&r2.revenueAdj>0)?(val2026/r2.revenueAdj*100):null);
   }
   var avg25=avgOf(pct2025),avg26=avgOf(pct2026);
@@ -3101,9 +3032,6 @@ function get2025MonthlyAvg(key){
   var sum=0;
   HIST_2025.forEach(function(h){
     var v=(key==='revenue')?h.revenue:h[key];
-    if(key==='order'&&BP_EXCLUDE_ACTIVE&&BP_ACCRUAL_2025[h.month]!==undefined){
-      v=v+BP_ACCRUAL_2025[h.month];
-    }
     sum+=v;
   });
   return HIST_2025.length?sum/HIST_2025.length:0;
@@ -3112,7 +3040,7 @@ function get2025MonthlyAvg(key){
 function get2026MonthlyAvg(rows,key){
   if(!rows.length)return 0;
   var sum=rows.reduce(function(s,r){
-    var v=(key==='revenue')?r.revenueAdj:r[key];
+    var v=(key==='revenue')?r.revenueAdj:key==='repay'?r.repayEffective:r[key];
     return s+v;
   },0);
   return sum/rows.length;
@@ -3164,9 +3092,6 @@ function renderProfitCompare(rows){
   for(var m=1;m<=12;m++){
     var h=HIST_2025[m-1];
     var p25=h?h.profit:null;
-    if(p25!==null&&BP_EXCLUDE_ACTIVE&&BP_ACCRUAL_2025[m]!==undefined){
-      p25=p25-BP_ACCRUAL_2025[m];
-    }
     vals25.push(p25);
     var mk='26-'+pad2(m);
     var r2=null;
@@ -3178,7 +3103,7 @@ function renderProfitCompare(rows){
   el.innerHTML='<span style="color:#f4506b;font-weight:700">25년 연간 합계 '+fmtKorean(total25,true)+'</span>'+
     ' &nbsp;&#183;&nbsp; '+
     '<span style="color:#3b82f6;font-weight:700">26년 연간 합계 '+fmtKorean(total26,true)+'</span>'+
-    (BP_EXCLUDE_ACTIVE?' &nbsp;<span style="color:var(--text-muted);font-weight:400;font-family:\'Pretendard\',sans-serif;font-size:12px">(BP 발생주의 보정 반영)</span>':'');
+    (BP_EXCLUDE_ACTIVE?' &nbsp;<span style="color:var(--text-muted);font-weight:400;font-family:\'Pretendard\',sans-serif;font-size:12px">(26년 BP 발주비 제외)</span>':'');
   renderProfitLineChart('profitCompareChartWrap',vals25,vals26);
 }
 
@@ -3489,6 +3414,13 @@ function renderDetailModalTable(rows,category){
     '<thead><tr><th style="text-align:left">항목</th><th>예상액</th><th>실지급액</th><th>차이</th><th style="text-align:left">사유</th></tr></thead>'+
     '<tbody>'+body+totalRow+'</tbody></table></div>'+
     '<div class="kpi-sub" style="margin-top:10px;text-align:right">단위: 만원</div>';
+}
+
+function setMonthlyFinanceMode(mode){
+  if(mode!=='include'&&mode!=='exclude')return;
+  MONTHLY_FINANCE_MODE=mode;
+  document.querySelectorAll('#monthlyFinanceTabs button').forEach(function(button){var active=button.dataset.mode===mode;button.classList.toggle('active',active);button.setAttribute('aria-pressed',active?'true':'false')});
+  renderAll();
 }
 
 function toggleBPExclude(){
@@ -4344,22 +4276,11 @@ function renderMonthTrend(rows){
 }
 
 function renderKPI(rows){
-  var totalRevenue=rows.reduce(function(s,r){return s+r.revenueAdj},0);
-  var totalProfit=rows.reduce(function(s,r){return s+r.profit},0);
-  var totalRepay=rows.reduce(function(s,r){return s+r.repay},0);
-  var curIdx=getCurrentRowIndex(rows);
-  var cumulativeRepay=rows.slice(0,curIdx+1).reduce(function(s,r){return s+r.repay},0);
-  var repayProgressPct=Math.min(100,Math.round(cumulativeRepay/TOTAL_REPAY_GOAL*100));
-  var repayRemain=Math.max(0,TOTAL_REPAY_GOAL-cumulativeRepay);
-  var items=[
-    {label:'연간 전체매출 예상',value:fmtKorean(totalRevenue),sub:fmt(Math.round(totalRevenue))+'만원',cls:'blue'},
-    {label:'연간 현금 수지 예상',value:fmtKorean(totalProfit,true),sub:fmt(Math.round(Math.abs(totalProfit)))+'만원',cls:totalProfit>=0?'green':'red'},
-    {label:'연간 누적 상환액',value:fmtKorean(totalRepay),sub:'목표 3.27억',cls:'yellow'},
-    {label:'연간 총 상환 진행률',value:repayProgressPct+'%',sub:'잔여 '+fmtKorean(repayRemain)+' · 이번 달까지 누적 기준',cls:'yellow'},
-  ];
-  document.getElementById('kpiGrid').innerHTML=items.map(function(it){
-    return'<div class="kpi-card"><div class="kpi-label">'+it.label+'</div><div class="kpi-value '+it.cls+'">'+it.value+'</div><div class="kpi-sub">'+it.sub+'</div></div>';
-  }).join('');
+  var revenue=rows.reduce(function(t,r){return t+r.revenueAdj},0),profit=rows.reduce(function(t,r){return t+r.profit},0),repaid=rows.reduce(function(t,r){return t+r.repay},0);
+  var items=[{label:'누적 전체매출',value:fmtKorean(revenue),sub:rows.length+'개월 확정',cls:'blue'},
+    {label:'누적 현금수지',value:fmtKorean(profit,true),sub:'확정 월 합계 · '+(MONTHLY_FINANCE_MODE==='include'?'차입/상환 포함':'차입/상환 제외'),cls:profit>=0?'blue':'red'},
+    {label:'누적 상환액',value:fmtKorean(repaid),sub:'확정된 상환액 · 현금수지 계산 '+(MONTHLY_FINANCE_MODE==='include'?'포함':'제외'),cls:'yellow'}];
+  document.getElementById('kpiGrid').innerHTML=items.map(function(it){return '<div class="kpi-card"><div class="kpi-label">'+it.label+'</div><div class="kpi-value '+it.cls+'">'+it.value+'</div><div class="kpi-sub">'+it.sub+'</div></div>'}).join('');
 }
 
 function getCurrentRowIndex(rows){
@@ -4491,19 +4412,13 @@ function setSyncStatus(state){
 }
 
 function renderAll(){
-  var rows=calcRows();
+  var rows=calcRows().filter(function(r){return r.basis==='확정'});
   renderCharts(rows);
   renderKPI(rows);
   renderCostRatio(rows);
   renderRatioCompare(rows);
   renderAvgCompare(rows);
   renderProfitCompare(rows);
-  renderBreakeven(rows);
-  renderTargetTable(rows);
-  renderRepay(rows);
-  renderTable(rows);
-  renderWeeklyTab();
-  renderForecastActualTab();
 }
 
 function fmt(n){
