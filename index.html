@@ -857,31 +857,58 @@
       <div id="meetingEvalHost"></div>
     </div>
 <style id="monthlyConfirmedStyles">
-#tab-dashboard .monthly-header{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
-#tab-dashboard .monthly-header h1{font-size:25px;margin:6px 0 0}
+#tab-dashboard{gap:16px}
+#tab-dashboard .md-num{font-family:'DM Mono',monospace;font-variant-numeric:tabular-nums}
+#tab-dashboard .monthly-header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+#tab-dashboard .monthly-header h1{font-size:26px;font-weight:700;letter-spacing:-.5px;margin:6px 0 0}
 #tab-dashboard .monthly-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 #tab-dashboard .cash-mode-tabs{display:flex;gap:4px;background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:3px}
-#tab-dashboard .cash-mode-tabs button{border:0;border-radius:7px;background:transparent;color:var(--text-sub);font:inherit;font-size:12px;font-weight:700;padding:8px 12px;cursor:pointer}
+#tab-dashboard .cash-mode-tabs button{border:0;border-radius:7px;background:transparent;color:var(--text-sub);font:inherit;font-size:13px;font-weight:700;padding:9px 14px;cursor:pointer}
 #tab-dashboard .cash-mode-tabs button.active{background:var(--accent);color:#fff}
-#tab-dashboard .monthly-summary{background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius);padding:17px 21px;margin-bottom:16px;line-height:1.6}
-#tab-dashboard .monthly-summary b{color:var(--accent);margin-right:14px}
-#tab-dashboard #kpiGrid{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px}
-#tab-dashboard .monthly-wide{margin-bottom:16px}
-#tab-dashboard .monthly-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
-#tab-dashboard .monthly-subchart{margin-top:19px;font-size:13px;font-weight:700;color:var(--text-sub)}
-#tab-dashboard .monthly-subchart:first-of-type{margin-top:0}
-#tab-dashboard .monthly-table-scroll{overflow:auto}
-#tab-dashboard .monthly-detail{width:100%;border-collapse:collapse;font-size:12px}
-#tab-dashboard .monthly-detail th,#tab-dashboard .monthly-detail td{padding:12px 10px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
-#tab-dashboard .monthly-detail th:first-child,#tab-dashboard .monthly-detail td:first-child{text-align:left}
-#tab-dashboard .monthly-detail th{background:var(--bg-card2);color:var(--text-sub)}
-#tab-dashboard .monthly-detail tr:last-child td{font-weight:700;border-top:2px solid var(--border-light)}
-#tab-dashboard .monthly-cost-row{display:grid;grid-template-columns:80px 1fr 80px;gap:9px;align-items:center;margin:13px 0;font-size:12px}
-#tab-dashboard .monthly-cost-track{height:11px;background:var(--bg-card2);border-radius:8px;overflow:hidden}
-#tab-dashboard .monthly-cost-track i{display:block;height:100%;border-radius:8px}
-#tab-dashboard .monthly-cost-row strong{text-align:right}
-@media(max-width:850px){#tab-dashboard .monthly-pair{grid-template-columns:1fr}#tab-dashboard #kpiGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:520px){#tab-dashboard #kpiGrid{grid-template-columns:1fr}}
+#tab-dashboard .md-summary{display:flex;align-items:center;gap:16px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px}
+#tab-dashboard .md-summary-tag{flex-shrink:0;font-size:12px;font-weight:700;color:#fff;background:var(--red);border-radius:6px;padding:5px 10px}
+#tab-dashboard .md-summary p{margin:0;font-size:17px;line-height:1.55;font-weight:500;color:var(--text)}
+#tab-dashboard .md-summary b{font-weight:700}
+#tab-dashboard .md-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#tab-dashboard .md-kpi{background:var(--bg-card);border:1px solid var(--border);border-top:3px solid var(--text-muted);border-radius:var(--radius);padding:16px 20px;display:flex;flex-direction:column;gap:6px}
+#tab-dashboard .md-kpi.is-red{border-top-color:var(--red)}
+#tab-dashboard .md-kpi.is-blue{border-top-color:var(--blue)}
+#tab-dashboard .md-kpi-label{font-size:13px;font-weight:500;color:var(--text-sub)}
+#tab-dashboard .md-kpi-value{font-family:'DM Mono',monospace;font-size:30px;font-weight:500;letter-spacing:-.5px;color:var(--text)}
+#tab-dashboard .md-kpi-value small{font-size:16px;color:var(--text-muted);font-family:'Pretendard',sans-serif}
+#tab-dashboard .md-kpi-sub{font-size:12.5px;color:var(--text-muted);line-height:1.5}
+#tab-dashboard .md-red{color:var(--red)}
+#tab-dashboard .md-blue{color:var(--blue)}
+#tab-dashboard .md-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;min-width:0}
+#tab-dashboard .md-card-head{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+#tab-dashboard .md-card h2{margin:0 0 4px;font-size:20px;font-weight:700;letter-spacing:-.5px;color:var(--text)}
+#tab-dashboard .md-card-sub{font-size:12.5px;color:var(--text-muted)}
+#tab-dashboard .md-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--text-sub)}
+#tab-dashboard .md-legend span{display:flex;align-items:center;gap:6px}
+#tab-dashboard .md-legend i{display:inline-block;width:11px;height:11px;border-radius:3px}
+#tab-dashboard .md-panel-label{font-size:13px;font-weight:700;color:var(--text-sub);margin:4px 0 2px}
+#tab-dashboard .md-divider{height:1px;background:var(--border);margin:10px 0 14px}
+#tab-dashboard .md-svg{width:100%;height:auto;display:block;font-family:'Pretendard',sans-serif}
+#tab-dashboard .md-pair{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:16px}
+#tab-dashboard .md-note{margin-top:12px;padding:12px 14px;background:var(--bg-card2);border-radius:8px;font-size:13px;line-height:1.55;color:var(--text-sub)}
+#tab-dashboard .md-foot{margin-top:8px;font-size:12px;color:var(--text-muted)}
+#tab-dashboard .md-table-scroll{overflow-x:auto}
+#tab-dashboard .md-table{width:100%;min-width:760px;border-collapse:collapse;font-size:14px}
+#tab-dashboard .md-table th{font-size:12px;font-weight:600;color:var(--text-muted);text-align:right;padding:10px 12px;border-bottom:1px solid var(--border-light);white-space:nowrap}
+#tab-dashboard .md-table td{padding:14px 12px;border-bottom:1px solid var(--border);text-align:right;color:var(--text-sub);white-space:nowrap}
+#tab-dashboard .md-table th:first-child,#tab-dashboard .md-table td:first-child{text-align:left}
+#tab-dashboard .md-table td:first-child{font-weight:600;color:var(--text)}
+#tab-dashboard .md-table th.md-bar-col,#tab-dashboard .md-table td.md-bar-col{text-align:left;width:34%}
+#tab-dashboard .md-table tr.md-total td{background:var(--bg-card2);border-bottom:0;font-weight:700;color:var(--text)}
+#tab-dashboard .md-bar{position:relative;height:12px;background:var(--bg-card2);border-radius:6px}
+#tab-dashboard .md-table tr.md-total .md-bar{background:var(--bg-card)}
+#tab-dashboard .md-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+#tab-dashboard .md-bar b{position:absolute;top:-4px;width:2px;height:20px;background:var(--text);border-radius:1px}
+#tab-dashboard .md-table-legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:12px;color:var(--text-muted)}
+#tab-dashboard .md-table-legend span{display:flex;align-items:center;gap:6px}
+@media(max-width:1000px){#tab-dashboard .md-pair{grid-template-columns:1fr}}
+@media(max-width:850px){#tab-dashboard .md-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#tab-dashboard .md-summary{flex-direction:column;align-items:flex-start}}
+@media(max-width:520px){#tab-dashboard .md-kpis{grid-template-columns:1fr}#tab-dashboard .md-summary p{font-size:15px}}
 </style>
 <div class="tab-content" id="tab-dashboard">
   <header class="monthly-header">
@@ -891,20 +918,55 @@
       <button class="header-action-btn" id="bpExcludeBtn" aria-pressed="false" onclick="toggleBPExclude()" title="26년 2~4월 BP사 지연지급 발주비 제외">BP 제외</button>
     </div>
   </header>
-  <div class="monthly-summary" id="monthlySummary"></div>
-  <div class="kpi-grid" id="kpiGrid"></div>
-  <section class="chart-section monthly-wide">
-    <div class="chart-section-title chart-section-title-big">월별 현금수지와 누적 흐름</div>
-    <div class="chart-section-sub">2026년은 확정 월만 표시 · 12월까지 월 축 유지 · 단위: 만원</div>
-    <div class="monthly-subchart">현금 수지 추이</div><div class="chart-inner" id="profitChartWrap"></div>
-    <div class="monthly-subchart">누적 자금 수지 추이</div><div class="chart-inner" id="balanceChartWrap"></div>
-    <div class="monthly-subchart">현금 수지 비교 · 2025년과 2026년</div><div class="ratio-compare-avg" id="profitCompareAvg"></div><div class="chart-inner" id="profitCompareChartWrap"></div>
+
+  <section class="md-summary"><span class="md-summary-tag">요약</span><p id="monthlySummary">데이터를 불러오는 중입니다.</p></section>
+
+  <div class="md-kpis" id="kpiGrid"></div>
+
+  <section class="md-card">
+    <div class="md-card-head">
+      <div><h2>월별 현금수지와 누적 흐름</h2><div class="md-card-sub">위: 그 달의 흑자·적자 &#183; 아래: 연초부터 쌓인 금액 &#183; 같은 월 축 공유 &#183; 단위: 만원</div></div>
+      <div class="md-legend">
+        <span><i style="background:var(--red)"></i>26년 적자</span>
+        <span><i style="background:var(--blue)"></i>26년 흑자</span>
+        <span><i style="background:var(--text-muted);opacity:.6"></i>25년</span>
+      </div>
+    </div>
+    <div class="md-panel-label">월별 현금수지</div>
+    <div id="profitChartWrap"></div>
+    <div class="md-divider"></div>
+    <div class="md-panel-label">누적 현금수지</div>
+    <div id="balanceChartWrap"></div>
+    <div class="md-legend" style="margin-top:6px">
+      <span><svg width="26" height="8" aria-hidden="true"><line x1="0" x2="26" y1="4" y2="4" style="stroke:var(--red)" stroke-width="3"/></svg>26년 누적</span>
+      <span><svg width="26" height="8" aria-hidden="true"><line x1="0" x2="26" y1="4" y2="4" style="stroke:var(--text-muted)" stroke-width="2" stroke-dasharray="5 4"/></svg>25년 누적</span>
+      <span><i style="background:var(--red);opacity:.2"></i>전년 대비 벌어진 차이</span>
+    </div>
   </section>
-  <div class="monthly-pair">
-    <section class="chart-section"><div class="chart-section-title chart-section-title-big">매출이 어디로 나갔나</div><div class="chart-section-sub">확정 월 합계 · 차입/상환 설정 연동 · 단위: 만원</div><div id="monthlyComposition"></div></section>
-    <section class="chart-section"><div class="chart-section-title chart-section-title-big">매출만큼 줄지 않은 비용</div><div class="chart-section-sub">같은 확정 월 기준 전년 대비</div><div id="monthlyCostChange"></div></section>
+
+  <div class="md-pair">
+    <section class="md-card">
+      <h2>매출이 어디로 나갔나</h2>
+      <div class="md-card-sub">확정 월 누적 &#183; 매출에서 비용을 차례로 빼면 현금수지가 됩니다</div>
+      <div id="monthlyComposition" style="margin-top:12px"></div>
+    </section>
+    <section class="md-card">
+      <h2>매출만큼 줄지 않은 비용</h2>
+      <div class="md-card-sub">같은 확정 월 기준 전년 대비 증감률 &#183; 점선이 매출 증감률</div>
+      <div id="monthlyCostChange" style="margin-top:12px"></div>
+    </section>
   </div>
-  <section class="chart-section monthly-wide"><div class="chart-section-title chart-section-title-big">비용 항목 상세</div><div class="chart-section-sub">2025년 같은 월과 비교 · 2026년 확정 기준</div><div class="monthly-table-scroll"><table class="monthly-detail"><thead><tr><th>항목</th><th>2026년 누적</th><th>매출 대비 비중 (25년 → 26년)</th><th>월평균 (25년 → 26년)</th><th>비중 변화</th></tr></thead><tbody id="monthlyDetailBody"></tbody></table></div></section>
+
+  <section class="md-card">
+    <div class="md-card-head"><div><h2>비용 항목 상세</h2><div class="md-card-sub">산정기준 ‘확정’ 월만 합산 &#183; 비중은 모두 누적 매출 대비로 통일 &#183; 2025년은 같은 월 기준</div></div></div>
+    <div class="md-table-scroll">
+      <table class="md-table">
+        <thead><tr><th>항목</th><th>2026년 누적</th><th class="md-bar-col">매출 대비 비중 (25년 → 26년)</th><th>월평균 25 → 26</th><th>비중 변화</th></tr></thead>
+        <tbody id="monthlyDetailBody"></tbody>
+      </table>
+    </div>
+    <div class="md-table-legend"><span><svg width="4" height="14" aria-hidden="true"><rect width="2" height="14" style="fill:var(--text)"/></svg>25년 비중 위치</span><span id="monthlyDetailFoot"></span></div>
+  </section>
 </div>
 
     <!-- TAB: SETTINGS -->
@@ -4394,32 +4456,209 @@ function setSyncStatus(state){
   else{txt.textContent='연결 대기';}
 }
 
-function renderMonthlyLayout(rows){
+// ===== 월별 누적 현황 (개편 레이아웃) =====
+function mdIsNum(v){return v!==null&&v!==undefined&&!isNaN(v)}
+function mdComma(v,sign){if(!mdIsNum(v))return'—';var a=Math.round(Math.abs(v));return (v<0&&a?'−':(sign&&v>0?'+':''))+a.toLocaleString('ko-KR')}
+function mdMoney(v,sign){if(!mdIsNum(v))return'—';var a=Math.abs(v),s=v<0&&a>=0.5?'−':(sign&&v>0?'+':'');if(a>=10000)return s+(a/10000).toFixed(2)+'억';return s+Math.round(a).toLocaleString('ko-KR')+'만'}
+function mdPct(v,sign){if(!mdIsNum(v))return'—';return (v<0?'−':(sign&&v>0?'+':''))+Math.abs(v).toFixed(1)+'%'}
+function mdAxis(v){if(v===0)return'0';var a=Math.abs(v),s=v<0?'−':'+';if(a>=10000)return s+(Math.round(a/1000)/10)+'억';return s+(Math.round(a/100)/10)+'천만'}
+function mdNiceStep(range,count){if(!(range>0))return 1000;var raw=range/count,p=Math.pow(10,Math.floor(Math.log(raw)/Math.LN10)),f=raw/p;return (f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10)*p}
+function mdText(x,y,txt,o){o=o||{};return '<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" text-anchor="'+(o.anchor||'middle')+'" font-size="'+(o.size||12)+'"'+(o.weight?' font-weight="'+o.weight+'"':'')+(o.mono?' font-family="DM Mono,monospace"':'')+' style="fill:'+(o.color||'var(--text-muted)')+'">'+txt+'</text>'}
+function mdSvg(W,H,label,body){return '<svg class="md-svg" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+label+'">'+body+'</svg>'}
+var MD_MONTHS=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+// 위 패널: 월별 현금수지 25년(회색) vs 26년(적자 빨강 / 흑자 파랑)
+function mdMonthlyBars(el,v25,v26,n){
+  var W=1200,H=262,L=70,R=12,T=20,PH=200,slot=(W-L-R)/12;
+  var cx=function(i){return L+slot*(i+0.5)};
+  var mags=v25.concat(v26).filter(mdIsNum).map(function(v){return Math.abs(v)});
+  var mx=Math.max.apply(null,mags.concat([1])),step=mdNiceStep(mx,2),top=Math.ceil(mx/step)*step;
+  var zero=T+PH/2,k=(PH/2)/top,y=function(v){return zero-v*k};
+  var s='';
+  if(n<12){var bx=L+slot*n;s+='<rect x="'+bx.toFixed(1)+'" y="'+(T-6)+'" width="'+(slot*(12-n)).toFixed(1)+'" height="'+(PH+12)+'" rx="6" style="fill:var(--bg-card2)"/>';s+=mdText(bx+slot*(12-n)/2,T+14,'26년 '+(n+1)+(n+1<12?'–12월':'월')+' 미확정',{size:12.5})}
+  for(var t=-top;t<=top+0.001;t+=step){var gy=y(t);s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+gy.toFixed(1)+'" y2="'+gy.toFixed(1)+'" style="stroke:'+(t===0?'var(--text-sub)':'var(--border)')+'" stroke-width="'+(t===0?1.4:1)+'"/>';s+=mdText(L-10,gy+4,mdAxis(t),{anchor:'end',size:11.5})}
+  var bw=Math.min(22,slot*0.24);
+  for(var i=0;i<12;i++){
+    var c=cx(i),a=v25[i],b=i<n?v26[i]:null;
+    if(mdIsNum(a)){var ay=a>=0?y(a):zero,ah=Math.max(1,Math.abs(a)*k);s+='<rect x="'+(c-bw-2).toFixed(1)+'" y="'+ay.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+ah.toFixed(1)+'" rx="2" style="fill:var(--text-muted)" opacity=".55"><title>25년 '+MD_MONTHS[i]+' '+mdComma(a,true)+'만원</title></rect>'}
+    if(mdIsNum(b)){var col=b>=0?'var(--blue)':'var(--red)',by=b>=0?y(b):zero,bh=Math.max(2,Math.abs(b)*k);
+      s+='<rect x="'+(c+2).toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="2" style="fill:'+col+'"><title>26년 '+MD_MONTHS[i]+' '+mdComma(b,true)+'만원</title></rect>';
+      s+=mdText(c+2+bw/2,b>=0?by-6:by+bh+15,mdComma(b,true),{size:12,weight:700,mono:true,color:col})}
+    s+=mdText(c,H-8,MD_MONTHS[i],{size:12.5,color:'var(--text-sub)'});
+  }
+  el.innerHTML=mdSvg(W,H,'월별 현금수지 25년 대비 26년 막대 차트',s);
+}
+
+// 아래 패널: 누적 현금수지 25년(점선) vs 26년(실선) + 벌어진 차이
+function mdCumLines(el,c25,c26,n){
+  var W=1200,H=272,L=70,R=12,T=28,PH=200,slot=(W-L-R)/12;
+  var cx=function(i){return L+slot*(i+0.5)};
+  var all=c25.concat(c26).filter(mdIsNum).concat([0]);
+  var mn=Math.min.apply(null,all),mx=Math.max.apply(null,all),step=mdNiceStep(mx-mn||1,4);
+  var lo=Math.floor(mn/step)*step,hi=Math.ceil(mx/step)*step;if(hi===lo)hi+=step;
+  var y=function(v){return T+(hi-v)/(hi-lo)*PH};
+  var s='';
+  for(var t=lo;t<=hi+0.001;t+=step){var gy=y(t);s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+gy.toFixed(1)+'" y2="'+gy.toFixed(1)+'" style="stroke:'+(Math.abs(t)<0.001?'var(--text-sub)':'var(--border)')+'" stroke-width="'+(Math.abs(t)<0.001?1.4:1)+'"/>';s+=mdText(L-10,gy+4,Math.abs(t)<0.001?'0':mdAxis(t),{anchor:'end',size:11.5})}
+  var last=n-1,diff=n?c26[last]-c25[last]:0,dcol=diff<0?'var(--red)':'var(--blue)';
+  if(n>0){
+    var poly=[];for(var i=0;i<n;i++)poly.push(cx(i).toFixed(1)+','+y(c26[i]).toFixed(1));
+    for(var j=n-1;j>=0;j--)poly.push(cx(j).toFixed(1)+','+y(c25[j]).toFixed(1));
+    s+='<polygon points="'+poly.join(' ')+'" style="fill:'+dcol+'" opacity=".13"/>';
+  }
+  s+='<polyline points="'+c25.map(function(v,i){return cx(i).toFixed(1)+','+y(v).toFixed(1)}).join(' ')+'" fill="none" style="stroke:var(--text-muted)" stroke-width="2" stroke-dasharray="6 5"/>';
+  if(n>0){
+    var lcol=c26[last]<0?'var(--red)':'var(--blue)';
+    s+='<polyline points="'+c26.map(function(v,i){return cx(i).toFixed(1)+','+y(v).toFixed(1)}).join(' ')+'" fill="none" style="stroke:'+lcol+'" stroke-width="3.2" stroke-linejoin="round"/>';
+    for(var p=0;p<n;p++){
+      var v=c26[p],py=y(v),pc=v<0?'var(--red)':'var(--blue)',below=v<=c25[p];
+      s+='<circle cx="'+cx(p).toFixed(1)+'" cy="'+py.toFixed(1)+'" r="'+(p===last?5.5:4)+'" style="fill:'+pc+'"><title>26년 '+MD_MONTHS[p]+' 누적 '+mdMoney(v,true)+'</title></circle>';
+      if(p<last)s+=mdText(cx(p),below?py+19:py-10,mdMoney(v,true),{size:11.5,weight:600,mono:true,color:pc});
+    }
+    var ly=y(c26[last]),py25=y(c25[last]),lastBelow=c26[last]<=c25[last];
+    s+=mdText(cx(last),lastBelow?ly+26:ly-14,mdMoney(c26[last],true),{size:15,weight:700,mono:true,color:lcol});
+    s+='<circle cx="'+cx(last).toFixed(1)+'" cy="'+py25.toFixed(1)+'" r="4" style="fill:var(--text-muted)"/>';
+    s+=mdText(cx(last),lastBelow?py25-10:py25+20,'25년 '+mdMoney(c25[last],true),{size:11.5,mono:true});
+    if(Math.abs(ly-py25)>18){
+      var right=last<10,bxx=cx(last)+(right?34:-34),y1=Math.min(ly,py25)+3,y2=Math.max(ly,py25)-3;
+      s+='<path d="M'+(bxx-6)+' '+y1.toFixed(1)+'H'+(bxx+6)+'M'+bxx+' '+y1.toFixed(1)+'V'+y2.toFixed(1)+'M'+(bxx-6)+' '+y2.toFixed(1)+'H'+(bxx+6)+'" fill="none" style="stroke:'+dcol+'" stroke-width="1.5"/>';
+      var mid=(y1+y2)/2,tx=bxx+(right?12:-12),an=right?'start':'end';
+      s+=mdText(tx,mid-4,'전년 대비',{anchor:an,size:13,weight:700,color:dcol});
+      s+=mdText(tx,mid+15,mdMoney(diff,true),{anchor:an,size:14,weight:700,mono:true,color:dcol});
+    }
+  }
+  if(n<12)s+=mdText(cx(11),y(c25[11])+(c25[11]<=c25[10]?20:-12),'25년 연간 '+mdMoney(c25[11],true),{anchor:'end',size:11.5,mono:true});
+  for(var m=0;m<12;m++)s+=mdText(cx(m),H-8,MD_MONTHS[m],{size:12.5,color:'var(--text-sub)'});
+  el.innerHTML=mdSvg(W,H,'누적 현금수지 25년 대비 26년 선 차트',s);
+}
+
+// 폭포 차트: 매출(+차입금) → 비용 항목 → 현금수지
+function mdWaterfall(el,parts,revenue){
+  var W=640,H=346,L=16,R=16,T=32,PH=236,n=parts.length,slot=(W-L-R)/n,bw=Math.min(66,slot*0.62);
+  var level=0,bars=[],levels=[0];
+  parts.forEach(function(p){
+    if(p.kind==='total'){bars.push({p:p,a:0,b:p.value});}
+    else{var a=level,b=level+(p.kind==='in'?p.value:-p.value);bars.push({p:p,a:a,b:b});level=b;levels.push(b)}
+  });
+  var hi=Math.max.apply(null,levels),lo=Math.min.apply(null,levels.concat([0]));if(hi===lo)hi+=1;
+  var y=function(v){return T+(hi-v)/(hi-lo)*PH};
+  var s='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(0).toFixed(1)+'" y2="'+y(0).toFixed(1)+'" style="stroke:var(--text-sub)" stroke-width="1.4"/>';
+  bars.forEach(function(br,i){
+    var x=L+slot*i+(slot-bw)/2,top=y(Math.max(br.a,br.b)),bot=y(Math.min(br.a,br.b)),h=Math.max(2,bot-top),p=br.p,col,lcol;
+    if(p.kind==='in'){col=p.color||'var(--blue)';lcol=col}
+    else if(p.kind==='out'){col='var(--red)';lcol='var(--red)'}
+    else{col=p.value<0?'var(--red)':'var(--blue)';lcol=col}
+    s+='<rect x="'+x.toFixed(1)+'" y="'+top.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+h.toFixed(1)+'" rx="3" style="fill:'+col+'"'+(p.kind==='out'?' opacity=".5"':'')+'><title>'+p.label+' '+mdMoney(p.kind==='out'?-p.value:p.value,true)+'</title></rect>';
+    if(i<bars.length-1&&bars[i+1].p.kind!=='total'){var lv=y(br.b);s+='<line x1="'+(x+bw).toFixed(1)+'" x2="'+(x+slot).toFixed(1)+'" y1="'+lv.toFixed(1)+'" y2="'+lv.toFixed(1)+'" style="stroke:var(--text-muted)" stroke-dasharray="3 3"/>'}
+    var val=p.kind==='out'?-p.value:p.value,txt=mdMoney(val,p.kind!=='in');
+    if(p.kind==='total'&&h>26)s+=mdText(x+bw/2,top+h/2+5,txt,{size:13.5,weight:700,mono:true,color:'#fff'});
+    else if(p.kind==='total'&&p.value<0)s+=mdText(x+bw/2,bot+16,txt,{size:13.5,weight:700,mono:true,color:lcol});
+    else s+=mdText(x+bw/2,top-8,txt,{size:13.5,weight:700,mono:true,color:p.kind==='in'?'var(--text)':lcol});
+    s+=mdText(x+bw/2,T+PH+46,p.label,{size:13,weight:p.kind==='total'?700:500,color:p.kind==='total'?lcol:'var(--text-sub)'});
+    if(p.kind!=='in'&&revenue)s+=mdText(x+bw/2,T+PH+64,mdPct(val/revenue*100),{size:11.5,mono:true});
+  });
+  el.innerHTML=mdSvg(W,H,'매출에서 비용을 뺀 현금수지 폭포 차트',s);
+}
+
+// 항목별 증감률 vs 매출 증감률 (점선)
+function mdCostChange(el,items,revDelta){
+  var W=520,rowH=62,T=12,nameW=112,x0p=nameW+12,x1p=W-12,H=T+items.length*rowH+34;
+  var vals=items.map(function(d){return d.delta}).concat([revDelta,0]);
+  var lo=Math.min.apply(null,vals),hi=Math.max.apply(null,vals),pad=(hi-lo||10)*0.28;
+  lo=lo<0?lo-pad:0;hi=hi>0?hi+pad:0;
+  var x=function(v){return x0p+(v-lo)/(hi-lo)*(x1p-x0p)},zx=x(0),s='';
+  s+='<line x1="'+zx.toFixed(1)+'" x2="'+zx.toFixed(1)+'" y1="'+(T-4)+'" y2="'+(H-30)+'" style="stroke:var(--text-sub)" stroke-width="1.2"/>';
+  items.forEach(function(d,i){
+    var ry=T+i*rowH,worse=d.delta>revDelta,col=worse?'var(--red)':'var(--blue)',bx=Math.min(zx,x(d.delta)),bwid=Math.max(2,Math.abs(x(d.delta)-zx));
+    s+=mdText(0,ry+20,d.name,{anchor:'start',size:14,weight:600,color:'var(--text)'});
+    s+=mdText(0,ry+38,mdComma(d.priorAvg)+'→'+mdComma(d.nowAvg),{anchor:'start',size:11.5,mono:true});
+    s+='<rect x="'+bx.toFixed(1)+'" y="'+(ry+8)+'" width="'+bwid.toFixed(1)+'" height="26" rx="3" style="fill:'+col+'"><title>'+d.name+' '+mdPct(d.delta,true)+'</title></rect>';
+    var neg=d.delta<0;s+=mdText(neg?bx-6:bx+bwid+6,ry+26,mdPct(d.delta,true),{anchor:neg?'end':'start',size:13.5,weight:700,mono:true,color:col});
+  });
+  var rx=x(revDelta);
+  s+='<line x1="'+rx.toFixed(1)+'" x2="'+rx.toFixed(1)+'" y1="'+(T-4)+'" y2="'+(H-30)+'" style="stroke:var(--text)" stroke-width="1.5" stroke-dasharray="4 4"/>';
+  s+=mdText(rx,H-10,'매출 '+mdPct(revDelta,true),{size:12.5,weight:700,mono:true,color:'var(--text)'});
+  el.innerHTML=mdSvg(W,H,'항목별 전년 대비 증감률과 매출 증감률 비교',s);
+}
+
+function renderMonthlyDashboard(rows){
+  var n=0;for(var q=0;q<12;q++){if(rows.some(function(r){return r.month==='26-'+pad2(q+1)}))n=q+1}
+  var byMonth={};rows.forEach(function(r){byMonth[r.month]=r});
   var old=rows.map(function(r){return HIST_2025[Number(r.month.split('-')[1])-1]}).filter(Boolean);
   var sum=function(list,key){return list.reduce(function(v,r){return v+(Number(r[key])||0)},0)};
-  var revenue=sum(rows,'revenueAdj'),profit=sum(rows,'profit'),cost=sum(rows,'totalCost'),priorRevenue=sum(old,'revenue');
-  var priorCost=old.reduce(function(v,r){return v+r.fixed+r.order+r.ad+r.variable},0);
   var change=function(a,b){return b?((a/b-1)*100):0};
-  var signed=function(n){return fmtKorean(n,true)};
-  document.getElementById('monthlySummary').innerHTML='<b>요약</b>2026년 확정 '+rows.length+'개월 매출 '+fmtKorean(revenue)+' (전년 동기간 '+fmtPct(change(revenue,priorRevenue))+'), 비용 '+fmtKorean(cost)+' (전년 동기간 '+fmtPct(change(cost,priorCost))+') · 현금수지 '+signed(profit);
+  var include=MONTHLY_FINANCE_MODE==='include',cnt=rows.length||1,oldCnt=old.length||1;
+  var revenue=sum(rows,'revenueAdj'),profit=sum(rows,'profit'),cost=sum(rows,'totalCost'),capital=include?sum(rows,'capital'):0;
+  var priorRevenue=sum(old,'revenue'),priorProfit=sum(old,'profit'),priorCost=old.reduce(function(v,r){return v+r.fixed+r.order+r.ad+r.variable+(include?(r.repay||0):0)},0);
+  var revDelta=change(revenue,priorRevenue),costDelta=change(cost,priorCost);
+  var deficit=rows.filter(function(r){return r.profit<0}).length,surplus=rows.filter(function(r){return r.profit>=0});
+  var red=function(t){return '<b class="md-red">'+t+'</b>'},blue=function(t){return '<b class="md-blue">'+t+'</b>'};
+
+  // 요약 한 줄
+  var sumEl=document.getElementById('monthlySummary');
+  if(sumEl){
+    if(!rows.length){sumEl.textContent='산정기준이 ‘확정’인 2026년 월 데이터가 아직 없습니다.'}
+    else{
+      var why=costDelta>revDelta?'비용이 매출만큼 줄지 않아':'비용이 매출보다 더 크게 줄어';
+      sumEl.innerHTML='매출은 전년 동기 대비 <b>'+mdPct(revDelta,true)+'</b>, 비용은 <b>'+mdPct(costDelta,true)+'</b> — '+why+' 확정 '+rows.length+'개월 중 <b>'+deficit+'개월이 적자</b>, 누적 '+(profit<0?red(mdMoney(profit,true)):blue(mdMoney(profit,true)))+'입니다.'+(BP_EXCLUDE_ACTIVE?' <span style="color:var(--text-muted);font-size:13px">(BP 발주비 제외)</span>':'');
+    }
+  }
+
+  // KPI 4개
+  var costPer=revenue?Math.round(cost/revenue*100):0,priorPer=priorRevenue?Math.round(priorCost/priorRevenue*100):0,gap=profit-priorProfit;
+  var kpis=[
+    {label:'누적 현금수지',value:mdMoney(profit,true),cls:profit<0?'red':'blue',sub:'전년 동기 '+mdMoney(priorProfit,true)+' → '+(gap<0?red(mdMoney(Math.abs(gap))+' 악화'):blue(mdMoney(gap)+' 개선'))+(include?' · 차입/상환 포함':'')},
+    {label:'누적 매출',value:mdMoney(revenue),cls:'',sub:'월평균 '+mdMoney(revenue/cnt)+' · 전년 대비 '+(revDelta<0?red(mdPct(revDelta,true)):blue(mdPct(revDelta,true)))},
+    {label:'매출 100원당 나간 비용',value:costPer+'원',cls:costPer>100?'red':'blue',sub:'전년 약 '+priorPer+'원 · 100원을 넘으면 적자'},
+    {label:'흑자 달성 월',value:surplus.length+' <small>/ '+rows.length+'개월</small>',cls:'blue',sub:surplus.length?surplus.map(function(r){return Number(r.month.split('-')[1])+'월 '+mdComma(r.profit,true)+'만'}).join(' · '):'아직 흑자 월이 없습니다'}
+  ];
+  var kg=document.getElementById('kpiGrid');
+  if(kg)kg.innerHTML=kpis.map(function(k){return '<div class="md-kpi'+(k.cls?' is-'+k.cls:'')+'"><div class="md-kpi-label">'+k.label+'</div><div class="md-kpi-value'+(k.cls?' md-'+k.cls:'')+'">'+k.value+'</div><div class="md-kpi-sub">'+k.sub+'</div></div>'}).join('');
+
+  // 월별 · 누적 차트
+  var v25=HIST_2025.map(function(h){return h.profit}),v26=[],c25=[],c26=[],acc=0,acc26=0;
+  for(var i=0;i<12;i++){acc+=v25[i]||0;c25.push(acc);if(i<n){var r=byMonth['26-'+pad2(i+1)],pv=r?r.profit:0;v26.push(r?pv:null);acc26+=pv;c26.push(acc26)}}
+  var pc=document.getElementById('profitChartWrap');if(pc)mdMonthlyBars(pc,v25,v26,n);
+  var bc=document.getElementById('balanceChartWrap');if(bc)mdCumLines(bc,c25,c26,n);
+
+  // 폭포 차트
   var categories=[['고정비','fixed'],['발주비','order'],['광고비','ad'],['변동비','variable']];
-  if(MONTHLY_FINANCE_MODE==='include')categories.push(['상환비','repay']);
-  var capital=MONTHLY_FINANCE_MODE==='include'?sum(rows,'capital'):0,scale=Math.max(revenue+capital,cost,1);
-  var parts=[['매출',revenue,'var(--blue)']];
-  if(capital)parts.push(['차입금',capital,'var(--accent)']);
-  categories.forEach(function(c){parts.push([c[0],sum(rows,c[1]),'var(--text-sub)'])});
-  parts.push(['현금수지',profit,profit>=0?'var(--blue)':'var(--red)']);
-  document.getElementById('monthlyComposition').innerHTML=parts.map(function(p){return '<div class="monthly-cost-row"><span>'+p[0]+'</span><div class="monthly-cost-track"><i style="width:'+Math.max(1,Math.abs(p[1])/scale*100)+'%;background:'+p[2]+'"></i></div><strong style="color:'+p[2]+'">'+signed(p[1])+'</strong></div>'}).join('');
-  var details=categories.map(function(c){var n=sum(rows,c[1]),o=sum(old,c[1]);return{name:c[0],now:n,prior:o,rateNow:revenue?n/revenue*100:0,rateOld:priorRevenue?o/priorRevenue*100:0,delta:change(n,o)}});
-  document.getElementById('monthlyCostChange').innerHTML=[{name:'전체 매출',delta:change(revenue,priorRevenue)}].concat(details).map(function(d){var col=d.name==='전체 매출'?'var(--text-muted)':d.delta>change(revenue,priorRevenue)?'var(--red)':'var(--blue)';return '<div class="monthly-cost-row"><span>'+d.name+'</span><div class="monthly-cost-track"><i style="width:'+Math.min(100,Math.abs(d.delta)/60*100)+'%;background:'+col+'"></i></div><strong>'+fmtPct(d.delta)+'</strong></div>'}).join('')+'<div class="kpi-sub">2025년 같은 '+rows.length+'개월 합계 대비 증감률</div>';
-  document.getElementById('monthlyDetailBody').innerHTML=details.map(function(d){var delta=d.rateNow-d.rateOld;return '<tr><td>'+d.name+'</td><td>'+fmt(d.now)+'만</td><td>'+fmtPct(d.rateOld)+' → '+fmtPct(d.rateNow)+'</td><td>'+fmt(d.prior/(rows.length||1))+'만 → '+fmt(d.now/(rows.length||1))+'만</td><td style="color:'+(delta>0?'var(--red)':'var(--blue)')+'">'+(delta>=0?'+':'')+fmtPct(delta)+'p</td></tr>'}).join('')+'<tr><td>비용 합계</td><td>'+fmt(cost)+'만</td><td>'+fmtPct(priorRevenue?priorCost/priorRevenue*100:0)+' → '+fmtPct(revenue?cost/revenue*100:0)+'</td><td>'+fmt(priorCost/(rows.length||1))+'만 → '+fmt(cost/(rows.length||1))+'만</td><td>—</td></tr>';
+  if(include)categories.push(['상환비','repay']);
+  var parts=[{label:'매출',value:revenue,kind:'in'}];
+  if(capital)parts.push({label:'차입금',value:capital,kind:'in',color:'var(--accent)'});
+  categories.forEach(function(c){parts.push({label:c[0],value:sum(rows,c[1]),kind:'out'})});
+  parts.push({label:'현금수지',value:profit,kind:'total'});
+  var comp=document.getElementById('monthlyComposition');
+  if(comp){mdWaterfall(comp,parts,revenue);comp.insertAdjacentHTML('beforeend','<div class="md-foot">막대 아래 %는 매출 대비 비중 · 비용 합계 '+mdMoney(cost)+' = 매출의 '+mdPct(revenue?cost/revenue*100:0)+'</div>')}
+
+  // 항목별 증감률
+  var details=categories.map(function(c){var nw=sum(rows,c[1]),o=sum(old,c[1]);return{name:c[0],now:nw,prior:o,nowAvg:nw/cnt,priorAvg:o/oldCnt,rateNow:revenue?nw/revenue*100:0,rateOld:priorRevenue?o/priorRevenue*100:0,delta:change(nw,o)}});
+  var changeItems=details.filter(function(d){return d.prior>0}).sort(function(a,b){return b.delta-a.delta});
+  var cc=document.getElementById('monthlyCostChange');
+  if(cc){
+    mdCostChange(cc,changeItems,revDelta);
+    var better=changeItems.filter(function(d){return d.delta<=revDelta}).map(function(d){return d.name}),worse=changeItems.filter(function(d){return d.delta>revDelta}).map(function(d){return d.name});
+    var note=!worse.length?'모든 비용 항목이 매출보다 더 크게 줄어 매출 대비 비중이 낮아졌습니다.':(better.length?'<b class="md-blue">'+better.join('·')+'</b>만 매출보다 빠르게 줄었고, <b class="md-red">'+worse.join('·')+'</b>는 매출 변화를 따라가지 못해 비중이 올라갔습니다.':'<b class="md-red">모든 비용 항목</b>이 매출 변화를 따라가지 못해 비중이 올라갔습니다.');
+    cc.insertAdjacentHTML('beforeend','<div class="md-note">'+note+'</div>');
+  }
+
+  // 상세 표
+  var body=document.getElementById('monthlyDetailBody');
+  if(body){
+    var barMax=Math.max(100,priorRevenue?priorCost/priorRevenue*100:0,revenue?cost/revenue*100:0);
+    var bar=function(now,old,col){return '<div class="md-bar"><i style="width:'+Math.min(100,now/barMax*100).toFixed(1)+'%;background:'+col+'"></i><b style="left:'+Math.min(100,old/barMax*100).toFixed(1)+'%"></b></div>'};
+    var rowHtml=function(name,now,rNow,rOld,pAvg,nAvg,total){var up=rNow>rOld+0.05,col=up?'var(--red)':'var(--blue)';
+      return '<tr'+(total?' class="md-total"':'')+'><td>'+name+'</td><td class="md-num">'+mdComma(now)+'</td><td class="md-bar-col">'+bar(rNow,rOld,col)+'</td><td class="md-num">'+mdComma(pAvg)+' → '+mdComma(nAvg)+'</td><td class="md-num" style="color:'+col+';font-weight:700">'+rOld.toFixed(1)+' → '+rNow.toFixed(1)+'% '+(up?'▲':'▼')+'</td></tr>'};
+    body.innerHTML=details.map(function(d){return rowHtml(d.name,d.now,d.rateNow,d.rateOld,d.priorAvg,d.nowAvg,false)}).join('')+
+      rowHtml('비용 합계',cost,revenue?cost/revenue*100:0,priorRevenue?priorCost/priorRevenue*100:0,priorCost/oldCnt,cost/cnt,true);
+    var foot=document.getElementById('monthlyDetailFoot');
+    if(foot){var rp=rows.reduce(function(t,r){return t+(Number(r.repay)||0)},0);foot.textContent='단위: 만원 · 막대 100% = 매출 · '+(include?'상환비 포함':'상환 '+mdMoney(rp)+'은 현금수지에서 제외 (‘차입/상환 포함’ 선택 시 반영)')}
+  }
 }
+
+function renderMonthlyLayout(rows){renderMonthlyDashboard(rows)}
 function renderAll(){
   var rows=calcRows().filter(function(r){return r.basis==='확정'});
-  renderCharts(rows);
-  renderProfitCompare(rows);
-  renderMonthlyLayout(rows);
-  renderKPI(rows);
+  renderMonthlyDashboard(rows);
 }
 
 function fmt(n){
