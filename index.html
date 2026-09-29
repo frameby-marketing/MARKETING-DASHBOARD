@@ -1723,7 +1723,6 @@ function renderDailyCumulative(){
   controlRow.insertAdjacentHTML('beforeend','<div class="cash-mode-tabs" role="group" aria-label="차입과 상환 포함 여부"><button type="button" data-mode="exclude" aria-pressed="'+(!financeIncluded)+'" class="'+(!financeIncluded?'active':'')+'">차입/상환 제외</button><button type="button" data-mode="include" aria-pressed="'+financeIncluded+'" class="'+(financeIncluded?'active':'')+'">차입/상환 포함</button></div>');
   controlRow.querySelectorAll('.cash-mode-tabs button').forEach(function(button){button.onclick=function(){if(meetingEvalFinanceMode===button.dataset.mode)return;meetingEvalFinanceMode=button.dataset.mode;renderDailyCumulative();if(typeof renderAll==='function')renderAll()}});
   // 입금일은 매출데이터 M열만 사용한다. 미입력 시 날짜별 누적에 차입금을 더하지 않는다.
-  if(financeIncluded&&targetCapital){controlRow.insertAdjacentHTML('beforeend','<span class="capital-date-control">차입 입금일 · 매출데이터 M열: '+(meetingEvalCapitalDate?month+'/'+Number(meetingEvalCapitalDate.slice(-2)):'미입력')+'</span>')}
   $('evalDateBadge').innerHTML='<span>기준 '+month+'/1 ~ '+(actual.length?md(latest):'—')+'</span><span class="eval-status">'+(complete?'데이터 입력 완료':'데이터 미입력')+'</span>';
   $('evalDateBadge').classList.toggle('missing',!complete);$('evalDataWrap').classList.toggle('data-missing',!complete);$('evalDataMessage').textContent=md(cutoff)+' 데이터 입력 시 평가지표가 노출됩니다.';$('evalPeriodSub').textContent=month+'/1~'+md(cutoff)+' 전일까지 입력 완료된 데이터 기준';
   $('monthEval').innerHTML=[evalItem('자사+네이버 일평균 정산',current.ownSettlementActual,current.ownTarget,false,'goal'),evalItem('전체매출 일평균 정산',current.totalSettlementActual,current.totalTargetDaily,false,'goal'),evalItem('통합 일평균 광고충전',current.adChargeActual,current.adTargetDaily,true,'goal',targetAd),evalItem('실제 발주비 누적',current.orderActual,current.orderExpected,true,'expected',targetOrder),evalItem('실제 고정비 누적',current.fixedActual,current.fixedExpected,true,'expected',targetFixed),evalItem('실제 변동비 누적',current.variableActual,current.variableExpected,true,'expected',targetVariable)].join('');
@@ -1900,49 +1899,71 @@ function getMonthEndProfitData(pr){
 function openCashTrend(){
   var selected=dateFlexible($('selectedProfitDate').value);
   if(!selected||selected.getFullYear()!==year||selected.getMonth()!==month-1)return;
-  var actualEnd=new Date(selected);actualEnd.setDate(actualEnd.getDate()-1);
+  // 우측 월말 카드와 같은 확정일·월말 예측 총액을 사용합니다. 조회 날짜는 표의 강조 위치만 정합니다.
   var lastRecorded=actual.length?latest:new Date(year,month-1,0);
-  if(actualEnd>lastRecorded)actualEnd=new Date(lastRecorded);
-  var actualRows=full.filter(function(r){return r.date<=actualEnd});
-  var ownObserved=actualRows.filter(function(r){return r.ownNaverSettlement!=null});
-  var ownDaily=ownObserved.length?av('ownNaverSettlement',ownObserved):(plan.ownTarget||0);
-  var adObserved=actualRows.filter(function(r){return r.adCharge!=null});
-  var nonMetaAd=adObserved.map(function(r){return (r.adCharge||0)-(year===2026&&month===9&&iso(r.date)===META_PAYMENT_CONFIG.date?META_PAYMENT_CONFIG.amount:0)});
-  var adDaily=nonMetaAd.length?avg(nonMetaAd):(plan.adTargetDaily||0);
   var byDay=new Map(full.map(function(r){return [iso(r.date),r]}));
-  var trace=[],balance=0,known=true,dangerStart=null,dangerRanges=[],missing=0;
-  for(var day=1;day<=dim;day++){
-    var date=new Date(year,month-1,day),key=iso(date),r=byDay.get(key),actualDay=date<=actualEnd;
-    var complete=!actualDay||!!r&&['ownNaverSettlement','adCharge','order','fixed','variable'].every(function(k){return r[k]!=null});
-    var income=null,expense=null,net=null;
-    if(complete){
-      income=(actualDay?(r.ownNaverSettlement||0)+(r.actualMonthlySettlement||0)+(r.actualOtherRevenue||0):ownDaily+(r&&r.expectedMonthlySettlement||0)+(r&&r.expectedOtherRevenue||0));
-      expense=(actualDay?(r.adCharge||0)+(r.order||0)+(r.fixed||0)+(r.variable||0):(adDaily+(year===2026&&month===9&&key===META_PAYMENT_CONFIG.date?META_PAYMENT_CONFIG.amount:0))+(r&&r.expOrder||0)+(r&&r.expFixed||0)+(r&&r.expVariable||0));
+  var required=['ownNaverSettlement','adCharge','order','fixed','variable'];
+  var days=Array.from({length:dim},function(_,i){
+    var date=new Date(year,month-1,i+1),key=iso(date),r=byDay.get(key);
+    var complete=date<=lastRecorded&&!!r&&required.every(function(k){return r[k]!=null});
+    return {day:i+1,date:date,key:key,r:r,actual:complete};
+  });
+  var recorded=days.filter(function(d){return d.actual}),projected=days.filter(function(d){return !d.actual});
+  var actualRevenue=sum(recorded,function(d){var r=d.r;return (r.ownNaverSettlement||0)+(r.actualMonthlySettlement||0)+(r.actualOtherRevenue||0)});
+  var actualAd=sum(recorded,function(d){return d.r.adCharge||0});
+  var actualOrder=sum(recorded,function(d){return d.r.order||0});
+  var actualFixed=sum(recorded,function(d){return d.r.fixed||0});
+  var actualVariable=sum(recorded,function(d){return d.r.variable||0});
+  var actualRepay=sum(recorded,function(d){return d.r.repay||0});
+  var actualCapital=financeIncluded&&recorded.some(function(d){return d.key===meetingEvalCapitalDate})?targetCapital:0;
+  var isLater=function(d){return d.date>lastRecorded},future=projected.filter(isLater);
+  var futureIncome=sum(future,function(d){return (d.r&&d.r.expectedMonthlySettlement||0)+(d.r&&d.r.expectedOtherRevenue||0)});
+  var futureMeta=sum(future,function(d){return year===2026&&month===9&&d.key===META_PAYMENT_CONFIG.date?META_PAYMENT_CONFIG.amount:0});
+  var futureOrder=sum(future,function(d){return d.r&&d.r.expOrder||0});
+  var futureFixed=sum(future,function(d){return d.r&&d.r.expFixed||0});
+  var futureVariable=sum(future,function(d){return d.r&&d.r.expVariable||0});
+  var futureRepay=sum(future,function(d){return d.r&&d.r.expRepay||0});
+  var missingCount=projected.length-future.length,count=projected.length;
+  var projectedOwn=count?(forecastData.totalRevenue-actualRevenue-futureIncome)/count:0;
+  var projectedAd=count?(forecastData.totalAd-actualAd-futureMeta)/count:0;
+  var missingOrder=missingCount?(forecastData.totalOrder-actualOrder-futureOrder)/missingCount:0;
+  var missingFixed=missingCount?(forecastData.totalFixed-actualFixed-futureFixed)/missingCount:0;
+  var missingVariable=missingCount?(forecastData.totalVariable-actualVariable-futureVariable)/missingCount:0;
+  var missingRepay=missingCount?(forecastRepay-actualRepay-futureRepay)/missingCount:0;
+  var remainingCapital=financeIncluded?targetCapital-actualCapital:0;
+  var capitalDay=remainingCapital&&projected.length?(projected.find(function(d){return d.key===meetingEvalCapitalDate})||projected[projected.length-1]).day:null;
+  var trace=[],balance=0,dangerStart=null,dangerRanges=[];
+  days.forEach(function(d){
+    var r=d.r,actualDay=d.actual,later=isLater(d),income,expense;
+    if(actualDay){
+      income=(r.ownNaverSettlement||0)+(r.actualMonthlySettlement||0)+(r.actualOtherRevenue||0);
+      expense=(r.adCharge||0)+(r.order||0)+(r.fixed||0)+(r.variable||0)+(financeIncluded?(r.repay||0):0);
+      if(financeIncluded&&d.key===meetingEvalCapitalDate)income+=targetCapital;
+    }else{
+      income=projectedOwn+(later&&r?(r.expectedMonthlySettlement||0)+(r.expectedOtherRevenue||0):0);
+      expense=projectedAd+(later&&year===2026&&month===9&&d.key===META_PAYMENT_CONFIG.date?META_PAYMENT_CONFIG.amount:0);
+      expense+=later&&r?(r.expOrder||0)+(r.expFixed||0)+(r.expVariable||0):missingOrder+missingFixed+missingVariable;
       if(financeIncluded){
-        if(meetingEvalCapitalDate===key)income+=targetCapital;
-        expense+=actualDay?(r.repay||0):(r&&r.expRepay||0);
+        if(d.day===capitalDay)income+=remainingCapital;
+        expense+=later&&r?(r.expRepay||0):missingRepay;
       }
-      net=income-expense;
-      if(known)balance+=net;
-    }else{missing++;known=false}
-    var accumulated=known?balance:null;
-    if(accumulated!==null&&accumulated<0&&dangerStart===null)dangerStart=day;
-    if((accumulated===null||accumulated>=0)&&dangerStart!==null){dangerRanges.push([dangerStart,day-1]);dangerStart=null}
-    trace.push({day:day,actual:actualDay,complete:complete,income:income,expense:expense,net:net,balance:accumulated});
-  }
+    }
+    var net=income-expense;balance+=net;
+    if(balance<0&&dangerStart===null)dangerStart=d.day;
+    if(balance>=0&&dangerStart!==null){dangerRanges.push([dangerStart,d.day-1]);dangerStart=null}
+    trace.push({day:d.day,actual:actualDay,complete:actualDay,income:income,expense:expense,net:net,balance:balance});
+  });
   if(dangerStart!==null)dangerRanges.push([dangerStart,dim]);
   var signed=function(v){return v==null?'—':(v>0?'+':'')+fmtWon(v)};
   var cls=function(v){return v==null?'unknown':v<0?'bad':v>0?'favorable':'neutral'};
-  var projected=trace.filter(function(x){return !x.actual});
-  var risk=dangerRanges.length?dangerRanges.map(function(r){return month+'/'+r[0]+(r[1]===r[0]?'':'~'+month+'/'+r[1])}).join(' · '):missing?'실제 데이터 미입력으로 판정 불가':'누적 적자 구간 없음';
-  var low=trace.filter(function(x){return x.balance!=null}).sort(function(a,b){return a.balance-b.balance})[0];
-  var rowsHtml=trace.map(function(x){return '<tr class="'+(x.day===selected.getDate()?'cash-trend-boundary ':'')+(x.balance!=null&&x.balance<0?'cash-trend-danger':'')+'"><th scope="row">'+month+'/'+x.day+'</th><td><span class="cash-trend-tag '+(x.actual?'actual':'forecast')+'">'+(x.actual?(x.complete?'실제':'미입력'):'예상')+'</span></td><td>'+signed(x.income)+'</td><td>'+signed(x.expense)+'</td><td class="'+cls(x.net)+'">'+signed(x.net)+'</td><td class="'+cls(x.balance)+'">'+signed(x.balance)+'</td></tr>'}).join('');
-  var body='<div class="cash-trend-summary"><div><small>월말 누적 현금수지</small><strong class="'+cls(trace[dim-1].balance)+'">'+signed(trace[dim-1].balance)+'</strong></div><div><small>가장 낮은 누적 현금수지</small><strong class="'+cls(low&&low.balance)+'">'+(low?month+'/'+low.day+' · '+signed(low.balance):'—')+'</strong></div><div><small>주의 구간 · 누적 적자</small><strong class="'+(dangerRanges.length?'bad':'')+'">'+risk+'</strong></div></div>'+
-    '<p class="cash-trend-help">'+month+'/1~'+md(actualEnd)+' 실제 입력값 · '+(projected.length?month+'/'+projected[0].day+'~'+month+'/'+dim+' 예상값':'예상 기간 없음')+' · 날짜별 수입−지출을 누적합니다. 누적 금액이 음수인 날을 붉게 표시합니다.'+(missing?' 실제 데이터 미입력 '+missing+'일 이후의 누적 금액은 표시하지 않습니다.':'')+'</p>'+
+  var risk=dangerRanges.length?dangerRanges.map(function(r){return month+'/'+r[0]+(r[1]===r[0]?'':'~'+month+'/'+r[1])}).join(' · '):'누적 적자 구간 없음';
+  var low=trace.slice().sort(function(a,b){return a.balance-b.balance})[0];
+  var rowsHtml=trace.map(function(x){return '<tr class="'+(x.day===selected.getDate()?'cash-trend-boundary ':'')+(x.balance<0?'cash-trend-danger':'')+'"><th scope="row">'+month+'/'+x.day+'</th><td><span class="cash-trend-tag '+(x.actual?'actual':'forecast')+'">'+(x.actual?'실제':'예상')+'</span></td><td>'+signed(x.income)+'</td><td>'+signed(x.expense)+'</td><td class="'+cls(x.net)+'">'+signed(x.net)+'</td><td class="'+cls(x.balance)+'">'+signed(x.balance)+'</td></tr>'}).join('');
+  var last=trace[dim-1],body='<div class="cash-trend-summary"><div><small>월말 누적 현금수지</small><strong class="'+cls(last.balance)+'">'+signed(last.balance)+'</strong></div><div><small>가장 낮은 누적 현금수지</small><strong class="'+cls(low&&low.balance)+'">'+(low?month+'/'+low.day+' · '+signed(low.balance):'—')+'</strong></div><div><small>주의 구간 · 누적 적자</small><strong class="'+(dangerRanges.length?'bad':'')+'">'+risk+'</strong></div></div>'+
+    '<p class="cash-trend-help">최근 입력일 '+md(lastRecorded)+'까지의 실제 입력값과 이후 예상값을 표시합니다. 조회 날짜는 행 강조에 사용합니다.'+(missingCount?' 입력이 빠진 '+missingCount+'일은 예상값으로 표시합니다.':'')+'</p>'+
     '<div class="cash-trend-scroll"><table class="cash-trend-table"><thead><tr><th>날짜</th><th>구분</th><th>수입</th><th>지출</th><th>일별 현금수지</th><th>누적 현금수지</th></tr></thead><tbody>'+rowsHtml+'</tbody></table></div>'+
-    '<p class="cash-trend-help">예상 수입은 이전 실제 자사+네이버 정산 일평균(미입력 시 월 목표)과 해당 날짜의 예상 월정산·기타매출을 사용합니다. 예상 광고충전은 이전 실제 평균(미입력 시 월 목표), 비용은 해당 날짜의 예상 발주·고정·변동·상환비를 사용합니다. 차입/상환은 상단 설정을 따릅니다.</p>';
-  var firstForecast=trace.find(function(x){return !x.actual});
-  openDetailModal(month+'월 현금수지 추이',(firstForecast?month+'/'+firstForecast.day+'부터 예측':'월 전체 실제')+' · 마지막 실제 기준일 '+md(actualEnd),body);
+    '<p class="cash-trend-help">남은 날짜의 정산·광고충전은 우측 월말 현금 수지 예측과 같은 월간 총액을 날짜별로 배분합니다. 예상 월정산·기타매출·발주·고정·변동·상환비는 입력된 날짜에 반영합니다. 차입/상환은 상단 설정을 따릅니다.</p>';
+  openDetailModal(month+'월 현금수지 추이',(projected.length?month+'/'+projected[0].day+'부터 예측':'월 전체 실제')+' · 마지막 실제 기준일 '+md(lastRecorded),body);
 }
 function openCurrentProfitDetail(){
   var d=selectedProfitDetail;if(!d)return;
