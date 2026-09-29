@@ -2851,15 +2851,15 @@ function renderCharts(rows){
 function renderBarChart(cid,rows,field){
   var el=document.getElementById(cid);
   if(!el)return;
-  var values=rows.map(function(r){return r[field]});
-  if(!rows.length){el.innerHTML='<div class="empty">확정된 월 데이터가 없습니다.</div>';return}
-  var months=rows.map(function(r){return r.month.replace('26-','')+'월'});
-  var maxAbs=Math.max.apply(null,values.map(function(v){return Math.abs(v)}).concat([1]));
+  var byMonth={};rows.forEach(function(r){byMonth[r.month]=r});
+  var months=Array.from({length:12},function(_,i){return (i+1)+'월'});
+  var values=months.map(function(_,i){var r=byMonth['26-'+pad2(i+1)];return r?r[field]:null});
+  var maxAbs=Math.max.apply(null,values.filter(function(v){return v!==null}).map(function(v){return Math.abs(v)}).concat([1]));
   var W=500,H=240,mTop=28,mBot=36,mLeft=8,mRight=8;
   var chartH=H-mTop-mBot;
   var zeroY=mTop+chartH/2;
   var halfH=chartH/2*0.90;
-  var barW=(W-mLeft-mRight)/rows.length;
+  var barW=(W-mLeft-mRight)/12;
   var barPad=5;
   var isLight=document.documentElement.classList.contains('light');
   var guideColor=isLight?'#d4d8e8':'#2a2d3a';
@@ -2871,10 +2871,11 @@ function renderBarChart(cid,rows,field){
     var gy=mTop+chartH*p;
     svg+='<line x1="'+mLeft+'" y1="'+gy.toFixed(1)+'" x2="'+(W-mRight)+'" y2="'+gy.toFixed(1)+'" stroke="'+guideColor+'" stroke-width="'+(p===0.5?'1.2':'0.5')+'" '+(p!==0.5?'stroke-dasharray="3,3"':'')+'/>';
   }
-  for(var i=0;i<rows.length;i++){
+  for(var i=0;i<12;i++){
     var val=values[i];
     var bx=mLeft+i*barW+barPad/2;
     var bw=barW-barPad;
+    if(val===null){svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(H-5).toFixed(1)+'" text-anchor="middle" fill="'+monthLabelColor+'" font-size="8.5" font-family="Pretendard,sans-serif">'+months[i]+'</text>';continue}
     var isPos=val>=0;
     var color=isPos?'#3b82f6':'#ef4444';
     var barH=Math.max(2,(Math.abs(val)/maxAbs)*halfH);
