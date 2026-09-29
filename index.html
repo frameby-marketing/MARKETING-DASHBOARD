@@ -856,77 +856,56 @@
     <div class="tab-content active" id="tab-dailyCumulative">
       <div id="meetingEvalHost"></div>
     </div>
-<style id="monthlyConfirmedStyles">#tab-dashboard .monthly-finance-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:0 0 16px}#tab-dashboard .monthly-finance-row>span{font-size:12px;color:var(--text-muted)}#tab-dashboard .cash-mode-tabs{display:inline-flex;gap:7px}#tab-dashboard .cash-mode-tabs button{border:0;border-radius:8px;background:rgba(128,128,128,.18);color:var(--text-sub);font:inherit;font-size:12px;font-weight:800;padding:9px 14px;cursor:pointer}#tab-dashboard .cash-mode-tabs button.active{background:#df303a;color:#fff}#tab-dashboard #kpiGrid{grid-template-columns:repeat(3,minmax(0,1fr))}@media(max-width:700px){#tab-dashboard #kpiGrid{grid-template-columns:1fr}}</style>
-    <div class="tab-content" id="tab-dashboard">
-
-      <header class="page-header">
-        <div>
-          <p class="page-sub" id="lastUpdated">Google Sheets 데이터 로딩 중...</p>
-        </div>
-      </header>
-
-      <div class="monthly-finance-row"><div class="cash-mode-tabs" id="monthlyFinanceTabs" role="group" aria-label="차입과 상환 포함 여부"><button type="button" data-mode="exclude" class="active" aria-pressed="true" onclick="setMonthlyFinanceMode('exclude')">차입/상환 제외</button><button type="button" data-mode="include" aria-pressed="false" onclick="setMonthlyFinanceMode('include')">차입/상환 포함</button></div><span>확정 월만 집계 · BP 제외 설정은 전체 지표에 적용</span></div>
-      <!-- ① 차트 2칸 나란히 -->
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div class="chart-section">
-          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-            <div class="chart-section-title chart-section-title-big" style="margin-bottom:0">&#128202; 현금 수지 추이</div>
-            <button class="header-action-btn" id="bpExcludeBtn" onclick="toggleBPExclude()" title="26년 2~4월 발주비에서 BP사 지연지급분(25년 9~12월 발생, 7,100/3,700/3,700만) 제외">BP 제외</button>
-          </div>
-          <div class="chart-section-sub">
-            흑자 <span style="color:var(--blue)">&#9646; 파란색 &#8593;</span> &nbsp;/&nbsp;
-            적자 <span style="color:var(--red)">&#9646; 빨간색 &#8595;</span> &nbsp;&#183;&nbsp; 단위: 만원
-            <span id="bpExcludeNote" style="color:var(--accent);font-weight:600"></span>
-          </div>
-          <div class="chart-inner" id="profitChartWrap"></div>
-        </div>
-        <div class="chart-section">
-          <div class="chart-section-title chart-section-title-big">&#128176; 누적 자금수지 추이</div>
-          <div class="chart-section-sub">
-            플러스 <span style="color:var(--blue)">&#9646; 파란색 &#8593;</span> &nbsp;/&nbsp;
-            마이너스 <span style="color:var(--red)">&#9646; 빨간색 &#8595;</span> &nbsp;&#183;&nbsp; 단위: 만원
-          </div>
-          <div class="chart-inner" id="balanceChartWrap"></div>
-        </div>
-      </div>
-
-      <!-- ①-2 현금 수지 비교 (25년 vs 26년) -->
-      <div class="chart-section">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px">
-          <div class="chart-section-title chart-section-title-big" style="margin-bottom:0">&#128200; 현금 수지 비교 <span style="font-weight:400;color:var(--text-muted);font-size:11px">25년(빨강) vs 26년(파랑, 굵은선) · 월별 현금 수지(만원)</span></div>
-          <button class="header-action-btn" id="bpExcludeBtn3" onclick="toggleBPExclude()" title="26년 2~4월 발주비에서 BP사 지연지급분(25년 9~12월 발생, 7,100/3,700/3,700만) 제외">BP 제외</button>
-        </div>
-        <div class="ratio-compare-avg" id="profitCompareAvg" style="margin-top:10px"></div>
-        <div class="chart-inner" id="profitCompareChartWrap"></div>
-      </div>
-
-      <!-- ③ KPI -->
-      <div class="kpi-grid" id="kpiGrid"></div>
-
-      <!-- ⑤ 비용 구성 비율 -->
-      <div class="chart-section">
-        <div class="chart-section-title chart-section-title-big">&#128200; 비용 구성 비율 — 확정 기준 <span style="font-weight:400;color:var(--text-muted);font-size:11px">(산정기준 '확정'인 달만 합산)</span></div>
-        <div class="ratio-grid" id="costRatioGridConfirmed"></div>
-      </div>
-
-      <!-- ⑤-2 비용 구성 비율 비교 (25년 vs 26년) -->
-      <div class="chart-section">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px">
-          <div class="chart-section-title chart-section-title-big" style="margin-bottom:0">&#128201; 비용 구성 비율 비교 <span style="font-weight:400;color:var(--text-muted);font-size:11px">25년(빨강) vs 26년(파랑, 굵은선) · 항목별 매출 대비 비율(%) 추이</span></div>
-          <button class="header-action-btn" id="bpExcludeBtn2" onclick="toggleBPExclude()" title="26년 2~4월 발주비에서 BP사 지연지급분(25년 9~12월 발생, 7,100/3,700/3,700만) 제외">BP 제외</button>
-        </div>
-        <div class="ratio-compare-avg" id="ratioCompareAvg" style="margin-top:10px"></div>
-        <div class="ratio-tab-row" id="ratioTabRow"></div>
-        <div class="chart-inner" id="ratioCompareChartWrap"></div>
-      </div>
-
-      <!-- ⑤-3 월평균 비용 비교 (25년 vs 26년, 금액) -->
-      <div class="chart-section">
-        <div class="chart-section-title chart-section-title-big">&#128176; 월평균 비용 비교 <span style="font-weight:400;color:var(--text-muted);font-size:11px">25년(빨강) vs 26년(파랑) · 항목별 월평균 금액(만원) · 발주비는 상단 'BP 제외' 설정에 연동</span></div>
-        <div class="avg-compare-grid" id="avgCompareGrid"></div>
-      </div>
-
+<style id="monthlyConfirmedStyles">
+#tab-dashboard .monthly-header{display:flex;align-items:end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+#tab-dashboard .monthly-header h1{font-size:25px;margin:6px 0 0}
+#tab-dashboard .monthly-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#tab-dashboard .cash-mode-tabs{display:flex;gap:4px;background:var(--bg-card2);border:1px solid var(--border);border-radius:10px;padding:3px}
+#tab-dashboard .cash-mode-tabs button{border:0;border-radius:7px;background:transparent;color:var(--text-sub);font:inherit;font-size:12px;font-weight:700;padding:8px 12px;cursor:pointer}
+#tab-dashboard .cash-mode-tabs button.active{background:var(--accent);color:#fff}
+#tab-dashboard .monthly-summary{background:var(--bg-card2);border:1px solid var(--border);border-radius:var(--radius);padding:17px 21px;margin-bottom:16px;line-height:1.6}
+#tab-dashboard .monthly-summary b{color:var(--accent);margin-right:14px}
+#tab-dashboard #kpiGrid{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px}
+#tab-dashboard .monthly-wide{margin-bottom:16px}
+#tab-dashboard .monthly-pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+#tab-dashboard .monthly-subchart{margin-top:19px;font-size:13px;font-weight:700;color:var(--text-sub)}
+#tab-dashboard .monthly-subchart:first-of-type{margin-top:0}
+#tab-dashboard .monthly-table-scroll{overflow:auto}
+#tab-dashboard .monthly-detail{width:100%;border-collapse:collapse;font-size:12px}
+#tab-dashboard .monthly-detail th,#tab-dashboard .monthly-detail td{padding:12px 10px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}
+#tab-dashboard .monthly-detail th:first-child,#tab-dashboard .monthly-detail td:first-child{text-align:left}
+#tab-dashboard .monthly-detail th{background:var(--bg-card2);color:var(--text-sub)}
+#tab-dashboard .monthly-detail tr:last-child td{font-weight:700;border-top:2px solid var(--border-light)}
+#tab-dashboard .monthly-cost-row{display:grid;grid-template-columns:80px 1fr 80px;gap:9px;align-items:center;margin:13px 0;font-size:12px}
+#tab-dashboard .monthly-cost-track{height:11px;background:var(--bg-card2);border-radius:8px;overflow:hidden}
+#tab-dashboard .monthly-cost-track i{display:block;height:100%;border-radius:8px}
+#tab-dashboard .monthly-cost-row strong{text-align:right}
+@media(max-width:850px){#tab-dashboard .monthly-pair{grid-template-columns:1fr}#tab-dashboard #kpiGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){#tab-dashboard #kpiGrid{grid-template-columns:1fr}}
+</style>
+<div class="tab-content" id="tab-dashboard">
+  <header class="monthly-header">
+    <div><p class="page-sub" id="lastUpdated">Google Sheets 데이터 로딩 중...</p><h1>현금수지 현황</h1></div>
+    <div class="monthly-controls">
+      <div class="cash-mode-tabs" id="monthlyFinanceTabs" role="group" aria-label="차입과 상환 포함 여부"><button type="button" data-mode="exclude" class="active" aria-pressed="true" onclick="setMonthlyFinanceMode('exclude')">차입/상환 제외</button><button type="button" data-mode="include" aria-pressed="false" onclick="setMonthlyFinanceMode('include')">차입/상환 포함</button></div>
+      <button class="header-action-btn" id="bpExcludeBtn" aria-pressed="false" onclick="toggleBPExclude()" title="26년 2~4월 BP사 지연지급 발주비 제외">BP 제외</button>
     </div>
+  </header>
+  <div class="monthly-summary" id="monthlySummary"></div>
+  <div class="kpi-grid" id="kpiGrid"></div>
+  <section class="chart-section monthly-wide">
+    <div class="chart-section-title chart-section-title-big">월별 현금수지와 누적 흐름</div>
+    <div class="chart-section-sub">2026년은 확정 월만 표시 · 12월까지 월 축 유지 · 단위: 만원</div>
+    <div class="monthly-subchart">현금 수지 추이</div><div class="chart-inner" id="profitChartWrap"></div>
+    <div class="monthly-subchart">누적 자금 수지 추이</div><div class="chart-inner" id="balanceChartWrap"></div>
+    <div class="monthly-subchart">현금 수지 비교 · 2025년과 2026년</div><div class="ratio-compare-avg" id="profitCompareAvg"></div><div class="chart-inner" id="profitCompareChartWrap"></div>
+  </section>
+  <div class="monthly-pair">
+    <section class="chart-section"><div class="chart-section-title chart-section-title-big">매출이 어디로 나갔나</div><div class="chart-section-sub">확정 월 합계 · 차입/상환 설정 연동 · 단위: 만원</div><div id="monthlyComposition"></div></section>
+    <section class="chart-section"><div class="chart-section-title chart-section-title-big">매출만큼 줄지 않은 비용</div><div class="chart-section-sub">같은 확정 월 기준 전년 대비</div><div id="monthlyCostChange"></div></section>
+  </div>
+  <section class="chart-section monthly-wide"><div class="chart-section-title chart-section-title-big">비용 항목 상세</div><div class="chart-section-sub">2025년 같은 월과 비교 · 2026년 확정 기준</div><div class="monthly-table-scroll"><table class="monthly-detail"><thead><tr><th>항목</th><th>2026년 누적</th><th>매출 대비 비중 (25년 → 26년)</th><th>월평균 (25년 → 26년)</th><th>비중 변화</th></tr></thead><tbody id="monthlyDetailBody"></tbody></table></div></section>
+</div>
 
     <!-- TAB: SETTINGS -->
     <div class="tab-content" id="tab-settings">
@@ -2883,7 +2862,7 @@ function renderBarChart(cid,rows,field){
     svg+='<rect x="'+bx.toFixed(1)+'" y="'+by.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+barH.toFixed(1)+'" fill="'+color+'" rx="3" opacity="0.88"/>';
     var lbl=fmtKoreanShort(val);
     var lblY=isPos?(by-3):(by+barH+11);
-    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+lblY.toFixed(1)+'" text-anchor="middle" fill="'+color+'" font-size="7" font-family="DM Mono,monospace" font-weight="700">'+lbl+'</text>';
+    svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+lblY.toFixed(1)+'" text-anchor="middle" fill="'+color+'" font-size="11" font-family="DM Mono,monospace" font-weight="800">'+lbl+'</text>';
     svg+='<text x="'+(bx+bw/2).toFixed(1)+'" y="'+(H-5).toFixed(1)+'" text-anchor="middle" fill="'+monthLabelColor+'" font-size="8.5" font-family="Pretendard,sans-serif" font-weight="500">'+months[i]+'</text>';
   }
   el.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;height:auto;display:block" preserveAspectRatio="xMidYMid meet">'+svg+'</svg>';
@@ -3428,7 +3407,7 @@ function toggleBPExclude(){
   BP_EXCLUDE_ACTIVE=!BP_EXCLUDE_ACTIVE;
   ['bpExcludeBtn','bpExcludeBtn2','bpExcludeBtn3'].forEach(function(id){
     var btn=document.getElementById(id);
-    if(btn)btn.classList.toggle('active',BP_EXCLUDE_ACTIVE);
+    if(btn){btn.classList.toggle('active',BP_EXCLUDE_ACTIVE);btn.setAttribute('aria-pressed',BP_EXCLUDE_ACTIVE?'true':'false');}
   });
   var note=document.getElementById('bpExcludeNote');
   if(note)note.textContent=BP_EXCLUDE_ACTIVE?' · BP 지연지급분(2~4월 -7,100/-3,700/-3,700만) 제외 중':'';
@@ -4277,10 +4256,13 @@ function renderMonthTrend(rows){
 }
 
 function renderKPI(rows){
-  var revenue=rows.reduce(function(t,r){return t+r.revenueAdj},0),profit=rows.reduce(function(t,r){return t+r.profit},0),repaid=rows.reduce(function(t,r){return t+r.repay},0);
-  var items=[{label:'누적 전체매출',value:fmtKorean(revenue),sub:rows.length+'개월 확정',cls:'blue'},
-    {label:'누적 현금수지',value:fmtKorean(profit,true),sub:'확정 월 합계 · '+(MONTHLY_FINANCE_MODE==='include'?'차입/상환 포함':'차입/상환 제외'),cls:profit>=0?'blue':'red'},
-    {label:'누적 상환액',value:fmtKorean(repaid),sub:'확정된 상환액 · 현금수지 계산 '+(MONTHLY_FINANCE_MODE==='include'?'포함':'제외'),cls:'yellow'}];
+  var revenue=rows.reduce(function(t,r){return t+r.revenueAdj},0),profit=rows.reduce(function(t,r){return t+r.profit},0),repaid=rows.reduce(function(t,r){return t+r.repay},0),cost=rows.reduce(function(t,r){return t+r.totalCost},0);
+  var positive=rows.filter(function(r){return r.profit>=0}).length;
+  var items=[
+    {label:'2026년 누적 현금수지',value:fmtKorean(profit,true),sub:'확정 '+rows.length+'개월 · '+(MONTHLY_FINANCE_MODE==='include'?'차입/상환 포함':'차입/상환 제외'),cls:profit>=0?'blue':'red'},
+    {label:'2026년 누적 전체 매출',value:fmtKorean(revenue),sub:'확정 '+rows.length+'개월',cls:'blue'},
+    {label:'매출 100원당 나간 비용',value:(revenue?Math.round(cost/revenue*100):0)+'원',sub:'총비용 ÷ 전체매출',cls:cost>revenue?'red':'blue'},
+    {label:'2026년 흑자 달성 월',value:positive+' / '+rows.length+'개월',sub:'누적 상환액 '+fmtKorean(repaid),cls:'blue'}];
   document.getElementById('kpiGrid').innerHTML=items.map(function(it){return '<div class="kpi-card"><div class="kpi-label">'+it.label+'</div><div class="kpi-value '+it.cls+'">'+it.value+'</div><div class="kpi-sub">'+it.sub+'</div></div>'}).join('');
 }
 
@@ -4412,14 +4394,32 @@ function setSyncStatus(state){
   else{txt.textContent='연결 대기';}
 }
 
+function renderMonthlyLayout(rows){
+  var old=rows.map(function(r){return HIST_2025[Number(r.month.split('-')[1])-1]}).filter(Boolean);
+  var sum=function(list,key){return list.reduce(function(v,r){return v+(Number(r[key])||0)},0)};
+  var revenue=sum(rows,'revenueAdj'),profit=sum(rows,'profit'),cost=sum(rows,'totalCost'),priorRevenue=sum(old,'revenue');
+  var priorCost=old.reduce(function(v,r){return v+r.fixed+r.order+r.ad+r.variable},0);
+  var change=function(a,b){return b?((a/b-1)*100):0};
+  var signed=function(n){return fmtKorean(n,true)};
+  document.getElementById('monthlySummary').innerHTML='<b>요약</b>2026년 확정 '+rows.length+'개월 매출 '+fmtKorean(revenue)+' (전년 동기간 '+fmtPct(change(revenue,priorRevenue))+'), 비용 '+fmtKorean(cost)+' (전년 동기간 '+fmtPct(change(cost,priorCost))+') · 현금수지 '+signed(profit);
+  var categories=[['고정비','fixed'],['발주비','order'],['광고비','ad'],['변동비','variable']];
+  if(MONTHLY_FINANCE_MODE==='include')categories.push(['상환비','repay']);
+  var capital=MONTHLY_FINANCE_MODE==='include'?sum(rows,'capital'):0,scale=Math.max(revenue+capital,cost,1);
+  var parts=[['매출',revenue,'var(--blue)']];
+  if(capital)parts.push(['차입금',capital,'var(--accent)']);
+  categories.forEach(function(c){parts.push([c[0],sum(rows,c[1]),'var(--text-sub)'])});
+  parts.push(['현금수지',profit,profit>=0?'var(--blue)':'var(--red)']);
+  document.getElementById('monthlyComposition').innerHTML=parts.map(function(p){return '<div class="monthly-cost-row"><span>'+p[0]+'</span><div class="monthly-cost-track"><i style="width:'+Math.max(1,Math.abs(p[1])/scale*100)+'%;background:'+p[2]+'"></i></div><strong style="color:'+p[2]+'">'+signed(p[1])+'</strong></div>'}).join('');
+  var details=categories.map(function(c){var n=sum(rows,c[1]),o=sum(old,c[1]);return{name:c[0],now:n,prior:o,rateNow:revenue?n/revenue*100:0,rateOld:priorRevenue?o/priorRevenue*100:0,delta:change(n,o)}});
+  document.getElementById('monthlyCostChange').innerHTML=[{name:'전체 매출',delta:change(revenue,priorRevenue)}].concat(details).map(function(d){var col=d.name==='전체 매출'?'var(--text-muted)':d.delta>change(revenue,priorRevenue)?'var(--red)':'var(--blue)';return '<div class="monthly-cost-row"><span>'+d.name+'</span><div class="monthly-cost-track"><i style="width:'+Math.min(100,Math.abs(d.delta)/60*100)+'%;background:'+col+'"></i></div><strong>'+fmtPct(d.delta)+'</strong></div>'}).join('')+'<div class="kpi-sub">2025년 같은 '+rows.length+'개월 합계 대비 증감률</div>';
+  document.getElementById('monthlyDetailBody').innerHTML=details.map(function(d){var delta=d.rateNow-d.rateOld;return '<tr><td>'+d.name+'</td><td>'+fmt(d.now)+'만</td><td>'+fmtPct(d.rateOld)+' → '+fmtPct(d.rateNow)+'</td><td>'+fmt(d.prior/(rows.length||1))+'만 → '+fmt(d.now/(rows.length||1))+'만</td><td style="color:'+(delta>0?'var(--red)':'var(--blue)')+'">'+(delta>=0?'+':'')+fmtPct(delta)+'p</td></tr>'}).join('')+'<tr><td>비용 합계</td><td>'+fmt(cost)+'만</td><td>'+fmtPct(priorRevenue?priorCost/priorRevenue*100:0)+' → '+fmtPct(revenue?cost/revenue*100:0)+'</td><td>'+fmt(priorCost/(rows.length||1))+'만 → '+fmt(cost/(rows.length||1))+'만</td><td>—</td></tr>';
+}
 function renderAll(){
   var rows=calcRows().filter(function(r){return r.basis==='확정'});
   renderCharts(rows);
-  renderKPI(rows);
-  renderCostRatio(rows);
-  renderRatioCompare(rows);
-  renderAvgCompare(rows);
   renderProfitCompare(rows);
+  renderMonthlyLayout(rows);
+  renderKPI(rows);
 }
 
 function fmt(n){
