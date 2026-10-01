@@ -869,7 +869,32 @@
 #tab-dashboard .md-summary-tag{flex-shrink:0;font-size:12px;font-weight:700;color:#fff;background:var(--red);border-radius:6px;padding:5px 10px}
 #tab-dashboard .md-summary p{margin:0;font-size:17px;line-height:1.55;font-weight:500;color:var(--text)}
 #tab-dashboard .md-summary b{font-weight:700}
-#tab-dashboard .md-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#tab-dashboard .md-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+#tab-dashboard .md-kpi.is-clickable{cursor:pointer;transition:border-color .15s,transform .15s}
+#tab-dashboard .md-kpi.is-clickable:hover{border-color:var(--accent);transform:translateY(-2px)}
+#tab-dashboard .md-kpi.is-clickable:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#tab-dashboard .md-kpi-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#tab-dashboard .md-kpi-more{font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+#tab-dashboard .md-debt-bar{height:8px;border-radius:5px;background:var(--bg-card2);overflow:hidden;margin-top:4px}
+#tab-dashboard .md-debt-bar i{display:block;height:100%;background:var(--blue);border-radius:5px}
+.detail-modal.is-wide{max-width:1000px}
+.cf-section-title{font-size:14px;font-weight:800;color:var(--text);margin:22px 0 8px}
+.cf-section-title:first-child{margin-top:0}
+.cf-note{font-size:12.5px;color:var(--text-muted);line-height:1.6;margin-top:8px}
+.cf-scroll{overflow-x:auto}
+.cf-table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.cf-table th,.cf-table td{padding:10px 12px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}
+.cf-table thead th{font-size:12px;font-weight:700;color:var(--text-muted);border-bottom:1px solid var(--border-light)}
+.cf-table th:first-child,.cf-table td:first-child{text-align:left}
+.cf-table td{color:var(--text);font-family:'DM Mono',monospace}
+.cf-table td.cf-name{font-family:'Pretendard',sans-serif;font-weight:600}
+.cf-table td.cf-group{font-family:'Pretendard',sans-serif;font-weight:800;color:var(--text-sub);width:72px}
+.cf-table td.cf-share{color:var(--text-muted);font-size:12.5px}
+.cf-table tr.cf-sub td{background:var(--bg-card2);font-weight:800}
+.cf-table tr.cf-result td{background:var(--bg-card2);font-weight:900;font-size:15.5px;border-top:2px solid var(--text-sub);border-bottom:0}
+.cf-table tr.cf-open td{font-weight:800}
+.cf-table .cf-pos{color:var(--blue)}.cf-table .cf-neg{color:var(--red)}
+.cf-table.cf-compact{font-size:13px}.cf-table.cf-compact th,.cf-table.cf-compact td{padding:8px 10px}
 #tab-dashboard .md-kpi{background:var(--bg-card);border:1px solid var(--border);border-top:3px solid var(--text-muted);border-radius:var(--radius);padding:16px 20px;display:flex;flex-direction:column;gap:6px}
 #tab-dashboard .md-kpi.is-red{border-top-color:var(--red)}
 #tab-dashboard .md-kpi.is-blue{border-top-color:var(--blue)}
@@ -919,14 +944,13 @@
 #tab-dashboard .md-table td{font-weight:600;color:var(--text)}
 #tab-dashboard .md-table .md-num{font-weight:700}
 @media(max-width:1000px){#tab-dashboard .md-pair{grid-template-columns:1fr}}
-@media(max-width:850px){#tab-dashboard .md-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#tab-dashboard .md-summary{flex-direction:column;align-items:flex-start}}
+@media(max-width:850px){#tab-dashboard .md-kpis{grid-template-columns:1fr}#tab-dashboard .md-summary{flex-direction:column;align-items:flex-start}}
 @media(max-width:520px){#tab-dashboard .md-kpis{grid-template-columns:1fr}#tab-dashboard .md-summary p{font-size:15px}}
 </style>
 <div class="tab-content" id="tab-dashboard">
   <header class="monthly-header">
     <div><p class="page-sub" id="lastUpdated">Google Sheets 데이터 로딩 중...</p><h1>2026년 현금 수지</h1></div>
     <div class="monthly-controls">
-      <div class="cash-mode-tabs" id="monthlyFinanceTabs" role="group" aria-label="차입과 상환 포함 여부"><button type="button" data-mode="exclude" class="active" aria-pressed="true" onclick="setMonthlyFinanceMode('exclude')">차입/상환 제외</button><button type="button" data-mode="include" aria-pressed="false" onclick="setMonthlyFinanceMode('include')">차입/상환 포함</button></div>
       <button class="header-action-btn" id="bpExcludeBtn" aria-pressed="false" onclick="toggleBPExclude()" title="26년 2~4월 BP사 지연지급 발주비 제외">BP 제외</button>
     </div>
   </header>
@@ -1238,7 +1262,7 @@ var monthOverrides = {}; // { '26-06': {revenue:.., fixed:.., order:.., ad:.., v
 // BP사 2025년 9~12월 발생분 147,569,025원을 2026년 2~4월에 146,973,843원 지급 —
 // '연간 총 발주비 대비' 왜곡을 보고 싶을 때 이 지연 지급분을 제외해 볼 수 있는 토글
 var BP_EXCLUDE_ACTIVE = false;
-var MONTHLY_FINANCE_MODE = 'exclude';
+var MONTHLY_FINANCE_MODE = 'include'; // 2026년 누적 현황은 차입/상환 포함 기준으로만 표시
 var BP_EXCLUDE_AMOUNTS = {'26-02':71974339/10000,'26-03':37999027/10000,'26-04':37000477/10000}; // 원화 정확액을 만원으로 변환 — 26년에서 뺄 금액
 var BP_ACCRUAL_2025 = {9:67546350/10000, 10:75986775/10000, 11:3015900/10000, 12:1020000/10000}; // 원화 정확액을 만원으로 변환 — 25년 비교에 더할 발주비
 
@@ -2920,7 +2944,7 @@ function calcRows(){
     var totalCost=fixedVal+orderVal+adVal+variableVal+otherCostVal+(financing?repayVal:0);
     var profit=revenueAdj+otherIncomeVal+(financing?((ov.capital!==undefined)?ov.capital:(r.capital||0)):0)-totalCost;
     balance+=profit;
-    var row=Object.assign({},r,{revenueAdj:revenueAdj,dailyAvg:dailyAvgAdj,fixed:fixedVal,order:orderVal,ad:adVal,variable:variableVal,otherIncome:otherIncomeVal,otherCost:otherCostVal,repay:repayVal,repayEffective:financing?repayVal:0,totalCost:totalCost,profit:profit,balance:balance,isSimulated:isSimulated,scenarioRate:sc,hasOverride:Object.keys(ov).length>0});
+    var row=Object.assign({},r,{revenueAdj:revenueAdj,dailyAvg:dailyAvgAdj,fixed:fixedVal,order:orderVal,ad:adVal,variable:variableVal,orderRaw:r.order,otherIncome:otherIncomeVal,otherCost:otherCostVal,repay:repayVal,repayEffective:financing?repayVal:0,totalCost:totalCost,profit:profit,balance:balance,isSimulated:isSimulated,scenarioRate:sc,hasOverride:Object.keys(ov).length>0});
     return row;
   });
 }
@@ -3467,6 +3491,7 @@ function detailSignOutAndRetry(weekNum,category){
 }
 
 function closeDetailModal(){
+  var dm=document.querySelector('#detailModalOverlay .detail-modal');if(dm)dm.classList.remove('is-wide');
   document.getElementById('detailModalOverlay').classList.remove('show');
 }
 
@@ -4641,7 +4666,7 @@ function renderMonthlyDashboard(rows){
   var lastRow=sortedRows[sortedRows.length-1];
   var lastMonthNum=lastRow?Number(lastRow.month.split('-')[1]):0;
   var lastOpening=lastRow?lastRow.openingBalance:0;
-  var lastCashFlow=lastRow?lastRow.revenue+lastRow.otherIncome+(lastRow.capital||0)-(lastRow.fixed+lastRow.order+lastRow.ad+lastRow.variable+lastRow.otherCost+(lastRow.repay||0)):0;
+  var lastCashFlow=lastRow?mdRawCashFlow(lastRow):0;
   var endBalance=lastOpening+lastCashFlow;
   var priorRevenue=sum(old,'revenue'),priorProfit=sum(old,'profit'),priorCost=old.reduce(function(v,r){return v+r.fixed+r.order+r.ad+r.variable+(include?(r.repay||0):0)},0);
   var revDelta=change(revenue,priorRevenue),costDelta=change(cost,priorCost);
@@ -4658,16 +4683,17 @@ function renderMonthlyDashboard(rows){
     }
   }
 
-  // KPI 4개
-  var costPer=revenue?Math.round(cost/revenue*100):0,priorPer=priorRevenue?Math.round(priorCost/priorRevenue*100):0,gap=profit-priorProfit;
+  // KPI 3개: 누적 현금수지 · 현재 잔액 · 차입금 현황
+  var gap=profit-priorProfit;
+  var totalCapital=sum(rows,'capital'),totalRepay=sum(rows,'repay'),debtLeft=totalCapital-totalRepay,repaidPct=totalCapital?Math.min(100,totalRepay/totalCapital*100):0;
+  MD_DETAIL_STATE={rows:sortedRows,lastRow:lastRow,profit:profit,endBalance:endBalance};
   var kpis=[
-    {label:'누적 현금수지',value:mdMoney(profit,true),cls:profit<0?'red':'blue',sub:'전년 동기 '+mdMoney(priorProfit,true)+' → '+(gap<0?red(mdMoney(Math.abs(gap))+' 악화'):blue(mdMoney(gap)+' 개선'))+(include?' · 차입/상환 포함':'')},
-    {label:'현재 잔액 ('+lastMonthNum+'월 말)',value:mdMoney(endBalance),cls:endBalance<0?'red':'blue',sub:lastMonthNum+'월 기초잔액 '+mdMoney(lastOpening)+' '+(lastCashFlow<0?'−':'+')+' '+lastMonthNum+'월 현금수지 '+mdMoney(Math.abs(lastCashFlow))+'<br>차입금·상환비 포함 실제 현금 흐름 기준'},
-    {label:'누적 매출',value:mdMoney(revenue),cls:'',sub:'기타수입 '+mdMoney(otherIncome)+' 별도 · 월평균 '+mdMoney(revenue/cnt)+' · 전년 대비 '+(revDelta<0?red(mdPct(revDelta,true)):blue(mdPct(revDelta,true)))},
-    {label:'흑자 달성 월',value:surplus.length+' <small>/ '+rows.length+'개월</small>',cls:'blue',sub:surplus.length?surplus.map(function(r){return Number(r.month.split('-')[1])+'월 '+mdComma(r.profit,true)+'만'}).join(' · '):'아직 흑자 월이 없습니다'}
+    {key:'profit',label:'누적 현금수지',value:mdMoney(profit,true),cls:profit<0?'red':'blue',sub:'확정 '+rows.length+'개월 · 차입/상환 포함<br>전년 동기 '+mdMoney(priorProfit,true)+' → '+(gap<0?red(mdMoney(Math.abs(gap))+' 악화'):blue(mdMoney(gap)+' 개선'))},
+    {key:'balance',label:'현재 잔액 ('+lastMonthNum+'월 말)',value:mdMoney(endBalance),cls:endBalance<0?'red':'blue',sub:lastMonthNum+'월 기초잔액 '+mdMoney(lastOpening)+' '+(lastCashFlow<0?'−':'+')+' '+lastMonthNum+'월 현금수지 '+mdMoney(Math.abs(lastCashFlow))},
+    {key:'debt',label:'차입금 현황',value:mdMoney(debtLeft)+' <small>상환 필요</small>',cls:debtLeft>0?'red':'blue',sub:'누적 차입금 '+mdMoney(totalCapital)+' · 누적 상환 '+mdMoney(totalRepay)+' ('+repaidPct.toFixed(0)+'%)<div class="md-debt-bar"><i style="width:'+repaidPct.toFixed(1)+'%"></i></div>'}
   ];
   var kg=document.getElementById('kpiGrid');
-  if(kg)kg.innerHTML=kpis.map(function(k){return '<div class="md-kpi'+(k.cls?' is-'+k.cls:'')+'"><div class="md-kpi-label">'+k.label+'</div><div class="md-kpi-value'+(k.cls?' md-'+k.cls:'')+'">'+k.value+'</div><div class="md-kpi-sub">'+k.sub+'</div></div>'}).join('');
+  if(kg)kg.innerHTML=kpis.map(function(k){return '<div class="md-kpi is-clickable'+(k.cls?' is-'+k.cls:'')+'" role="button" tabindex="0" onclick="openMonthlyCashDetail(\''+k.key+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openMonthlyCashDetail(\''+k.key+'\')}"><div class="md-kpi-head"><div class="md-kpi-label">'+k.label+'</div><span class="md-kpi-more">상세보기 ›</span></div><div class="md-kpi-value'+(k.cls?' md-'+k.cls:'')+'">'+k.value+'</div><div class="md-kpi-sub">'+k.sub+'</div></div>'}).join('');
 
   // 월별 · 누적 차트
   var v25=HIST_2025.map(function(h){return historical2025ForComparison(h).profit}),v26=[],c25=[],c26=[],acc=0,acc26=0;
@@ -4712,6 +4738,90 @@ function renderMonthlyDashboard(rows){
 }
 
 function renderMonthlyLayout(rows){renderMonthlyDashboard(rows)}
+// ===== 2026년 누적 현황 카드 상세 팝업 =====
+var MD_DETAIL_STATE=null;
+var MD_IN_ITEMS=[['전체매출','revenue'],['기타수입','otherIncome'],['자본수입(차입금)','capital']];
+var MD_OUT_ITEMS=[['고정비','fixed'],['발주비','order'],['광고비','ad'],['변동비','variable'],['기타비','otherCost'],['상환비','repay']];
+function mdRawVal(r,key){return key==='order'?(r.orderRaw!==undefined?r.orderRaw:r.order):(Number(r[key])||0)}
+function mdRawCashFlow(r){
+  return MD_IN_ITEMS.reduce(function(t,x){return t+mdRawVal(r,x[1])},0)-MD_OUT_ITEMS.reduce(function(t,x){return t+mdRawVal(r,x[1])},0);
+}
+function mdWon(v,sign){if(!mdIsNum(v))return'—';var n=Math.round(v*10000);return (n<0?'−':(sign&&n>0?'+':''))+Math.abs(n).toLocaleString('ko-KR')+'원'}
+function mdCls(v){return v<0?'cf-neg':(v>0?'cf-pos':'')}
+function mdShare(v,total){return total?(v/total*100).toFixed(1)+'%':'—'}
+// 수입·지출 항목표: valueFn(key) → 금액(만원)
+function mdFlowTable(valueFn,resultLabel,opening){
+  var inTotal=MD_IN_ITEMS.reduce(function(t,x){return t+valueFn(x[1])},0),outTotal=MD_OUT_ITEMS.reduce(function(t,x){return t+valueFn(x[1])},0),net=inTotal-outTotal;
+  var h='<div class="cf-scroll"><table class="cf-table"><thead><tr><th>구분</th><th>항목</th><th>금액</th><th>비중</th></tr></thead><tbody>';
+  if(opening)h+='<tr class="cf-open"><td class="cf-group">기초</td><td class="cf-name">'+opening.label+'</td><td>'+mdWon(opening.value)+'</td><td class="cf-share"></td></tr>';
+  MD_IN_ITEMS.forEach(function(x,i){var v=valueFn(x[1]);h+='<tr><td class="cf-group">'+(i===0?'수입':'')+'</td><td class="cf-name">'+x[0]+'</td><td>'+mdWon(v,true)+'</td><td class="cf-share">'+mdShare(v,inTotal)+'</td></tr>'});
+  h+='<tr class="cf-sub"><td></td><td class="cf-name">수입 합계</td><td class="cf-pos">'+mdWon(inTotal,true)+'</td><td class="cf-share">100%</td></tr>';
+  MD_OUT_ITEMS.forEach(function(x,i){var v=valueFn(x[1]);h+='<tr><td class="cf-group">'+(i===0?'지출':'')+'</td><td class="cf-name">'+x[0]+'</td><td>'+mdWon(-v)+'</td><td class="cf-share">'+mdShare(v,outTotal)+'</td></tr>'});
+  h+='<tr class="cf-sub"><td></td><td class="cf-name">지출 합계</td><td class="cf-neg">'+mdWon(-outTotal)+'</td><td class="cf-share">100%</td></tr>';
+  if(opening){
+    h+='<tr class="cf-sub"><td></td><td class="cf-name">'+opening.flowLabel+' (수입 − 지출)</td><td class="'+mdCls(net)+'">'+mdWon(net,true)+'</td><td class="cf-share"></td></tr>';
+    var end=opening.value+net;
+    h+='<tr class="cf-result"><td></td><td class="cf-name">'+resultLabel+' (기초잔액 + 현금수지)</td><td class="'+mdCls(end)+'">'+mdWon(end)+'</td><td></td></tr>';
+  }else{
+    h+='<tr class="cf-result"><td></td><td class="cf-name">'+resultLabel+' (수입 − 지출)</td><td class="'+mdCls(net)+'">'+mdWon(net,true)+'</td><td></td></tr>';
+  }
+  return h+'</tbody></table></div>';
+}
+function mdMonthLabel(r){return Number(r.month.split('-')[1])+'월'}
+function openMdModal(title,body){
+  var ov=document.getElementById('detailModalOverlay');if(!ov)return;
+  if(typeof syncDashboardModalArea==='function')syncDashboardModalArea();
+  document.getElementById('detailModalTitle').textContent=title;
+  document.getElementById('detailModalBody').innerHTML=body;
+  ov.querySelector('.detail-modal').classList.add('is-wide');
+  ov.classList.add('show');
+}
+function openMonthlyCashDetail(kind){
+  var st=MD_DETAIL_STATE;if(!st||!st.rows.length)return;
+  var rows=st.rows,first=rows[0],last=st.lastRow,lastM=mdMonthLabel(last),range=mdMonthLabel(first)+'~'+lastM;
+  var body='';
+  if(kind==='profit'){
+    // 카드와 같은 값(BP 제외 토글 반영)으로 합산
+    var tot=function(key){return rows.reduce(function(t,r){return t+(Number(r[key])||0)},0)};
+    body+='<div class="cf-section-title">'+range+' 누적 수입·지출 내역</div>'+mdFlowTable(tot,'누적 현금수지');
+    // 월별 항목표 (만원)
+    var head='<tr><th>항목</th>'+rows.map(function(r){return '<th>'+mdMonthLabel(r)+'</th>'}).join('')+'<th>합계</th></tr>';
+    var line=function(label,fn,cls){var vals=rows.map(fn),t=vals.reduce(function(a,b){return a+b},0);return '<tr'+(cls?' class="'+cls+'"':'')+'><td class="cf-name">'+label+'</td>'+vals.map(function(v){return '<td class="'+(cls?mdCls(v):'')+'">'+mdComma(v,!!cls)+'</td>'}).join('')+'<td class="'+mdCls(cls?t:0)+'">'+mdComma(t,!!cls)+'</td></tr>'};
+    var b='';
+    MD_IN_ITEMS.forEach(function(x){b+=line(x[0],function(r){return Number(r[x[1]])||0})});
+    b+=line('수입 합계',function(r){return MD_IN_ITEMS.reduce(function(t,x){return t+(Number(r[x[1]])||0)},0)},'cf-sub');
+    MD_OUT_ITEMS.forEach(function(x){b+=line(x[0],function(r){return Number(r[x[1]])||0})});
+    b+=line('지출 합계',function(r){return -MD_OUT_ITEMS.reduce(function(t,x){return t+(Number(r[x[1]])||0)},0)},'cf-sub');
+    b+=line('현금수지',function(r){return r.profit},'cf-result');
+    body+='<div class="cf-section-title">월별 항목 상세 <span style="font-weight:500;color:var(--text-muted);font-size:12px">· 단위: 만원</span></div><div class="cf-scroll"><table class="cf-table cf-compact"><thead>'+head+'</thead><tbody>'+b+'</tbody></table></div>';
+    body+='<div class="cf-note">매출데이터 O1:AE14의 산정기준 ‘확정’ 월만 합산합니다. 차입금(자본수입)과 상환비를 포함한 기준입니다.'+(BP_EXCLUDE_ACTIVE?' 현재 BP 지연지급 발주비 제외가 켜져 있어 2~4월 발주비가 줄어든 값입니다.':'')+'</div>';
+    openMdModal('누적 현금수지 상세 · '+range,body);return;
+  }
+  if(kind==='balance'){
+    body+='<div class="cf-section-title">'+lastM+' 잔액 계산 내역</div>'+mdFlowTable(function(key){return mdRawVal(last,key)},'현재 잔액 ('+lastM+' 말)',{label:lastM+' 기초잔액',value:last.openingBalance,flowLabel:lastM+' 현금수지'});
+    var tb='',prevEnd=null,mismatch=[];
+    rows.forEach(function(r){
+      var inT=MD_IN_ITEMS.reduce(function(t,x){return t+mdRawVal(r,x[1])},0),outT=MD_OUT_ITEMS.reduce(function(t,x){return t+mdRawVal(r,x[1])},0),net=inT-outT,end=r.openingBalance+net;
+      if(prevEnd!==null&&Math.abs(prevEnd-r.openingBalance)>0.01)mismatch.push(mdMonthLabel(r));
+      tb+='<tr><td class="cf-name">'+mdMonthLabel(r)+'</td><td>'+mdWon(r.openingBalance)+'</td><td>'+mdWon(inT,true)+'</td><td>'+mdWon(-outT)+'</td><td class="'+mdCls(net)+'">'+mdWon(net,true)+'</td><td class="'+mdCls(end)+'" style="font-weight:800">'+mdWon(end)+'</td></tr>';
+      prevEnd=end;
+    });
+    body+='<div class="cf-section-title">월별 잔액 흐름</div><div class="cf-scroll"><table class="cf-table cf-compact"><thead><tr><th>월</th><th>기초잔액</th><th>수입</th><th>지출</th><th>현금수지</th><th>기말잔액</th></tr></thead><tbody>'+tb+'</tbody></table></div>';
+    var cum=rows.reduce(function(t,r){return t+mdRawCashFlow(r)},0);
+    body+='<div class="cf-note">검산: '+mdMonthLabel(first)+' 기초잔액 '+mdWon(first.openingBalance)+' + '+range+' 누적 현금수지 '+mdWon(cum,true)+' = '+mdWon(first.openingBalance+cum)+'<br>잔액은 실제 현금 흐름이므로 BP 제외 토글과 관계없이 시트 원본 값으로 계산합니다.'+(mismatch.length?'<br><b style="color:var(--red)">확인 필요: '+mismatch.join(', ')+' 기초잔액이 직전 월 기말잔액과 다릅니다.</b>':'')+'</div>';
+    openMdModal('현재 잔액 상세 · '+lastM+' 말 기준',body);return;
+  }
+  if(kind==='debt'){
+    var ct=0,rt=0,db='';
+    rows.forEach(function(r){var c=Number(r.capital)||0,p=Number(r.repay)||0;ct+=c;rt+=p;
+      db+='<tr><td class="cf-name">'+mdMonthLabel(r)+'</td><td>'+(c?mdWon(c,true):'—')+'</td><td>'+(p?mdWon(-p):'—')+'</td><td>'+(r.capitalDate||'—')+'</td><td style="font-weight:800" class="'+(ct-rt>0?'cf-neg':'cf-pos')+'">'+mdWon(ct-rt)+'</td></tr>'});
+    db+='<tr class="cf-result"><td class="cf-name">합계</td><td>'+mdWon(ct,true)+'</td><td>'+mdWon(-rt)+'</td><td></td><td class="'+(ct-rt>0?'cf-neg':'cf-pos')+'">'+mdWon(ct-rt)+'</td></tr>';
+    body+='<div class="cf-section-title">월별 차입·상환 내역</div><div class="cf-scroll"><table class="cf-table cf-compact"><thead><tr><th>월</th><th>차입금(자본수입)</th><th>상환비</th><th>차입금 입금일</th><th>상환 필요 잔액</th></tr></thead><tbody>'+db+'</tbody></table></div>';
+    body+='<div class="cf-note">상환 필요 차입금 = 2026년 확정 월의 누적 차입금 − 누적 상환비입니다. 2026년 이전에 받은 차입금은 이 표에 포함되지 않습니다.</div>';
+    openMdModal('차입금 현황 · '+range,body);return;
+  }
+}
+
 function renderAll(){
   var rows=calcRows().filter(function(r){return r.basis==='확정'});
   renderMonthlyDashboard(rows);
