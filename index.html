@@ -1718,7 +1718,7 @@ function renderDailyCumulative(){
   var dateFlexible=function(v){var z=normalizeDate(v),m=z.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?new Date(+m[1],+m[2]-1,+m[3]):null};
   var norm=function(v){return String(v||'').replace(/\s/g,'').toLowerCase()},sum=function(arr,fn){return arr.reduce(function(t,x){return t+fn(x)},0)};
   var now=new Date(),end=new Date(now.getFullYear(),now.getMonth(),now.getDate()),delta=(end.getDay()-4+7)%7;end.setDate(end.getDate()-delta);
-  var start=new Date(end);start.setDate(start.getDate()-6);var month=end.getMonth()+1,year=end.getFullYear(),mk=String(year).slice(2)+'-'+pad2(month),dim=new Date(year,month,0).getDate();
+  var start=new Date(end);start.setDate(start.getDate()-6);var month=now.getMonth()+1,year=now.getFullYear(),mk=String(year).slice(2)+'-'+pad2(month),dim=new Date(year,month,0).getDate();
   var planRow=meetingEvalPlanValues.slice(1).find(function(r){return String(r[0]||'').trim()===mk})||[];
   var capitalDatePrefix=year+'-'+pad2(month)+'-';
   var sheetCapitalDate=normalizeDate(planRow[12])||'';
@@ -1732,6 +1732,7 @@ function renderDailyCumulative(){
   var cutoff=new Date(now);cutoff.setDate(cutoff.getDate()-1);cutoff.setHours(0,0,0,0);
   var full=rows.filter(function(r){return r.date.getFullYear()===year&&r.date.getMonth()===month-1}),candidates=full.filter(function(r){return r.date<=cutoff});
   var actual=candidates.filter(function(r){return ['revenue','settlement','ownNaver','ownNaverSettlement','ad','adCharge','order','fixed','variable'].some(function(k){return r[k]!=null})});
+  var preparing=cutoff<new Date(year,month-1,1);
   var latest=actual.length?actual[actual.length-1].date:cutoff,monthRows=candidates.filter(function(r){return r.date<=latest});
   function sm(key,a){return sum(a,function(r){return r[key]||0})}function av(key,a){var z=a.filter(function(r){return r[key]!=null});return z.length?sm(key,z)/z.length:0}
   function pack(a){return {ownTarget:num(planRow[1])||0,totalTargetDaily:(num(planRow[2])||0)/dim,adTargetDaily:(num(planRow[6])||0)/dim,ownActual:av('ownNaver',a),ownSettlementActual:av('ownNaverSettlement',a),totalActual:av('revenue',a),totalSettlementActual:av('settlement',a),adActual:av('ad',a),adChargeActual:av('adCharge',a),orderExpected:sm('expOrder',a),orderActual:sm('order',a),fixedExpected:sm('expFixed',a),fixedActual:sm('fixed',a),variableExpected:sm('expVariable',a),variableActual:sm('variable',a)}}
@@ -1749,6 +1750,12 @@ function renderDailyCumulative(){
   // 입금일은 매출데이터 M열만 사용한다. 미입력 시 날짜별 누적에 차입금을 더하지 않는다.
   $('evalDateBadge').innerHTML='<span>기준 '+month+'/1 ~ '+(actual.length?md(latest):'—')+'</span><span class="eval-status">'+(complete?'데이터 입력 완료':'데이터 미입력')+'</span>';
   $('evalDateBadge').classList.toggle('missing',!complete);$('evalDataWrap').classList.toggle('data-missing',!complete);$('evalDataMessage').textContent=md(cutoff)+' 데이터 입력 시 평가지표가 노출됩니다.';$('evalPeriodSub').textContent=month+'/1~'+md(cutoff)+' 전일까지 입력 완료된 데이터 기준';
+  var overlayTitle=root.querySelector('#evalDataOverlay .eval-data-message b');if(overlayTitle)overlayTitle.textContent=preparing?month+'월 데이터 준비중':'데이터 미입력';
+  if(preparing){
+    $('evalDateBadge').innerHTML='<span>'+month+'월 데이터 준비중</span><span class="eval-status">데이터 미입력</span>';
+    $('evalDataMessage').textContent=month+'/1 데이터가 입력되면 '+month+'월 평가지표가 노출됩니다.';
+    $('evalPeriodSub').textContent=month+'월 1일 데이터부터 집계됩니다';
+  }
   $('monthEval').innerHTML=[evalItem('자사+네이버 일평균 정산',current.ownSettlementActual,current.ownTarget,false,'goal'),evalItem('전체매출 일평균 정산',current.totalSettlementActual,current.totalTargetDaily,false,'goal'),evalItem('통합 일평균 광고충전',current.adChargeActual,current.adTargetDaily,true,'goal',targetAd),evalItem('실제 발주비 누적',current.orderActual,current.orderExpected,true,'expected',targetOrder),evalItem('실제 고정비 누적',current.fixedActual,current.fixedExpected,true,'expected',targetFixed),evalItem('실제 변동비 누적',current.variableActual,current.variableExpected,true,'expected',targetVariable)].join('');
   Array.from(root.querySelectorAll('.eval-item')).forEach(function(card,i){card.onclick=function(){openEvalDetail(i)}});
   var revenue=sm('ownNaverSettlement',monthRows)+sm('actualMonthlySettlement',monthRows),otherRevenue=sm('actualOtherRevenue',monthRows),charge=sm('adCharge',monthRows),profit=revenue+otherRevenue-charge-current.orderActual-current.fixedActual-current.variableActual;
@@ -1777,7 +1784,7 @@ function renderDailyCumulative(){
   var cashGap=currentCash-targetThroughDay;
   $('evalExecutiveBrief').innerHTML=actual.length
     ? '<p>'+md(latest)+' 기준 누적 현금 수지 <b class="'+(currentCash>=0?'summary-positive':'summary-negative')+'">'+signedMoney(currentCash)+'</b> · 같은 기간 목표 대비 <b class="'+(cashGap>=0?'summary-positive':'summary-negative')+'">'+signedMoney(cashGap)+'</b> '+(cashGap>=0?'초과':'부족')+(costGaps[0].gap>0?' · 최대 비용 초과: '+costGaps[0].name+' <b class="summary-negative">'+signedMoney(costGaps[0].gap)+'</b>':'')+'</p>'
-    : '<p>'+month+'월 실제 데이터가 입력되면 누적 현금 수지와 목표 대비 차이를 표시합니다.</p>';
+    : (preparing?'<p>'+month+'월 데이터 준비중입니다. '+month+'/1 데이터가 입력되면 누적 현금 수지와 목표 대비 차이를 표시합니다.</p>':'<p>'+month+'월 실제 데이터가 입력되면 누적 현금 수지와 목표 대비 차이를 표시합니다.</p>');
   var share=function(v,r){return r?(v/r*100).toFixed(1)+'%':'—'};function line(label,v,r,total){return '<div class="profit-formula-row '+(total?'total':'')+'"><span>'+label+'</span><b>'+fmtMoney(v)+(!total?'<i class="share">매출 대비 '+share(v,r)+'</i>':'')+'</b></div>'}
   var bigMoney=function(v,withPlus){var formatted=(withPlus&&v>0?'+':'')+fmtMoney(v),unit=formatted.endsWith('억원')?'억원':'만원';return '<span class="profit-big-digits">'+formatted.slice(0,-unit.length)+'</span><span class="profit-big-unit">'+unit+'</span>'};
   var datePrefix=year+'-'+pad2(month)+'-',defaultDate=datePrefix+pad2(latest.getMonth()===month-1?latest.getDate():1);
@@ -1841,7 +1848,7 @@ function renderDailyCumulative(){
     root.getElementById('executiveOriginalProfit').appendChild(targetCard);
     currentCard.insertAdjacentHTML('beforeend','<button type="button" class="forecast-detail-button" aria-label="누적 현금 수지 상세보기">상세보기 ›</button>');
     forecastCard.insertAdjacentHTML('beforeend','<div class="forecast-hero-status"><span class="'+(profitGap>=0?'goal-up':'goal-down')+'">월 목표 대비 '+signedMoney(profitGap)+' '+(profitGap<0?'↓':'↑')+'</span><span>흑자 전환 '+(forecastCash>=0?'예상':'미달 예상')+'</span></div><div class="forecast-hero-confidence">예측 근거 데이터 <i><b style="width:'+(Math.min(dim,latest.getDate())/dim*100)+'%"></b></i> '+latest.getDate()+'/'+dim+'일</div><p class="forecast-hero-note">남은 '+Math.max(0,dim-latest.getDate())+'일의 예상 매출·비용을 반영했습니다.</p><button type="button" class="forecast-detail-button">상세보기 ›</button>');
-    var actualDay=Math.min(dim,Math.max(0,latest.getDate()));
+    var actualDay=preparing?0:Math.min(dim,Math.max(0,latest.getDate())); // 매월 1일은 아직 확보된 날짜가 없으므로 0일
     var oldProgress=$('evalDateBadge').querySelector('.executive-progress');if(oldProgress)oldProgress.remove();
     $('evalDateBadge').insertAdjacentHTML('beforeend','<span class="executive-progress">'+actualDay+' / '+dim+'일 경과<i><b style="width:'+(actualDay/dim*100)+'%"></b></i></span>');
     renderSelectedProfit();
