@@ -4637,10 +4637,12 @@ function renderMonthlyDashboard(rows){
   var include=MONTHLY_FINANCE_MODE==='include',cnt=rows.length||1,oldCnt=old.length||1;
   var revenue=sum(rows,'revenueAdj'),profit=sum(rows,'profit'),cost=sum(rows,'totalCost'),capital=include?sum(rows,'capital'):0,otherIncome=sum(rows,'otherIncome');
   // 실제 잔액: 1월 기초잔액 + 차입/상환을 포함한 전체 현금 흐름
-  var firstRow=rows.slice().sort(function(a,b){return a.month<b.month?-1:1})[0];
-  var openingBalance=firstRow?firstRow.openingBalance:0;
-  var endBalance=openingBalance+rows.reduce(function(t,r){return t+r.revenueAdj+r.otherIncome+(r.capital||0)-(r.fixed+r.order+r.ad+r.variable+r.otherCost+(r.repay||0))},0);
-  var lastMonthNum=rows.length?Math.max.apply(null,rows.map(function(r){return Number(r.month.split('-')[1])})):0;
+  var sortedRows=rows.slice().sort(function(a,b){return a.month<b.month?-1:1});
+  var lastRow=sortedRows[sortedRows.length-1];
+  var lastMonthNum=lastRow?Number(lastRow.month.split('-')[1]):0;
+  var lastOpening=lastRow?lastRow.openingBalance:0;
+  var lastCashFlow=lastRow?lastRow.revenue+lastRow.otherIncome+(lastRow.capital||0)-(lastRow.fixed+lastRow.order+lastRow.ad+lastRow.variable+lastRow.otherCost+(lastRow.repay||0)):0;
+  var endBalance=lastOpening+lastCashFlow;
   var priorRevenue=sum(old,'revenue'),priorProfit=sum(old,'profit'),priorCost=old.reduce(function(v,r){return v+r.fixed+r.order+r.ad+r.variable+(include?(r.repay||0):0)},0);
   var revDelta=change(revenue,priorRevenue),costDelta=change(cost,priorCost);
   var deficit=rows.filter(function(r){return r.profit<0}).length,surplus=rows.filter(function(r){return r.profit>=0});
@@ -4659,9 +4661,9 @@ function renderMonthlyDashboard(rows){
   // KPI 4개
   var costPer=revenue?Math.round(cost/revenue*100):0,priorPer=priorRevenue?Math.round(priorCost/priorRevenue*100):0,gap=profit-priorProfit;
   var kpis=[
-    {label:'누적 현금수지',value:mdMoney(profit,true),cls:profit<0?'red':'blue',sub:'전년 동기 '+mdMoney(priorProfit,true)+' → '+(gap<0?red(mdMoney(Math.abs(gap))+' 악화'):blue(mdMoney(gap)+' 개선'))+(include?' · 차입/상환 포함':'')+'<br>잔액 '+mdMoney(openingBalance)+'(1월 기초) → '+(endBalance<0?red(mdMoney(endBalance,true)):blue(mdMoney(endBalance)))+'('+lastMonthNum+'월 말)'},
+    {label:'누적 현금수지',value:mdMoney(profit,true),cls:profit<0?'red':'blue',sub:'전년 동기 '+mdMoney(priorProfit,true)+' → '+(gap<0?red(mdMoney(Math.abs(gap))+' 악화'):blue(mdMoney(gap)+' 개선'))+(include?' · 차입/상환 포함':'')},
+    {label:'현재 잔액 ('+lastMonthNum+'월 말)',value:mdMoney(endBalance),cls:endBalance<0?'red':'blue',sub:lastMonthNum+'월 기초잔액 '+mdMoney(lastOpening)+' '+(lastCashFlow<0?'−':'+')+' '+lastMonthNum+'월 현금수지 '+mdMoney(Math.abs(lastCashFlow))+'<br>차입금·상환비 포함 실제 현금 흐름 기준'},
     {label:'누적 매출',value:mdMoney(revenue),cls:'',sub:'기타수입 '+mdMoney(otherIncome)+' 별도 · 월평균 '+mdMoney(revenue/cnt)+' · 전년 대비 '+(revDelta<0?red(mdPct(revDelta,true)):blue(mdPct(revDelta,true)))},
-    {label:'매출 100원당 나간 비용',value:costPer+'원',cls:costPer>100?'red':'blue',sub:'전년 약 '+priorPer+'원 · 기타비 포함 · 기타수입 제외 기준'},
     {label:'흑자 달성 월',value:surplus.length+' <small>/ '+rows.length+'개월</small>',cls:'blue',sub:surplus.length?surplus.map(function(r){return Number(r.month.split('-')[1])+'월 '+mdComma(r.profit,true)+'만'}).join(' · '):'아직 흑자 월이 없습니다'}
   ];
   var kg=document.getElementById('kpiGrid');
