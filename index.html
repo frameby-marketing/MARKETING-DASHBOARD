@@ -875,8 +875,10 @@
 #tab-dashboard .md-kpi.is-clickable:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 #tab-dashboard .md-kpi-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
 #tab-dashboard .md-kpi-more{font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
-#tab-dashboard .md-debt-bar{height:8px;border-radius:5px;background:var(--bg-card2);overflow:hidden;margin-top:4px}
-#tab-dashboard .md-debt-bar i{display:block;height:100%;background:var(--blue);border-radius:5px}
+#tab-dashboard .md-debt-bar{height:8px;border-radius:5px;background:var(--red);overflow:hidden;margin-top:4px}
+#tab-dashboard .md-debt-bar i{display:block;height:100%;background:var(--text-muted)}
+#tab-dashboard .md-debt-legend{display:flex;gap:12px;margin-top:5px;font-size:12px;color:var(--text-muted)}
+#tab-dashboard .md-debt-legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
 .detail-modal.is-wide{max-width:1000px}
 .cf-section-title{font-size:14px;font-weight:800;color:var(--text);margin:22px 0 8px}
 .cf-section-title:first-child{margin-top:0}
@@ -1040,7 +1042,7 @@
           </div>
           <div class="guide-steps">
             <div class="guide-step"><span class="step-num">1</span><span>&#39;매출데이터&#39; 시트의 1행 헤더: <code>월 | 일평균매출 | 전체매출 | 자본수입 (차입금) | 고정비 | 발주비 | 광고비 | 변동비 | 상환비 | 메모 | 산정기준</code></span></div>
-            <div class="guide-step"><span class="step-num">2</span><span>월별 누적 현황은 O1:AE14의 17열을 읽고, 산정기준이 ‘확정’인 26년 월 행만 집계합니다. O=월, P=일평균(자사+네이버), Q=기초잔액, R=전체매출, S=기타수입, T=자본수입(차입금), U=고정비, V=발주비, W=광고비, X=변동비, Y=상환비, Z=기타비, AA=메모, AB=산정기준, AC=현금수지(차입금제외), AD=현금수지(차입금포함), AE=차입금 입금일입니다. 현금수지는 대시보드에서 각 항목으로 다시 계산합니다.</span></div>
+            <div class="guide-step"><span class="step-num">2</span><span>월별 누적 현황은 O1:AE14의 17열을 읽고, 산정기준이 ‘확정’인 26년 월 행만 집계합니다. O=월, P=일평균(자사+네이버), Q=기초잔액, R=전체매출, S=기타수입, T=자본수입(차입금), U=고정비, V=발주비, W=광고비, X=변동비, Y=상환비, Z=기타비, AA=메모, AB=산정기준, AC=현금수지(차입금제외), AD=현금수지(차입금포함), AE=차입금 입금일입니다. 현금수지는 대시보드에서 각 항목으로 다시 계산합니다. 같은 형식의 2025년 표(O17:AE30)는 차입금 현황(25년부터 누적 차입·상환)에 사용합니다.</span></div>
             <div class="guide-step"><span class="step-num">3</span><span>공유 설정 → <strong>링크가 있는 모든 사용자 → 뷰어</strong>로 유지</span></div>
           </div>
         </div>
@@ -1281,6 +1283,16 @@ var HIST_2025 = [
   {month:11,revenue:27600, fixed:8900,  order:10200, ad:9100,  variable:0,    repay:0, profit:-600},
   {month:12,revenue:31200, fixed:8300,  order:8200,  ad:10600, variable:5300, repay:0, profit:-1200},
 ];
+// 2025년 차입·상환 내역 — 매출데이터 O17:AE30에서 자동으로 읽어옴 (단위: 만원)
+var DEBT_2025 = [];
+var DEBT_2025_LOADED = false;
+function parseDebt2025(values){
+  // O 월 | T(5) 자본수입(차입금) | Y(10) 상환비 | AE(16) 차입금 입금일. 산정기준과 관계없이 실제 차입·상환이 있는 달은 모두 집계
+  DEBT_2025=(values||[]).slice(1).map(function(c){
+    return{month:String(c[0]||'').trim(),capital:pn(c[5]),repay:pn(c[10]),date:normalizeDate(c[16]||'')};
+  }).filter(function(d){return /^25-(0[1-9]|1[0-2])$/.test(d.month)&&(d.capital||d.repay)});
+  DEBT_2025_LOADED=true;
+}
 var weeklyRows = [];
 var weeklyRowsMap = {};
 var selectedWeekIndex = null;
@@ -1296,6 +1308,7 @@ var SHEET_ID            = '1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI';
 var SHEET_NAME          = '매출데이터';
 var SHEET_RANGE         = 'A1:M13';
 var MONTHLY_CONFIRMED_RANGE = 'O1:AE14';
+var MONTHLY_2025_RANGE = 'O17:AE30'; // 2025년 월별 표 (형식 동일) — 차입금 누적 현황에 사용
 var WEEKLY_SHEET_NAME   = '일별 데이터';
 var WEEKLY_SHEET_RANGE  = 'A1:X500';
 var FVA_SHEET_NAME      = '예측대비실적';
@@ -1505,6 +1518,7 @@ async function fetchSheetData(force){
   try{
     var values=await fetchSheetValues(SHEET_NAME,SHEET_RANGE);
     meetingEvalPlanValues=values;
+    try{parseDebt2025(await fetchSheetValues(SHEET_NAME,MONTHLY_2025_RANGE));}catch(e){DEBT_2025=[];DEBT_2025_LOADED=false;console.warn('2025년 표(O17:AE30) 로드 실패:',e);}
     var confirmedValues=await fetchSheetValues(SHEET_NAME,MONTHLY_CONFIRMED_RANGE);
     parseCSV(sheetValuesToCSV(confirmedValues));
     await fetchWeeklySheetData();
@@ -4692,12 +4706,13 @@ function renderMonthlyDashboard(rows){
 
   // KPI 3개: 누적 현금수지 · 현재 잔액 · 차입금 현황
   var gap=profit-priorProfit;
-  var totalCapital=sum(rows,'capital'),totalRepay=sum(rows,'repay'),debtLeft=totalCapital-totalRepay,repaidPct=totalCapital?Math.min(100,totalRepay/totalCapital*100):0;
+  var capital25=DEBT_2025.reduce(function(t,d){return t+(Number(d.capital)||0)},0),repay25=DEBT_2025.reduce(function(t,d){return t+(Number(d.repay)||0)},0);
+  var totalCapital=capital25+sum(rows,'capital'),totalRepay=repay25+sum(rows,'repay'),debtLeft=totalCapital-totalRepay,repaidPct=totalCapital?Math.min(100,totalRepay/totalCapital*100):0;
   MD_DETAIL_STATE={rows:sortedRows,lastRow:lastRow,profit:profit,endBalance:endBalance};
   var kpis=[
     {key:'profit',label:'누적 현금수지',value:mdMoney(profit,true),cls:profit<0?'red':'blue',sub:'확정 '+rows.length+'개월 · 차입/상환 포함<br>전년 동기 '+mdMoney(priorProfit,true)+' → '+(gap<0?red(mdMoney(Math.abs(gap))+' 악화'):blue(mdMoney(gap)+' 개선'))},
     {key:'balance',label:'현재 잔액 ('+lastMonthNum+'월 말)',value:mdMoney(endBalance),cls:endBalance<0?'red':'blue',sub:lastMonthNum+'월 기초잔액 '+mdMoney(lastOpening)+' '+(lastCashFlow<0?'−':'+')+' '+lastMonthNum+'월 현금수지 '+mdMoney(Math.abs(lastCashFlow))},
-    {key:'debt',label:'차입금 현황',value:mdMoney(debtLeft)+' <small>상환 필요</small>',cls:debtLeft>0?'red':'blue',sub:'누적 차입금 '+mdMoney(totalCapital)+' · 누적 상환 '+mdMoney(totalRepay)+' ('+repaidPct.toFixed(0)+'%)<div class="md-debt-bar"><i style="width:'+repaidPct.toFixed(1)+'%"></i></div>'}
+    {key:'debt',label:'차입금 현황',value:mdMoney(debtLeft)+' <small>상환 필요</small>',cls:debtLeft>0?'red':'blue',sub:(DEBT_2025_LOADED?'25년부터 ':'')+'누적 차입금 '+mdMoney(totalCapital)+' · 누적 상환 '+mdMoney(totalRepay)+' ('+repaidPct.toFixed(0)+'%)<div class="md-debt-bar"><i style="width:'+repaidPct.toFixed(1)+'%"></i></div><div class="md-debt-legend"><span><i style="background:var(--text-muted)"></i>상환 완료</span><span><i style="background:var(--red)"></i>상환 필요</span></div>'+(DEBT_2025_LOADED?'':'<span style="color:var(--yellow)">25년 표(O17:AE30)를 불러오지 못했습니다</span>')}
   ];
   var kg=document.getElementById('kpiGrid');
   if(kg)kg.innerHTML=kpis.map(function(k){return '<div class="md-kpi is-clickable'+(k.cls?' is-'+k.cls:'')+'" role="button" tabindex="0" onclick="openMonthlyCashDetail(\''+k.key+'\')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();openMonthlyCashDetail(\''+k.key+'\')}"><div class="md-kpi-head"><div class="md-kpi-label">'+k.label+'</div><span class="md-kpi-more">상세보기 ›</span></div><div class="md-kpi-value'+(k.cls?' md-'+k.cls:'')+'">'+k.value+'</div><div class="md-kpi-sub">'+k.sub+'</div></div>'}).join('');
@@ -4820,12 +4835,15 @@ function openMonthlyCashDetail(kind){
   }
   if(kind==='debt'){
     var ct=0,rt=0,db='';
+    DEBT_2025.forEach(function(d){var c=Number(d.capital)||0,p=Number(d.repay)||0;ct+=c;rt+=p;
+      db+='<tr><td class="cf-name">25년 '+Number(String(d.month).split('-')[1])+'월</td><td>'+(c?mdWon(c,true):'—')+'</td><td>'+(p?mdWon(-p):'—')+'</td><td>'+(d.date||'—')+'</td><td style="font-weight:800" class="'+(ct-rt>0?'cf-neg':'cf-pos')+'">'+mdWon(ct-rt)+'</td></tr>'});
+    if(DEBT_2025.length)db+='<tr class="cf-sub"><td class="cf-name">25년 말 잔액</td><td>'+mdWon(ct,true)+'</td><td>'+mdWon(-rt)+'</td><td></td><td class="'+(ct-rt>0?'cf-neg':'cf-pos')+'">'+mdWon(ct-rt)+'</td></tr>';
     rows.forEach(function(r){var c=Number(r.capital)||0,p=Number(r.repay)||0;ct+=c;rt+=p;
-      db+='<tr><td class="cf-name">'+mdMonthLabel(r)+'</td><td>'+(c?mdWon(c,true):'—')+'</td><td>'+(p?mdWon(-p):'—')+'</td><td>'+(r.capitalDate||'—')+'</td><td style="font-weight:800" class="'+(ct-rt>0?'cf-neg':'cf-pos')+'">'+mdWon(ct-rt)+'</td></tr>'});
+      db+='<tr><td class="cf-name">26년 '+mdMonthLabel(r)+'</td><td>'+(c?mdWon(c,true):'—')+'</td><td>'+(p?mdWon(-p):'—')+'</td><td>'+(r.capitalDate||'—')+'</td><td style="font-weight:800" class="'+(ct-rt>0?'cf-neg':'cf-pos')+'">'+mdWon(ct-rt)+'</td></tr>'});
     db+='<tr class="cf-result"><td class="cf-name">합계</td><td>'+mdWon(ct,true)+'</td><td>'+mdWon(-rt)+'</td><td></td><td class="'+(ct-rt>0?'cf-neg':'cf-pos')+'">'+mdWon(ct-rt)+'</td></tr>';
     body+='<div class="cf-section-title">월별 차입·상환 내역</div><div class="cf-scroll"><table class="cf-table cf-compact"><thead><tr><th>월</th><th>차입금(자본수입)</th><th>상환비</th><th>차입금 입금일</th><th>상환 필요 잔액</th></tr></thead><tbody>'+db+'</tbody></table></div>';
-    body+='<div class="cf-note">상환 필요 차입금 = 2026년 확정 월의 누적 차입금 − 누적 상환비입니다. 2026년 이전에 받은 차입금은 이 표에 포함되지 않습니다.</div>';
-    openMdModal('차입금 현황 · '+range,body);return;
+    body+='<div class="cf-note">상환 필요 차입금 = 2025년부터의 누적 차입금 − 누적 상환비입니다. 2026년분은 매출데이터 시트의 확정 월에서 자동 집계합니다. 2025년분은 같은 시트 O17:AE30에서 차입·상환이 있는 달만 표시합니다.'+(DEBT_2025_LOADED?'':' <b style=\"color:var(--yellow)\">2025년 표를 불러오지 못해 2026년분만 반영되어 있습니다.</b>')+'</div>';
+    openMdModal('차입금 현황 · '+(DEBT_2025_LOADED?'2025년 ~ 2026년 '+mdMonthLabel(last):range),body);return;
   }
 }
 
