@@ -68,6 +68,12 @@
     .top-tab.active{color:var(--accent)}
     .top-tab.active::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--accent);border-radius:2px}
     body{display:flex;flex-direction:column}
+    /* Keep the authenticated shell in the viewport flex chain so .main can scroll. */
+    @media screen{
+      #dashboardShell{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
+      #dashboardShell .main{min-height:0;min-width:0}
+      #dashboardShell .main>.tab-content{flex-shrink:0}
+    }
     .app{display:flex;flex:1;overflow:hidden;min-height:0}
 
     .sync-status{display:flex;align-items:center;gap:6px;padding:8px 12px;font-size:11px;color:var(--text-muted);background:var(--bg-card2);border:1px solid var(--border);border-radius:20px}
@@ -1434,7 +1440,7 @@ function showDashboardAuthGate(){
 }
 function showDashboardShell(){
   var gate=document.getElementById('dashboardAuthGate'), shell=document.getElementById('dashboardShell');
-  if(gate)gate.style.display='none'; if(shell)shell.style.display='block';
+  if(gate)gate.style.display='none'; if(shell)shell.style.display='flex';
 }
 async function fetchDashboardUserInfo(token){
   try{var r=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+token}});if(!r.ok)return null;return await r.json();}catch(e){return null;}
